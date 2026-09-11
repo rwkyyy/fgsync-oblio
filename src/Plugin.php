@@ -14,6 +14,7 @@ use OblioWoo\Admin\ConnectionTest;
 use OblioWoo\Admin\ImportAction;
 use OblioWoo\Admin\LegacyNotice;
 use OblioWoo\Admin\LogReader;
+use OblioWoo\Admin\LogTailAction;
 use OblioWoo\Admin\NomenclatureCache;
 use OblioWoo\Admin\OrderActions;
 use OblioWoo\Admin\OrderListColumn;
@@ -237,16 +238,6 @@ final class Plugin {
 		$container->set( StockReservations::class, static fn (): StockReservations => new StockReservations() );
 
 		$container->set(
-			StockSyncCoordinator::class,
-			static fn ( Container $container ): StockSyncCoordinator => new StockSyncCoordinator(
-				$container->get( Settings::class ),
-				$container->get( Scheduler::class ),
-				$container->get( StockReservations::class ),
-				$container->get( Logger::class )
-			)
-		);
-
-		$container->set(
 			StockSyncBatch::class,
 			static fn ( Container $container ): StockSyncBatch => new StockSyncBatch(
 				$container->get( Settings::class ),
@@ -256,6 +247,17 @@ final class Plugin {
 				$container->get( ProductUpdater::class ),
 				$container->get( StockReservations::class ),
 				$container->get( Logger::class )
+			)
+		);
+
+		$container->set(
+			StockSyncCoordinator::class,
+			static fn ( Container $container ): StockSyncCoordinator => new StockSyncCoordinator(
+				$container->get( Settings::class ),
+				$container->get( Scheduler::class ),
+				$container->get( StockReservations::class ),
+				$container->get( Logger::class ),
+				$container->get( StockSyncBatch::class )
 			)
 		);
 
@@ -324,6 +326,7 @@ final class Plugin {
 		$container->set( HookRegistry::class, static fn (): HookRegistry => new HookRegistry() );
 		$container->set( HookInspector::class, static fn ( Container $container ): HookInspector => new HookInspector( $container->get( HookRegistry::class ) ) );
 		$container->set( LogReader::class, static fn (): LogReader => new LogReader() );
+		$container->set( LogTailAction::class, static fn ( Container $container ): LogTailAction => new LogTailAction( $container->get( LogReader::class ) ) );
 		$container->set( QueueStatus::class, static fn (): QueueStatus => new QueueStatus() );
 		$container->set( UpdateChecker::class, static fn (): UpdateChecker => new UpdateChecker() );
 
@@ -455,6 +458,7 @@ final class Plugin {
 			$this->get( LegacyNotice::class )->register();
 			$this->get( ConnectionTest::class )->register();
 			$this->get( StockSyncAction::class )->register();
+			$this->get( LogTailAction::class )->register();
 			$this->get( OrderActions::class )->register();
 			$this->get( OrderMetaBox::class )->register();
 			$this->get( ProductFields::class )->register();

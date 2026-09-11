@@ -9,6 +9,7 @@ declare( strict_types=1 );
 
 namespace OblioWoo\Stock;
 
+use OblioWoo\Queue\Jobs\StockSyncBatch;
 use OblioWoo\Queue\Scheduler;
 use OblioWoo\Support\AtomicLock;
 use OblioWoo\Support\Logger;
@@ -33,11 +34,14 @@ final class StockSyncCoordinator {
 
 	private Logger $logger;
 
-	public function __construct( Settings $settings, Scheduler $scheduler, StockReservations $reservations, Logger $logger ) {
+	private StockSyncBatch $batch;
+
+	public function __construct( Settings $settings, Scheduler $scheduler, StockReservations $reservations, Logger $logger, StockSyncBatch $batch ) {
 		$this->settings     = $settings;
 		$this->scheduler    = $scheduler;
 		$this->reservations = $reservations;
 		$this->logger       = $logger;
+		$this->batch        = $batch;
 	}
 
 	public function register(): void {
@@ -49,13 +53,47 @@ final class StockSyncCoordinator {
 		if ( ! $force && ! $this->settings->stock_schedule_enabled() ) {
 			return false;
 		}
-		if ( ! $this->is_configured() ) {
+		$token = $this->begin_run();
+		if ( null === $token ) {
 			return false;
 		}
 
+		$this->scheduler->enqueue_stock_batch( 0, 1, 0, $token );
+		$this->logger->info( 'Sincronizare stoc pornită (programată)' );
+
+		return true;
+	}
+
+	public function begin_full_sync(): array {
+		$token = $this->begin_run();
+		if ( null === $token ) {
+			return array(
+				'ok'     => false,
+				'reason' => $this->is_configured()
+					? __( 'O sincronizare este deja în curs.', 'facturare-gestiune-oblio-woocommerce' )
+					: __( 'Sincronizarea stocului nu este configurată.', 'facturare-gestiune-oblio-woocommerce' ),
+			);
+		}
+
+		$this->logger->info( 'Sincronizare stoc pornită (manual)' );
+
+		return array(
+			'ok'    => true,
+			'token' => $token,
+		);
+	}
+
+	public function step( int $offset, string $token ): array {
+		return $this->batch->run_step( $offset, $token );
+	}
+
+	private function begin_run(): ?string {
+		if ( ! $this->is_configured() ) {
+			return null;
+		}
 		if ( ! AtomicLock::acquire( self::RUN_LOCK, self::RUN_LOCK_TTL ) ) {
-			$this->logger->info( 'Stock sync skipped: a run is already in progress' );
-			return false;
+			$this->logger->info( 'Sincronizare stoc omisă: o rulare este deja în curs' );
+			return null;
 		}
 
 		$token = wp_generate_password( 12, false );
@@ -72,10 +110,7 @@ final class StockSyncCoordinator {
 		);
 		$this->reservations->reset();
 
-		$this->scheduler->enqueue_stock_batch( 0, 1, 0, $token );
-		$this->logger->info( 'Stock sync started' );
-
-		return true;
+		return $token;
 	}
 
 	public function request_webhook_sync(): void {
@@ -83,7 +118,7 @@ final class StockSyncCoordinator {
 		if ( ! $this->scheduler->settle_pending() ) {
 			$this->scheduler->schedule_settle( $this->settings->webhook_stock_delay() );
 		}
-		$this->logger->info( 'Webhook stock: sync requested (debounced)' );
+		$this->logger->info( 'Webhook stoc: sincronizare solicitată (temporizată)' );
 	}
 
 	public function run_settle(): void {
@@ -111,6 +146,15 @@ final class StockSyncCoordinator {
 		AtomicLock::release( self::RUN_LOCK );
 		delete_transient( self::PROGRESS_TRANSIENT );
 		$this->reservations->reset();
+	}
+
+	public function is_run_locked(): bool {
+		return AtomicLock::is_locked( self::RUN_LOCK );
+	}
+
+	public function unlock(): void {
+		$this->logger->warning( 'Sincronizare stoc: blocare eliberată manual' );
+		$this->cancel_run();
 	}
 
 	private function is_configured(): bool {

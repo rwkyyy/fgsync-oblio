@@ -525,6 +525,18 @@
     color: var(--accent-hover);
 }
 
+.oblio-autoupdate {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--ink-3);
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: normal;
+    cursor: pointer;
+}
+
 .oblio-empty {
     padding: 16px;
     color: var(--ink-3);
@@ -586,6 +598,18 @@
 
 .oblio-logline.lvl-error .lvl {
     color: var(--danger);
+}
+
+.oblio-lock-warning {
+    background: #fdf5ec;
+    border: 1px solid var(--warn);
+    border-radius: 6px;
+    padding: 8px 10px;
+    color: #9a4a0d;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
 }
 
 .oblio-qrow {

@@ -79,7 +79,7 @@ final class DocumentService implements DocumentIssuer {
 		do_action( 'oblio_fgwoo_document_issued', $order, $result, $options );
 
 		$this->emailer->maybe_send( $order, $result );
-		$this->logger->info( sprintf( 'Order #%d → %s %s %s issued', $order->get_id(), $doc_type, $result->series_name, $result->number ) );
+		$this->logger->info( sprintf( 'Comanda #%d: %s %s %s emis', $order->get_id(), $doc_type, $result->series_name, $result->number ) );
 
 		return $result;
 	}
@@ -101,7 +101,7 @@ final class DocumentService implements DocumentIssuer {
 		OrderMeta::clear( $order, $doc_type );
 
 		do_action( 'oblio_fgwoo_document_deleted', $order, $doc_type, $doc );
-		$this->logger->info( sprintf( 'Order #%d → %s %s %s deleted', $order->get_id(), $doc_type, $doc['series'], $doc['number'] ) );
+		$this->logger->info( sprintf( 'Comanda #%d: %s %s %s șters', $order->get_id(), $doc_type, $doc['series'], $doc['number'] ) );
 
 		return true;
 	}

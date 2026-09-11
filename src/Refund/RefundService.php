@@ -99,7 +99,7 @@ final class RefundService implements RefundIssuer {
 
 		do_action( 'oblio_fgwoo_storno_issued', $order, $result, $refund_id, $is_full );
 
-		$this->logger->info( sprintf( 'Order #%d refund #%d → storno %s %s (%s)', $order_id, $refund_id, $result->series_name, $result->number, $is_full ? 'full' : 'partial' ) );
+		$this->logger->info( sprintf( 'Comanda #%d rambursarea #%d: storno %s %s (%s)', $order_id, $refund_id, $result->series_name, $result->number, $is_full ? 'total' : 'parțial' ) );
 
 		return $result;
 	}
@@ -156,7 +156,7 @@ final class RefundService implements RefundIssuer {
 			)
 		);
 		do_action( 'oblio_fgwoo_storno_issued', $order, $result, 0, true );
-		$this->logger->info( sprintf( 'Order #%d → manual full storno %s %s', $order->get_id(), $result->series_name, $result->number ) );
+		$this->logger->info( sprintf( 'Comanda #%d: storno total manual %s %s', $order->get_id(), $result->series_name, $result->number ) );
 
 		return $result;
 	}

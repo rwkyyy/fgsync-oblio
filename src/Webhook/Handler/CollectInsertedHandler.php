@@ -32,7 +32,7 @@ final class CollectInsertedHandler implements WebhookHandler {
 
 		$order = $this->orders->find_by_document( $doc_type, $series, $number );
 		if ( null === $order ) {
-			$this->logger->warning( sprintf( 'Webhook Collect/Inserted: no order for %s %s %s', $doc_type, $series, $number ) );
+			$this->logger->warning( sprintf( 'Webhook Collect/Inserted: nicio comandă pentru %s %s %s', $doc_type, $series, $number ) );
 			return;
 		}
 
@@ -59,12 +59,12 @@ final class CollectInsertedHandler implements WebhookHandler {
 			} else {
 				$order->save();
 			}
-			$this->logger->info( sprintf( 'Webhook Collect/Inserted: order #%d completed (%s %s %s)', $order->get_id(), $doc_type, $series, $number ) );
+			$this->logger->info( sprintf( 'Webhook Collect/Inserted: comanda #%d finalizată (%s %s %s)', $order->get_id(), $doc_type, $series, $number ) );
 			return;
 		}
 
 		$order->add_order_note( __( 'Oblio: încasare înregistrată (comanda nu a fost finalizată automat).', 'facturare-gestiune-oblio-woocommerce' ) );
 		$order->save();
-		$this->logger->info( sprintf( 'Webhook Collect/Inserted: order #%d collection recorded, not completed (%s %s %s)', $order->get_id(), $doc_type, $series, $number ) );
+		$this->logger->info( sprintf( 'Webhook Collect/Inserted: încasare înregistrată pentru comanda #%d, nefinalizată (%s %s %s)', $order->get_id(), $doc_type, $series, $number ) );
 	}
 }

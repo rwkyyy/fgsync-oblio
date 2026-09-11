@@ -4,7 +4,7 @@ Integrare nativă WooCommerce cu [Oblio.eu](https://www.oblio.eu): emitere autom
 proforme, avize și storno, procesare pe coadă, sincronizare stoc pe mai multe gestiuni și webhooks.
 
 Acesta este repository-ul de dezvoltare. Descrierea pluginului și changelog-ul publicate pe
-WordPress.org se află în [`readme.txt`](readme.txt) (format WordPress.org, în engleză).
+WordPress.org se află în [`readme.txt`](readme.txt).
 
 ## Cerințe
 
@@ -20,13 +20,6 @@ composer phpcs      # coding standards
 composer phpstan    # analiză statică
 composer test       # PHPUnit
 ```
-
-## Proces de release
-
-Un commit pe `main` care modifică header-ul `Version` din
-`facturare-gestiune-oblio-woocommerce.php` (sincronizat cu `Stable tag` din `readme.txt`)
-declanșează un workflow GitHub Actions care creează tag-ul și publică un GitHub Release cu
-intrarea corespunzătoare din changelog. Vezi `.github/workflows/`.
 
 ## Licență
 

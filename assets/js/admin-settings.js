@@ -57,26 +57,140 @@
 		$( '.oblio-sync-now' ).on( 'click', function () {
 			var $sync = $( this );
 			var $result = $sync.siblings( '.oblio-sync-result' ).first();
-			$result.text( '…' ).css( 'color', '#157347' );
+
+			function fail( message ) {
+				$result.text( message || oblioFgwoo.i18n.error ).css( 'color', '#c62d1c' );
+				$sync.prop( 'disabled', false );
+			}
+
+			function step( token, offset ) {
+				$.post( oblioFgwoo.ajaxUrl, {
+					action: 'oblio_fgwoo_stock_sync_step',
+					nonce: oblioFgwoo.nonce,
+					token: token,
+					offset: offset
+				} ).done( function ( response ) {
+					var data = response && response.data;
+					if ( ! response || ! response.success || ! data ) {
+						fail( data && data.message );
+						return;
+					}
+					$result.text( data.message ).css( 'color', '#157347' );
+					if ( data.done ) {
+						$sync.prop( 'disabled', false );
+						return;
+					}
+					step( token, data.nextOffset );
+				} ).fail( function () {
+					fail( oblioFgwoo.i18n.requestFailed );
+				} );
+			}
+
+			$result.text( oblioFgwoo.i18n.syncing ).css( 'color', '#157347' );
 			$sync.prop( 'disabled', true );
 			$.post( oblioFgwoo.ajaxUrl, {
 				action: 'oblio_fgwoo_stock_sync_now',
 				nonce: oblioFgwoo.nonce
 			} ).done( function ( response ) {
-				var ok = response && response.success;
-				$result
-					.text( ( response && response.data && response.data.message ) || '' )
-					.css( 'color', ok ? '#157347' : '#c62d1c' );
+				var data = response && response.data;
+				if ( ! response || ! response.success || ! data || ! data.token ) {
+					fail( data && data.message );
+					return;
+				}
+				step( data.token, 0 );
 			} ).fail( function () {
-				$result.text( oblioFgwoo.i18n.requestFailed ).css( 'color', '#c62d1c' );
-			} ).always( function () {
-				$sync.prop( 'disabled', false );
+				fail( oblioFgwoo.i18n.requestFailed );
 			} );
 		} );
 
 		var logBody = document.getElementById( 'oblio-logbody' );
 		if ( logBody ) {
 			logBody.scrollTop = logBody.scrollHeight;
+		}
+	} );
+
+	$( function () {
+		$( '.oblio-sync-unlock' ).on( 'click', function () {
+			var $btn = $( this );
+			var $result = $btn.siblings( '.oblio-unlock-result' ).first();
+			$btn.prop( 'disabled', true );
+			$result.text( '…' ).css( 'color', '#157347' );
+			$.post( oblioFgwoo.ajaxUrl, {
+				action: 'oblio_fgwoo_stock_sync_unlock',
+				nonce: oblioFgwoo.nonce
+			} ).done( function ( response ) {
+				var data = response && response.data;
+				var ok = response && response.success;
+				$result.text( ( data && data.message ) || '' ).css( 'color', ok ? '#157347' : '#c62d1c' );
+				if ( ok ) {
+					var $wrap = $btn.closest( '.oblio-lock-warning' );
+					( $wrap.length ? $wrap : $btn ).fadeOut( 400 );
+				} else {
+					$btn.prop( 'disabled', false );
+				}
+			} ).fail( function () {
+				$result.text( oblioFgwoo.i18n.requestFailed ).css( 'color', '#c62d1c' );
+				$btn.prop( 'disabled', false );
+			} );
+		} );
+	} );
+
+	$( function () {
+		var $toggle = $( '#oblio-log-autoupdate' );
+		var $logBody = $( '#oblio-logbody' );
+		if ( ! $toggle.length || ! $logBody.length ) {
+			return;
+		}
+
+		var STORAGE_KEY = 'oblioFgwooLogAutoupdate';
+		var timer = null;
+
+		function poll() {
+			$.post( oblioFgwoo.ajaxUrl, {
+				action: 'oblio_fgwoo_log_tail',
+				nonce: oblioFgwoo.nonce
+			} ).done( function ( response ) {
+				var data = response && response.data;
+				if ( response && response.success && data && 'string' === typeof data.html ) {
+					$logBody.html( data.html );
+					$logBody[ 0 ].scrollTop = $logBody[ 0 ].scrollHeight;
+				}
+			} );
+		}
+
+		function stop() {
+			if ( timer ) {
+				clearInterval( timer );
+				timer = null;
+			}
+		}
+
+		function start() {
+			stop();
+			timer = setInterval( poll, 5000 );
+		}
+
+		$toggle.on( 'change', function () {
+			var on = $toggle.is( ':checked' );
+			try {
+				window.localStorage.setItem( STORAGE_KEY, on ? '1' : '0' );
+			} catch ( e ) {}
+			if ( on ) {
+				start();
+			} else {
+				stop();
+			}
+		} );
+
+		var remembered = false;
+		try {
+			remembered = '1' === window.localStorage.getItem( STORAGE_KEY );
+		} catch ( e ) {
+			remembered = false;
+		}
+		if ( remembered ) {
+			$toggle.prop( 'checked', true );
+			start();
 		}
 	} );
 

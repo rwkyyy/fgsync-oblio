@@ -100,25 +100,10 @@ final class StatusPanel {
 
 		echo '<div class="oblio-card"><div class="oblio-card-h"><h2>' . esc_html__( 'Jurnal activitate · azi', 'facturare-gestiune-oblio-woocommerce' ) . '</h2>';
 		echo '<span class="oblio-spacer"></span>';
+		echo '<label class="oblio-autoupdate"><input type="checkbox" id="oblio-log-autoupdate"> ' . esc_html__( 'Actualizare automată', 'facturare-gestiune-oblio-woocommerce' ) . '</label>';
 		echo '<a class="oblio-link" href="' . esc_url( $logs_url ) . '" target="_blank">' . esc_html__( 'Jurnal complet ↗', 'facturare-gestiune-oblio-woocommerce' ) . '</a></div>';
 
-		if ( empty( $entries ) ) {
-			echo '<p class="oblio-empty">' . esc_html__( 'Fără intrări.', 'facturare-gestiune-oblio-woocommerce' ) . '</p></div>';
-			return;
-		}
-
-		echo '<div class="oblio-logbody" id="oblio-logbody">';
-		foreach ( $entries as $entry ) {
-			$level = in_array( $entry['level'], array( 'info', 'warning', 'error' ), true ) ? $entry['level'] : 'info';
-			printf(
-				'<div class="oblio-logline lvl-%s"><span class="t">%s</span><span class="lvl">%s</span><span class="msg">%s</span></div>',
-				esc_attr( $level ),
-				esc_html( $entry['time'] ),
-				esc_html( strtoupper( substr( $entry['level'], 0, 5 ) ) ),
-				esc_html( $entry['message'] )
-			);
-		}
-		echo '</div></div>';
+		echo '<div class="oblio-logbody" id="oblio-logbody">' . LogRenderer::rows( $entries ) . '</div></div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- rows already escaped per-field in LogRenderer.
 	}
 
 	private function queue_card( array $totals, array $by_hook ): void {
@@ -139,8 +124,12 @@ final class StatusPanel {
 		echo '<div class="oblio-qactions">';
 
 		if ( $this->settings->stock_sync_configured() ) {
-			echo '<button type="button" class="button button-primary oblio-sync-now">' . esc_html__( 'Sincronizează stoc', 'facturare-gestiune-oblio-woocommerce' ) . '</button>';
+			echo '<button type="button" class="button button-primary oblio-sync-now" title="' . esc_attr__( 'Rulează întregul catalog acum, prin pași succesivi; poate dura câteva minute pe cataloage mari.', 'facturare-gestiune-oblio-woocommerce' ) . '">' . esc_html__( 'Sincronizează stoc', 'facturare-gestiune-oblio-woocommerce' ) . '</button>';
 			echo '<span class="oblio-sync-result"></span>';
+			if ( \OblioWoo\Support\AtomicLock::is_locked( StockSyncCoordinator::RUN_LOCK ) ) {
+				echo '<button type="button" class="button oblio-sync-unlock" title="' . esc_attr__( 'O sincronizare pare blocată (probabil întreruptă de server înainte să termine).', 'facturare-gestiune-oblio-woocommerce' ) . '">' . esc_html__( 'Deblochează sincronizarea', 'facturare-gestiune-oblio-woocommerce' ) . '</button>';
+				echo '<span class="oblio-unlock-result"></span>';
+			}
 		}
 		echo '<a class="button" href="' . esc_url( $as_url ) . '">' . esc_html__( 'Vezi coada', 'facturare-gestiune-oblio-woocommerce' ) . '</a>';
 		echo '</div></div>';
@@ -209,7 +198,7 @@ final class StatusPanel {
 	private function count_issued( array $entries ): int {
 		$count = 0;
 		foreach ( $entries as $entry ) {
-			if ( false !== strpos( $entry['message'], 'issued' ) ) {
+			if ( false !== strpos( $entry['message'], ' emis' ) ) {
 				++$count;
 			}
 		}

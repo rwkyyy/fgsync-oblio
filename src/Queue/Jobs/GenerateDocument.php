@@ -61,7 +61,7 @@ final class GenerateDocument {
 
 		$order = $this->orders->get_order( $order_id );
 		if ( null === $order ) {
-			$this->logger->warning( sprintf( 'Queue: order #%d not found, skipping %s', $order_id, $doc_type ) );
+			$this->logger->warning( sprintf( 'Coadă: comanda #%d nu a fost găsită, se omite %s', $order_id, $doc_type ) );
 			return;
 		}
 
@@ -92,7 +92,7 @@ final class GenerateDocument {
 		$delay = $this->scheduler->backoff( $attempt );
 		$this->scheduler->enqueue_document( $order->get_id(), $doc_type, $options, $attempt + 1, $delay );
 		$this->logger->warning(
-			sprintf( 'Queue: %s for order #%d failed (attempt %d/%d): %s, retry in %ds', $doc_type, $order->get_id(), $attempt, self::MAX_ATTEMPTS, $reason, $delay )
+			sprintf( 'Coadă: %s pentru comanda #%d a eșuat (încercarea %d/%d): %s, reîncercare în %ds', $doc_type, $order->get_id(), $attempt, self::MAX_ATTEMPTS, $reason, $delay )
 		);
 	}
 
@@ -108,7 +108,7 @@ final class GenerateDocument {
 		);
 		$order->save();
 		$this->logger->error(
-			sprintf( 'Queue: %s for order #%d %s: %s', $doc_type, $order->get_id(), $exhausted ? 'gave up after retries' : 'permanent failure', $reason )
+			sprintf( 'Coadă: %s pentru comanda #%d %s: %s', $doc_type, $order->get_id(), $exhausted ? 'abandonat după reîncercări' : 'eroare permanentă', $reason )
 		);
 	}
 }

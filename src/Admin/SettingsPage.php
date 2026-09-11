@@ -99,6 +99,7 @@ final class SettingsPage {
 				'nonce'   => wp_create_nonce( ConnectionTest::NONCE_ACTION ),
 				'i18n'    => array(
 					'testing'       => __( 'Se testează…', 'facturare-gestiune-oblio-woocommerce' ),
+					'syncing'       => __( 'Se sincronizează integral, poate dura…', 'facturare-gestiune-oblio-woocommerce' ),
 					'select'        => __( 'Selectează', 'facturare-gestiune-oblio-woocommerce' ),
 					'error'         => __( 'Eroare', 'facturare-gestiune-oblio-woocommerce' ),
 					'requestFailed' => __( 'Cererea a eșuat', 'facturare-gestiune-oblio-woocommerce' ),
@@ -619,7 +620,16 @@ final class SettingsPage {
 					'step' => 1,
 				),
 				/* translators: %s: webhook endpoint URL */
-				'desc'              => sprintf( __( 'După o notificare de la Oblio, sincronizarea așteaptă acest număr de minute de liniște înainte să pornească; fiecare notificare nouă resetează cronometrul. Astfel o rafală de modificări declanșează o singură sincronizare, nu una pentru fiecare notificare. Dacă o sincronizare este deja în curs când pornește cea nouă, cea în curs este oprită și repornită cu datele noi. De reținut: dacă folosești o casă de marcat sau o aplicație POS care schimbă stocul de multe ori, fiecare schimbare trimite o notificare separată, de aceea sincronizarea este grupată și amânată. Cererile sunt verificate printr-un secret în URL. Endpoint: %s', 'facturare-gestiune-oblio-woocommerce' ), $endpoint ),
+				'desc'              => sprintf(
+					__(
+						'Când Oblio trimite notificare de actualizare, integrarea așteaptă numărul definit mai jos înainte să înceapă.<br>
+                                                        Fiecare notificare nouă resetează cronometrul! Astfel multiple notificări declanșează o singură sincronizare.<br>
+                                                        Dacă o sincronizare este deja în curs când pornește cea nouă, cea în curs este oprită și repornită cu datele noi!<br> 
+                                                        <strong>De reținut</strong>: dacă folosești o casă de marcat sau o aplicații POS care schimbă stocul de multe ori, fiecare schimbare trimite o notificare separată, iar pentru astfel de cazuri recomandăm ambele sincronizări active.',
+						'facturare-gestiune-oblio-woocommerce'
+					),
+					$endpoint
+				),
 			),
 			array(
 				'title'   => __( 'Gestiuni (locații)', 'facturare-gestiune-oblio-woocommerce' ),
@@ -651,6 +661,17 @@ final class SettingsPage {
 					'step' => 1,
 				),
 				'desc'              => __( 'Câte zile în urmă se caută comenzile nefacturate care rezervă stoc. Implicit 30.', 'facturare-gestiune-oblio-woocommerce' ),
+			),
+			array(
+				'title'             => __( 'Produse per segment (opțional)', 'facturare-gestiune-oblio-woocommerce' ),
+				'type'              => 'number',
+				'id'                => $opt( 'stock_manual_batch' ),
+				'default'           => 250,
+				'custom_attributes' => array(
+					'min'  => 0,
+					'step' => 250,
+				),
+				'desc'              => __( 'Folosit de "Sincronizează acum". Oblio răspunde cu maxim 250 de produse per cerere, deci valoarea trebuie să fie multiplu de 250 - alege un număr mai mare pentru mai puține cereri (mai rapid), sau 0 pentru tot catalogul dintr-o singură cerere (poate dura mult și atinge limita de timp a serverului pe cataloage mari).', 'facturare-gestiune-oblio-woocommerce' ),
 			),
 			array(
 				'type' => 'oblio_stock_sync',
@@ -822,7 +843,7 @@ final class SettingsPage {
 	private function cif_options(): array {
 		$options = array( '' => __( 'Selectează', 'facturare-gestiune-oblio-woocommerce' ) );
 		foreach ( $this->nomenclature->companies() as $cif => $name ) {
-			$options[ (string) $cif ] = sprintf( ' % s (%s)', (string) $name, (string) $cif );
+			$options[ (string) $cif ] = sprintf( '%s (%s)', (string) $name, (string) $cif );
 		}
 		$current = (string) $this->settings->get( 'cif' );
 		if ( '' !== $current && ! isset( $options[ $current ] ) ) {
@@ -964,7 +985,8 @@ final class SettingsPage {
 
 	public function render_stock_sync_field( array $field ): void {
 		unset( $field );
-		$last = (int) get_option( \OblioWoo\Stock\StockSyncCoordinator::LAST_SYNC_OPTION, 0 );
+		$last   = (int) get_option( \OblioWoo\Stock\StockSyncCoordinator::LAST_SYNC_OPTION, 0 );
+		$locked = \OblioWoo\Support\AtomicLock::is_locked( \OblioWoo\Stock\StockSyncCoordinator::RUN_LOCK );
 		?>
 		<tr valign="top">
 			<th scope="row"
@@ -974,11 +996,19 @@ final class SettingsPage {
 					<button type="button"
 							class="button oblio-sync-now"><?php esc_html_e( 'Sincronizează acum', 'facturare-gestiune-oblio-woocommerce' ); ?></button>
 					<span class="oblio-sync-result" style="margin-inline-start:8px;"></span>
+					<p class="description"><?php esc_html_e( 'Rulează sincronizare completă imediat. Pentru a accelera procesul, te rugăm să nu pleci din pagină!', 'facturare-gestiune-oblio-woocommerce' ); ?></p>
+					<?php if ( $locked ) : ?>
+						<p class="description oblio-lock-warning">
+							<?php esc_html_e( 'O sincronizare pare blocată (probabil întreruptă de server înainte să termine). Dacă nu pornește din nou de la sine, o poți debloca manual:', 'facturare-gestiune-oblio-woocommerce' ); ?>
+							<button type="button" class="button oblio-sync-unlock"><?php esc_html_e( 'Deblochează sincronizarea', 'facturare-gestiune-oblio-woocommerce' ); ?></button>
+							<span class="oblio-unlock-result"></span>
+						</p>
+					<?php endif; ?>
 					<?php if ( $last ) : ?>
 						<p class="description">
 							<?php
 							/* translators: %s: human time diff */
-							printf( esc_html__( 'Ultima sincronizare: %s în urmă.', 'facturare-gestiune-oblio-woocommerce' ), esc_html( human_time_diff( $last ) ) );
+							printf( esc_html__( '<strong>Ultima sincronizare:</strong> %s în urmă.', 'facturare-gestiune-oblio-woocommerce' ), esc_html( human_time_diff( $last ) ) );
 							?>
 						</p>
 					<?php endif; ?>

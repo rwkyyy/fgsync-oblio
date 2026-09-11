@@ -66,6 +66,7 @@ final class Settings {
 		'stock_reserve_orders'         => 'no',
 		'stock_reserve_days'           => 30,
 		'webhook_stock_delay'          => 15,
+		'stock_manual_batch'           => 250,
 
 		'email_mode'                   => 'off',
 		'email_on_issue'               => 'no',
@@ -169,6 +170,16 @@ final class Settings {
 
 	public function webhook_stock_delay(): int {
 		return max( MINUTE_IN_SECONDS, (int) $this->get( 'webhook_stock_delay', 15 ) * MINUTE_IN_SECONDS );
+	}
+
+	public function stock_manual_batch(): int {
+		$oblio_page = 250;
+		$raw        = (int) $this->get( 'stock_manual_batch', $oblio_page );
+		if ( $raw <= 0 ) {
+			return 0;
+		}
+		$snapped = (int) ( round( $raw / $oblio_page ) * $oblio_page );
+		return max( $oblio_page, min( 10000, $snapped ) );
 	}
 
 	public function has_credentials(): bool {

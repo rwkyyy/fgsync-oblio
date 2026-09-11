@@ -92,7 +92,7 @@ final class Importer {
 		}
 
 		update_option( 'oblio_fgwoo_imported_at', time(), false );
-		$this->logger->info( sprintf( 'Legacy import: %d settings imported', $imported ) );
+		$this->logger->info( sprintf( 'Import din pluginul vechi: %d setări importate', $imported ) );
 
 		return $imported;
 	}

@@ -124,7 +124,7 @@ final class EmailButton {
 				'date'   => '',
 			);
 		} catch ( \Throwable $exception ) {
-			$this->logger->warning( sprintf( 'Email button: could not ensure invoice for order #%d: %s', $order->get_id(), $exception->getMessage() ) );
+			$this->logger->warning( sprintf( 'Buton email: nu s-a putut asigura factura pentru comanda #%d: %s', $order->get_id(), $exception->getMessage() ) );
 			return OrderMeta::get( $order, OrderMeta::TYPE_INVOICE );
 		} finally {
 			delete_transient( $lock );

@@ -77,11 +77,7 @@ final class StockSyncBatch {
 		}
 
 		try {
-			$products = $this->factory->create()->nomenclature(
-				'products',
-				(string) $this->settings->get( 'cif' ),
-				array( 'offset' => $offset )
-			);
+			$products = $this->fetch_page( $offset );
 		} catch ( ApiException $exception ) {
 			$this->handle_failure( $offset, $attempt, $token, $exception->status_message(), $exception->is_retryable() );
 			return;
@@ -90,6 +86,121 @@ final class StockSyncBatch {
 			return;
 		}
 
+		$updated = $this->process_page( $products );
+		$totals  = $this->record_progress( count( $products ), $updated );
+		$this->log_page( $offset, count( $products ), $updated, $totals );
+
+		if ( count( $products ) >= self::PAGE_SIZE ) {
+			$this->scheduler->enqueue_stock_batch( $offset + self::PAGE_SIZE, 1, 0, $token );
+		} else {
+			$this->finalize();
+		}
+	}
+
+	public function run_step( int $offset, string $token ): array {
+		if ( ! $this->settings->has_credentials() || '' === (string) $this->settings->get( 'cif' ) ) {
+			return array(
+				'ok'     => false,
+				'reason' => __( 'Verifică emailul, secretul și firma.', 'facturare-gestiune-oblio-woocommerce' ),
+			);
+		}
+
+		$completed = false;
+		register_shutdown_function(
+			function () use ( $token, &$completed ): void {
+				if ( ! $completed ) {
+					$this->recover_from_fatal( $token );
+				}
+			}
+		);
+
+		$step_size = $this->settings->stock_manual_batch();
+		$unlimited = 0 === $step_size;
+		$cursor    = $offset;
+		$done      = false;
+		$totals    = array(
+			'scanned' => 0,
+			'updated' => 0,
+		);
+
+		while ( $unlimited || $cursor - $offset < $step_size ) {
+			$current = (string) get_option( StockSyncCoordinator::RUN_TOKEN_OPTION, '' );
+			if ( '' !== $token && $token !== $current ) {
+				$completed = true;
+				return array(
+					'ok'     => false,
+					'reason' => __( 'Sincronizarea a fost înlocuită de o rulare mai nouă.', 'facturare-gestiune-oblio-woocommerce' ),
+				);
+			}
+
+			try {
+				$products = $this->fetch_page( $cursor );
+			} catch ( ApiException $exception ) {
+				$this->log_step_failure( $cursor, $exception->status_message() );
+				$this->abort();
+				$completed = true;
+				return array(
+					'ok'     => false,
+					'reason' => $exception->status_message(),
+				);
+			} catch ( Throwable $exception ) {
+				$this->log_step_failure( $cursor, $exception->getMessage() );
+				$this->abort();
+				$completed = true;
+				return array(
+					'ok'     => false,
+					'reason' => $exception->getMessage(),
+				);
+			}
+
+			$updated = $this->process_page( $products );
+			$totals  = $this->record_progress( count( $products ), $updated );
+			$this->log_page( $cursor, count( $products ), $updated, $totals );
+
+			$cursor += self::PAGE_SIZE;
+
+			if ( count( $products ) < self::PAGE_SIZE ) {
+				$done = true;
+				break;
+			}
+		}
+
+		if ( $done ) {
+			$this->finalize();
+		}
+
+		$completed = true;
+		return array(
+			'ok'          => true,
+			'done'        => $done,
+			'next_offset' => $cursor,
+			'scanned'     => $totals['scanned'],
+			'updated'     => $totals['updated'],
+		);
+	}
+
+	private function recover_from_fatal( string $token ): void {
+		$error = error_get_last();
+		if ( null === $error || ! in_array( $error['type'], array( E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR ), true ) ) {
+			return;
+		}
+
+		$current = (string) get_option( StockSyncCoordinator::RUN_TOKEN_OPTION, '' );
+		if ( '' === $token || $token === $current ) {
+			$this->logger->error( sprintf( 'Sincronizare stoc: cererea a fost întreruptă (%s), blocarea a fost eliberată automat', $error['message'] ) );
+			$this->abort();
+		}
+	}
+
+	private function fetch_page( int $offset ): array {
+		return $this->factory->create()->nomenclature(
+			'products',
+			(string) $this->settings->get( 'cif' ),
+			array( 'offset' => $offset )
+		);
+	}
+
+	private function process_page( array $products ): int {
 		$selected     = array_values( (array) $this->settings->get( 'stock_locations' ) );
 		$update_price = $this->settings->is_enabled( 'stock_update_price' );
 		$reservations = $this->settings->is_enabled( 'stock_reserve_orders' ) ? $this->reservations->map() : array();
@@ -108,14 +219,24 @@ final class StockSyncBatch {
 				++$updated;
 			}
 		}
+		return $updated;
+	}
 
-		$this->record_progress( count( $products ), $updated );
+	private function log_page( int $offset, int $count, int $updated, array $totals ): void {
+		$this->logger->info(
+			sprintf(
+				'Sincronizare stoc: pagina de la segmentul %d - %d actualizate din %d produse (total %d/%d)',
+				$offset,
+				$updated,
+				$count,
+				$totals['updated'],
+				$totals['scanned']
+			)
+		);
+	}
 
-		if ( count( $products ) >= self::PAGE_SIZE ) {
-			$this->scheduler->enqueue_stock_batch( $offset + self::PAGE_SIZE, 1, 0, $token );
-		} else {
-			$this->finalize();
-		}
+	private function log_step_failure( int $offset, string $reason ): void {
+		$this->logger->error( sprintf( 'Sincronizare stoc: pagina de la segmentul %d a eșuat: %s', $offset, $reason ) );
 	}
 
 	private function resolve_skus( array $products ): array {
@@ -158,18 +279,22 @@ final class StockSyncBatch {
 		if ( $retryable && $attempt < self::MAX_ATTEMPTS ) {
 			$delay = $this->scheduler->backoff( $attempt );
 			$this->scheduler->enqueue_stock_batch( $offset, $attempt + 1, $delay, $token );
-			$this->logger->warning( sprintf( 'Stock sync: page at offset %d failed (attempt %d): %s, retry in %ds', $offset, $attempt, $reason, $delay ) );
+			$this->logger->warning( sprintf( 'Sincronizare stoc: pagina de la segmentul %d a eșuat (încercarea %d): %s, reîncercare în %ds', $offset, $attempt, $reason, $delay ) );
 			return;
 		}
 
-		$this->logger->error( sprintf( 'Stock sync: page at offset %d aborted (attempt %d): %s', $offset, $attempt, $reason ) );
+		$this->logger->error( sprintf( 'Sincronizare stoc: pagina de la segmentul %d abandonată (încercarea %d): %s', $offset, $attempt, $reason ) );
+		$this->abort();
+	}
+
+	private function abort(): void {
 		delete_transient( StockSyncCoordinator::PROGRESS_TRANSIENT );
 		delete_option( StockSyncCoordinator::RUN_TOKEN_OPTION );
 		AtomicLock::release( StockSyncCoordinator::RUN_LOCK );
 		$this->reservations->reset();
 	}
 
-	private function record_progress( int $scanned, int $updated ): void {
+	private function record_progress( int $scanned, int $updated ): array {
 		$progress = get_transient( StockSyncCoordinator::PROGRESS_TRANSIENT );
 		$progress = is_array( $progress ) ? $progress : array(
 			'scanned' => 0,
@@ -182,6 +307,8 @@ final class StockSyncBatch {
 		set_transient( StockSyncCoordinator::PROGRESS_TRANSIENT, $progress, DAY_IN_SECONDS );
 
 		AtomicLock::renew( StockSyncCoordinator::RUN_LOCK, StockSyncCoordinator::RUN_LOCK_TTL );
+
+		return $progress;
 	}
 
 	private function finalize(): void {
@@ -191,7 +318,7 @@ final class StockSyncBatch {
 		$updated  = is_array( $progress ) ? (int) ( $progress['updated'] ?? 0 ) : 0;
 
 		update_option( StockSyncCoordinator::LAST_SYNC_OPTION, time(), false );
-		$this->logger->info( sprintf( 'Stock sync complete: updated %d of %d products', $updated, $scanned ) );
+		$this->logger->info( sprintf( 'Sincronizare stoc finalizată: %d din %d produse actualizate', $updated, $scanned ) );
 
 		delete_transient( StockSyncCoordinator::PROGRESS_TRANSIENT );
 		delete_option( StockSyncCoordinator::RUN_TOKEN_OPTION );

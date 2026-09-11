@@ -61,6 +61,11 @@ final class AtomicLock {
 		delete_option( $option );
 	}
 
+	public static function is_locked( string $option ): bool {
+		$value = get_option( $option, false );
+		return false !== $value && (int) $value > time();
+	}
+
 	private static function flush( string $option ): void {
 		wp_cache_delete( $option, 'options' );
 		wp_cache_delete( 'notoptions', 'options' );
