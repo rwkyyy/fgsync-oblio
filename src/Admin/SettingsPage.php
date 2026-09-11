@@ -598,7 +598,7 @@ final class SettingsPage {
 					'both'     => __( 'Ambele', 'facturare-gestiune-oblio-woocommerce' ),
 				),
 				'desc'    => __(
-					'<strong>Programată</strong> - rulează la un interval fix definit mai jos și preia toate modificările.<br><strong>Webhook</strong> - pornește când Oblio anunță o modificare de stoc (după 15 min de la ultima notificare) - actualizare mai rapidă, dar se face o sincronizare completă a catalogului.<br><strong>Ambele</strong> - folosește ambele sisteme.',
+					'<strong>Programată</strong> - rulează la un interval fix definit mai jos și preia toate modificările.<br><strong>Webhook</strong> - pornește când Oblio anunță o modificare de stoc - actualizare mai rapidă, dar se face o sincronizare completă a catalogului.<br><strong>Ambele</strong> - folosește ambele sisteme.',
 					'facturare-gestiune-oblio-woocommerce'
 				),
 			),
@@ -682,9 +682,7 @@ final class SettingsPage {
 					'button'     => __( 'Nativ în mail-ul WooCommerce', 'facturare-gestiune-oblio-woocommerce' ),
 					'standalone' => __( 'Email separat (la emitere)', 'facturare-gestiune-oblio-woocommerce' ),
 				),
-				'desc'    => __( '<strong>Email separat</strong> - trimite un mesaj propriu la emiterea documentului.<br>
-                <strong>Buton</strong> - adaugă un buton către factură în emailul WooCommerce al comenzii.<br>
-                <strong>Dacă factura nu există</strong> la trimiterea acelui email, atunci aceasta este emisă pe loc (chiar dacă emiterea automată este oprită)!', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'    => __( '<strong>Email separat</strong> - trimite un mesaj propriu la emiterea documentului.<br><strong>Buton</strong> - adaugă un buton către factură în emailul WooCommerce al comenzii.<br><strong>Dacă factura nu există</strong> la trimiterea acelui email, atunci aceasta este emisă pe loc (chiar dacă emiterea automată este oprită)!', 'facturare-gestiune-oblio-woocommerce' ),
 			),
 
 			array(

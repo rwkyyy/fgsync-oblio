@@ -4,7 +4,7 @@ Tags: woocommerce, invoicing, oblio, invoice, romania
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 0.1.0
+Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -100,5 +100,5 @@ Under Email, pick a mode. "Standalone" sends a separate message from the plugin 
 
 == Changelog ==
 
-= 0.1.0 =
-* Complete rewrite: WP HTTP API client, Action Scheduler queues, document engine (invoice, proforma, delivery note, credit note), multi-warehouse stock sync, optional webhooks, status panel, import from the old plugin, HPOS and classic compatibility.
+= 1.0.0 =
+* First stable release. Complete rewrite: WP HTTP API client, Action Scheduler queues, document engine (invoice, proforma, delivery note, credit note), multi-warehouse stock sync, optional webhooks, status panel, import from the old plugin, HPOS and classic compatibility.

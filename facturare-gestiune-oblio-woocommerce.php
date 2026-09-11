@@ -3,7 +3,7 @@
  * Plugin Name:       Oblio - Facturare și Gestiune pentru WooCommerce
  * Plugin URI:        https://www.oblio.eu/integrari/woocommerce
  * Description:       Emitere automată de facturi, proforme, avize și storno în Oblio, cu procesare pe coadă, sincronizare stoc pe gestiuni și webhooks. Integrare nativă WooCommerce (HPOS + clasic).
- * Version:           0.1.0
+ * Version:           1.0.0
  * Requires at least: 6.5
  * Requires PHP:      8.1
  * Requires Plugins:  woocommerce
@@ -19,7 +19,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'OBLIO_FGWOO_VERSION', '0.1.0' );
+define( 'OBLIO_FGWOO_VERSION', '1.0.0' );
 define( 'OBLIO_FGWOO_FILE', __FILE__ );
 define( 'OBLIO_FGWOO_DIR', plugin_dir_path( __FILE__ ) );
 define( 'OBLIO_FGWOO_URL', plugin_dir_url( __FILE__ ) );
