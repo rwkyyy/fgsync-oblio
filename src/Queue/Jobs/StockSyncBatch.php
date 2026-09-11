@@ -108,7 +108,7 @@ final class StockSyncBatch {
 		$completed = false;
 		register_shutdown_function(
 			function () use ( $token, &$completed ): void {
-				if ( ! $completed ) {
+				if ( ! $completed ) { // @phpstan-ignore-line booleanNot.alwaysTrue -- mutated by reference later.
 					$this->recover_from_fatal( $token );
 				}
 			}
