@@ -1,0 +1,15 @@
+# Files and folders excluded from the WordPress.org release build.
+.DS_Store
+/.github
+/tests
+/node_modules
+/vendor
+.distignore
+.gitignore
+.gitattributes
+composer.json
+composer.lock
+phpcs.xml.dist
+phpstan.neon.dist
+phpunit.xml.dist
+README.md

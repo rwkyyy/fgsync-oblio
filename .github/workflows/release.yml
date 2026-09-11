@@ -1,0 +1,65 @@
+name: Release
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'facturare-gestiune-oblio-woocommerce.php'
+      - 'readme.txt'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Tag + GitHub Release on version bump
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Read plugin version
+        id: version
+        run: |
+          PLUGIN_VERSION=$(grep -m1 '^ \* Version:' facturare-gestiune-oblio-woocommerce.php | sed -E 's/^[^:]+:[[:space:]]*//')
+          README_VERSION=$(grep -m1 '^Stable tag:' readme.txt | sed -E 's/^Stable tag:[[:space:]]*//')
+          if [ -z "$PLUGIN_VERSION" ] || [ "$PLUGIN_VERSION" != "$README_VERSION" ]; then
+            echo "::error::Plugin header version ($PLUGIN_VERSION) and readme.txt Stable tag ($README_VERSION) do not match."
+            exit 1
+          fi
+          echo "version=$PLUGIN_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Check if this version was already released
+        id: check_tag
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/${{ steps.version.outputs.version }}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Extract changelog entry
+        if: steps.check_tag.outputs.exists == 'false'
+        id: changelog
+        run: |
+          {
+            echo "notes<<CHANGELOG_EOF"
+            awk -v ver="= ${{ steps.version.outputs.version }} =" \
+              'found && /^= [0-9]/ { exit } $0 == ver { found=1; next } found' readme.txt
+            echo "CHANGELOG_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      # Uses RELEASE_TOKEN (a PAT) instead of the default token so the tag push this creates
+      # is able to trigger the tag-based deploy.yml workflow. Falls back to GITHUB_TOKEN if the
+      # secret isn't set yet, in which case the GitHub Release is still created but deploy.yml
+      # will need a manual run (workflow_dispatch) until the PAT is added.
+      - name: Create tag + GitHub Release
+        if: steps.check_tag.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ steps.version.outputs.version }}" \
+            --title "${{ steps.version.outputs.version }}" \
+            --notes "${{ steps.changelog.outputs.notes }}" \
+            --target "${{ github.sha }}"

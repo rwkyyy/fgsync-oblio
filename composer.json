@@ -1,0 +1,41 @@
+{
+    "name": "oblio/facturare-gestiune-oblio-woocommerce",
+    "description": "Oblio - Facturare și Gestiune pentru WooCommerce. Native Oblio.eu integration with queues, stock sync and webhooks.",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "php": ">=8.1",
+        "ext-openssl": "*"
+    },
+    "require-dev": {
+        "wp-coding-standards/wpcs": "^3.1",
+        "phpcompatibility/phpcompatibility-wp": "^2.1",
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+        "phpstan/phpstan": "^1.11",
+        "szepeviktor/phpstan-wordpress": "^1.3",
+        "php-stubs/woocommerce-stubs": "^9.0",
+        "phpunit/phpunit": "^10.5 || ^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "OblioWoo\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "OblioWoo\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    },
+    "scripts": {
+        "phpcs": "phpcs",
+        "phpcbf": "phpcbf",
+        "phpstan": "phpstan analyse",
+        "test": "phpunit",
+        "make-pot": "wp i18n make-pot . languages/facturare-gestiune-oblio-woocommerce.pot --exclude=tests,vendor,node_modules"
+    }
+}

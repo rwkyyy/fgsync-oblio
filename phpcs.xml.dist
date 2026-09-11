@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<ruleset name="Oblio FGWOO">
+	<description>Coding standards for Oblio - Facturare și Gestiune pentru WooCommerce.</description>
+
+	<file>.</file>
+
+	<exclude-pattern>/vendor/*</exclude-pattern>
+	<exclude-pattern>/node_modules/*</exclude-pattern>
+
+	<arg name="extensions" value="php"/>
+	<arg name="colors"/>
+	<arg value="sp"/>
+	<arg name="parallel" value="8"/>
+
+	<rule ref="WordPress">
+		<exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
+		<exclude name="WordPress.Files.FileName.NotHyphenatedLowercase"/>
+
+		<!-- Typed properties (PHP 7.4+) make an @var docblock redundant; trivial
+		     closures / arrow-function service factories document themselves. -->
+		<exclude name="Squiz.Commenting.VariableComment.MissingVar"/>
+		<exclude name="Squiz.Commenting.VariableComment.Missing"/>
+		<exclude name="Squiz.Commenting.FunctionComment.Missing"/>
+		<exclude name="Generic.Commenting.DocComment.MissingShort"/>
+		<exclude name="Squiz.Commenting.ClassComment.Missing"/>
+		<exclude name="Squiz.Commenting.FunctionCommentThrowTag.Missing"/>
+		<exclude name="Squiz.Commenting.FunctionCommentThrowTag.WrongNumber"/>
+
+		<!-- $default / $class are idiomatic parameter names against WP APIs. -->
+		<exclude name="Universal.NamingConventions.NoReservedKeywordParameterNames.defaultFound"/>
+		<exclude name="Universal.NamingConventions.NoReservedKeywordParameterNames.classFound"/>
+
+		<!-- base64 is real cryptography (AES-GCM payloads) and the webhook
+		     acknowledgement Oblio requires, not obfuscation. -->
+		<exclude name="WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode"/>
+		<exclude name="WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode"/>
+
+		<!-- Hook callbacks must keep their full signature even when a parameter
+		     is unused. -->
+		<exclude name="Generic.CodeAnalysis.UnusedFunctionParameter.Found"/>
+		<exclude name="Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed"/>
+	</rule>
+
+	<!-- WooCommerce capabilities WPCS does not know about. -->
+	<rule ref="WordPress.WP.Capabilities">
+		<properties>
+			<property name="custom_capabilities" type="array">
+				<element value="manage_woocommerce"/>
+				<element value="edit_shop_orders"/>
+				<element value="edit_shop_order"/>
+				<element value="edit_product"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!-- Dev-only test scaffolding is not shipped (see .distignore). -->
+	<exclude-pattern>/tests/*</exclude-pattern>
+
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="facturare-gestiune-oblio-woocommerce"/>
+			</property>
+		</properties>
+	</rule>
+
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="oblio_fgwoo"/>
+				<element value="OBLIO_FGWOO"/>
+				<element value="OblioWoo"/>
+			</property>
+		</properties>
+	</rule>
+
+	<config name="minimum_wp_version" value="6.4"/>
+
+	<rule ref="PHPCompatibilityWP"/>
+	<config name="testVersion" value="8.1-"/>
+</ruleset>
