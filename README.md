@@ -1,33 +1,33 @@
 # Oblio - Facturare și Gestiune pentru WooCommerce
 
-Native WooCommerce integration for [Oblio.eu](https://www.oblio.eu): automatic invoices, proformas,
-delivery notes (avize) and storno, queued processing, multi-warehouse stock sync and webhooks.
+Integrare nativă WooCommerce cu [Oblio.eu](https://www.oblio.eu): emitere automată de facturi,
+proforme, avize și storno, procesare pe coadă, sincronizare stoc pe mai multe gestiuni și webhooks.
 
-This is the development repository. The plugin listing, description and changelog live in
-[`readme.txt`](readme.txt) (the WordPress.org format).
+Acesta este repository-ul de dezvoltare. Descrierea pluginului și changelog-ul publicate pe
+WordPress.org se află în [`readme.txt`](readme.txt) (format WordPress.org, în engleză).
 
-## Requirements
+## Cerințe
 
 * PHP 8.1+
 * WordPress 6.5+
 * WooCommerce 8.2+
 
-## Development
+## Dezvoltare
 
 ```bash
 composer install
 composer phpcs      # coding standards
-composer phpstan    # static analysis
+composer phpstan    # analiză statică
 composer test       # PHPUnit
 ```
 
-## Release process
+## Proces de release
 
-Pushing a commit to `main` that bumps the `Version` header in
-`facturare-gestiune-oblio-woocommerce.php` (kept in sync with `Stable tag` in `readme.txt`)
-triggers a GitHub Actions workflow that tags the release and publishes a GitHub Release with the
-matching changelog entry. See `.github/workflows/`.
+Un commit pe `main` care modifică header-ul `Version` din
+`facturare-gestiune-oblio-woocommerce.php` (sincronizat cu `Stable tag` din `readme.txt`)
+declanșează un workflow GitHub Actions care creează tag-ul și publică un GitHub Release cu
+intrarea corespunzătoare din changelog. Vezi `.github/workflows/`.
 
-## License
+## Licență
 
-GPL-2.0-or-later. See [LICENSE](LICENSE).
+GPL-2.0-or-later. Vezi [LICENSE](LICENSE).
