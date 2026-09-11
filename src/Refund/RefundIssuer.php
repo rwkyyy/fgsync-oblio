@@ -15,5 +15,5 @@ interface RefundIssuer {
 
 	public function issue_for_refund( int $order_id, int $refund_id ): ?DocumentResult;
 
-	public function issue_full_storno( WC_Order $order ): ?DocumentResult;
+	public function issue_full_storno( WC_Order $order ): DocumentResult;
 }

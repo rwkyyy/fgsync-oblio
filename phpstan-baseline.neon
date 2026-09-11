@@ -1,1276 +1,1543 @@
 parameters:
 	ignoreErrors:
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\BulkActions\\:\\:add\\(\\) has parameter \\$actions with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\BulkActions\:\:add\(\) has parameter \$actions with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/BulkActions.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\BulkActions\\:\\:add\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\BulkActions\:\:add\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/BulkActions.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\BulkActions\\:\\:handle\\(\\) has parameter \\$action with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Admin\\BulkActions\:\:handle\(\) has parameter \$action with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Admin/BulkActions.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\BulkActions\\:\\:handle\\(\\) has parameter \\$ids with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Admin\\BulkActions\:\:handle\(\) has parameter \$ids with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Admin/BulkActions.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\BulkActions\\:\\:handle\\(\\) has parameter \\$redirect with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Admin\\BulkActions\:\:handle\(\) has parameter \$redirect with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Admin/BulkActions.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\LogReader\\:\\:files_for_today\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\LogReader\:\:files_for_today\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/LogReader.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\LogReader\\:\\:parse\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\LogReader\:\:parse\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/LogReader.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\LogReader\\:\\:tail\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\LogReader\:\:tail\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/LogReader.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\LogReader\\:\\:today\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\LogReader\:\:today\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/LogReader.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\LogRenderer\\:\\:rows\\(\\) has parameter \\$entries with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\LogRenderer\:\:rows\(\) has parameter \$entries with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/LogRenderer.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\NomenclatureCache\\:\\:all_series\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\NomenclatureCache\:\:all_series\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/NomenclatureCache.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\NomenclatureCache\\:\\:companies\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\NomenclatureCache\:\:companies\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/NomenclatureCache.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\NomenclatureCache\\:\\:locations\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\NomenclatureCache\:\:locations\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/NomenclatureCache.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\NomenclatureCache\\:\\:management\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\NomenclatureCache\:\:management\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/NomenclatureCache.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\NomenclatureCache\\:\\:managements\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\NomenclatureCache\:\:managements\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/NomenclatureCache.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\NomenclatureCache\\:\\:read\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\NomenclatureCache\:\:read\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/NomenclatureCache.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\NomenclatureCache\\:\\:series\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\NomenclatureCache\:\:series\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/NomenclatureCache.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\NomenclatureCache\\:\\:workstations\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\NomenclatureCache\:\:workstations\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/NomenclatureCache.php
 
 		-
-			message: "#^Unreachable statement \\- code above always terminates\\.$#"
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
 			count: 3
 			path: src/Admin/OrderActions.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\OrderListColumn\\:\\:add_column\\(\\) has parameter \\$columns with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\OrderListColumn\:\:add_column\(\) has parameter \$columns with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/OrderListColumn.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\OrderListColumn\\:\\:add_column\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\OrderListColumn\:\:add_column\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/OrderListColumn.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\OrderListColumn\\:\\:render\\(\\) has parameter \\$column with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Admin\\OrderListColumn\:\:render\(\) has parameter \$column with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Admin/OrderListColumn.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\OrderListColumn\\:\\:render\\(\\) has parameter \\$order_or_id with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Admin\\OrderListColumn\:\:render\(\) has parameter \$order_or_id with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Admin/OrderListColumn.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\OrderListFilter\\:\\:filter_hpos_query\\(\\) has parameter \\$args with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\OrderListFilter\:\:filter_hpos_query\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/OrderListFilter.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\OrderListFilter\\:\\:filter_hpos_query\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\OrderListFilter\:\:filter_hpos_query\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/OrderListFilter.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\OrderListFilter\\:\\:meta_query_for\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\OrderListFilter\:\:meta_query_for\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/OrderListFilter.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\OrderListFilter\\:\\:render_dropdown\\(\\) has parameter \\$screen_type with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Admin\\OrderListFilter\:\:render_dropdown\(\) has parameter \$screen_type with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Admin/OrderListFilter.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\OrderListFilter\\:\\:render_dropdown\\(\\) has parameter \\$which with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Admin\\OrderListFilter\:\:render_dropdown\(\) has parameter \$which with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Admin/OrderListFilter.php
 
 		-
-			message: "#^Constant OBLIO_FGWOO_URL not found\\.$#"
+			message: '#^Constant OBLIO_FGWOO_URL not found\.$#'
+			identifier: constant.notFound
 			count: 2
 			path: src/Admin/OrderMetaBox.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\OrderMetaBox\\:\\:render\\(\\) has parameter \\$post_or_order with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Admin\\OrderMetaBox\:\:render\(\) has parameter \$post_or_order with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Admin/OrderMetaBox.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\ProductFields\\:\\:render_variation_fields\\(\\) has parameter \\$loop with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Admin\\ProductFields\:\:render_variation_fields\(\) has parameter \$loop with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Admin/ProductFields.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\ProductFields\\:\\:render_variation_fields\\(\\) has parameter \\$variation with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Admin\\ProductFields\:\:render_variation_fields\(\) has parameter \$variation with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Admin/ProductFields.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\ProductFields\\:\\:render_variation_fields\\(\\) has parameter \\$variation_data with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Admin\\ProductFields\:\:render_variation_fields\(\) has parameter \$variation_data with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Admin/ProductFields.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\ProductFields\\:\\:save_product_fields\\(\\) has parameter \\$post_id with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Admin\\ProductFields\:\:save_product_fields\(\) has parameter \$post_id with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Admin/ProductFields.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\ProductFields\\:\\:save_variation_fields\\(\\) has parameter \\$index with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Admin\\ProductFields\:\:save_variation_fields\(\) has parameter \$index with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Admin/ProductFields.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\ProductFields\\:\\:save_variation_fields\\(\\) has parameter \\$variation_id with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Admin\\ProductFields\:\:save_variation_fields\(\) has parameter \$variation_id with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Admin/ProductFields.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\ProductFields\\:\\:type_options\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\ProductFields\:\:type_options\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/ProductFields.php
 
 		-
-			message: "#^Access to constant STATUS_COMPLETE on an unknown class ActionScheduler_Store\\.$#"
+			message: '#^Access to constant STATUS_COMPLETE on an unknown class ActionScheduler_Store\.$#'
+			identifier: class.notFound
 			count: 1
 			path: src/Admin/QueueStatus.php
 
 		-
-			message: "#^Access to constant STATUS_FAILED on an unknown class ActionScheduler_Store\\.$#"
+			message: '#^Access to constant STATUS_FAILED on an unknown class ActionScheduler_Store\.$#'
+			identifier: class.notFound
 			count: 2
 			path: src/Admin/QueueStatus.php
 
 		-
-			message: "#^Access to constant STATUS_PENDING on an unknown class ActionScheduler_Store\\.$#"
+			message: '#^Access to constant STATUS_PENDING on an unknown class ActionScheduler_Store\.$#'
+			identifier: class.notFound
 			count: 2
 			path: src/Admin/QueueStatus.php
 
 		-
-			message: "#^Access to constant STATUS_RUNNING on an unknown class ActionScheduler_Store\\.$#"
+			message: '#^Access to constant STATUS_RUNNING on an unknown class ActionScheduler_Store\.$#'
+			identifier: class.notFound
 			count: 1
 			path: src/Admin/QueueStatus.php
 
 		-
-			message: "#^Call to static method store\\(\\) on an unknown class ActionScheduler\\.$#"
+			message: '#^Call to static method store\(\) on an unknown class ActionScheduler\.$#'
+			identifier: class.notFound
 			count: 1
 			path: src/Admin/QueueStatus.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\QueueStatus\\:\\:by_hook\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\QueueStatus\:\:by_hook\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/QueueStatus.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\QueueStatus\\:\\:compute_by_hook\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\QueueStatus\:\:compute_by_hook\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/QueueStatus.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\QueueStatus\\:\\:compute_totals\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\QueueStatus\:\:compute_totals\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/QueueStatus.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\QueueStatus\\:\\:count\\(\\) has parameter \\$args with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\QueueStatus\:\:count\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/QueueStatus.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\QueueStatus\\:\\:snapshot\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\QueueStatus\:\:snapshot\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/QueueStatus.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\QueueStatus\\:\\:totals\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\QueueStatus\:\:totals\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/QueueStatus.php
 
 		-
-			message: "#^Property OblioWoo\\\\Admin\\\\QueueStatus\\:\\:\\$snapshot type has no value type specified in iterable type array\\.$#"
+			message: '#^Property OblioWoo\\Admin\\QueueStatus\:\:\$snapshot type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/QueueStatus.php
 
 		-
-			message: "#^Access to an undefined property WooCommerce\\:\\:\\$payment_gateways\\.$#"
+			message: '#^Access to an undefined property WooCommerce\:\:\$payment_gateways\.$#'
+			identifier: property.notFound
 			count: 1
 			path: src/Admin/SettingsPage.php
 
 		-
-			message: "#^Constant OBLIO_FGWOO_URL not found\\.$#"
+			message: '#^Constant OBLIO_FGWOO_URL not found\.$#'
+			identifier: constant.notFound
 			count: 4
 			path: src/Admin/SettingsPage.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\SettingsPage\\:\\:advanced_fields\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\SettingsPage\:\:advanced_fields\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/SettingsPage.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\SettingsPage\\:\\:batch_interval_options\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\SettingsPage\:\:batch_interval_options\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/SettingsPage.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\SettingsPage\\:\\:cif_options\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\SettingsPage\:\:cif_options\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/SettingsPage.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\SettingsPage\\:\\:collection_fields\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\SettingsPage\:\:collection_fields\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/SettingsPage.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\SettingsPage\\:\\:connection_fields\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\SettingsPage\:\:connection_fields\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/SettingsPage.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\SettingsPage\\:\\:documents_fields\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\SettingsPage\:\:documents_fields\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/SettingsPage.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\SettingsPage\\:\\:email_fields\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\SettingsPage\:\:email_fields\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/SettingsPage.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\SettingsPage\\:\\:gateway_options\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\SettingsPage\:\:gateway_options\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/SettingsPage.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\SettingsPage\\:\\:get_sections\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\SettingsPage\:\:get_sections\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/SettingsPage.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\SettingsPage\\:\\:get_settings\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\SettingsPage\:\:get_settings\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/SettingsPage.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\SettingsPage\\:\\:interval_options\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\SettingsPage\:\:interval_options\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/SettingsPage.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\SettingsPage\\:\\:language_options\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\SettingsPage\:\:language_options\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/SettingsPage.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\SettingsPage\\:\\:order_status_options\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\SettingsPage\:\:order_status_options\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/SettingsPage.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\SettingsPage\\:\\:product_type_options\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\SettingsPage\:\:product_type_options\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/SettingsPage.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\SettingsPage\\:\\:render_import_field\\(\\) has parameter \\$field with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\SettingsPage\:\:render_import_field\(\) has parameter \$field with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/SettingsPage.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\SettingsPage\\:\\:render_secret_field\\(\\) has parameter \\$field with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\SettingsPage\:\:render_secret_field\(\) has parameter \$field with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/SettingsPage.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\SettingsPage\\:\\:render_stock_sync_field\\(\\) has parameter \\$field with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\SettingsPage\:\:render_stock_sync_field\(\) has parameter \$field with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/SettingsPage.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\SettingsPage\\:\\:render_test_field\\(\\) has parameter \\$field with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\SettingsPage\:\:render_test_field\(\) has parameter \$field with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/SettingsPage.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\SettingsPage\\:\\:returns_field\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\SettingsPage\:\:returns_field\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/SettingsPage.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\SettingsPage\\:\\:series_options\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\SettingsPage\:\:series_options\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/SettingsPage.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\SettingsPage\\:\\:settings_sections\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\SettingsPage\:\:settings_sections\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/SettingsPage.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\SettingsPage\\:\\:stock_fields\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\SettingsPage\:\:stock_fields\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/SettingsPage.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\SettingsPage\\:\\:with_checkbox_labels\\(\\) has parameter \\$fields with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\SettingsPage\:\:with_checkbox_labels\(\) has parameter \$fields with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/SettingsPage.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\SettingsPage\\:\\:with_checkbox_labels\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\SettingsPage\:\:with_checkbox_labels\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/SettingsPage.php
 
 		-
-			message: "#^Property OblioWoo\\\\Admin\\\\SettingsPage\\:\\:\\$sections_cache type has no value type specified in iterable type array\\.$#"
+			message: '#^Property OblioWoo\\Admin\\SettingsPage\:\:\$sections_cache type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/SettingsPage.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\SettingsShortcut\\:\\:add_tab\\(\\) has parameter \\$tabs with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\SettingsShortcut\:\:add_tab\(\) has parameter \$tabs with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/SettingsShortcut.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\SettingsShortcut\\:\\:add_tab\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\SettingsShortcut\:\:add_tab\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/SettingsShortcut.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\StatusPanel\\:\\:count_issued\\(\\) has parameter \\$entries with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\StatusPanel\:\:count_issued\(\) has parameter \$entries with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/StatusPanel.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\StatusPanel\\:\\:hooks_card\\(\\) has parameter \\$overrides with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\StatusPanel\:\:hooks_card\(\) has parameter \$overrides with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/StatusPanel.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\StatusPanel\\:\\:log_card\\(\\) has parameter \\$entries with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\StatusPanel\:\:log_card\(\) has parameter \$entries with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/StatusPanel.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\StatusPanel\\:\\:queue_card\\(\\) has parameter \\$by_hook with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\StatusPanel\:\:queue_card\(\) has parameter \$by_hook with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/StatusPanel.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\StatusPanel\\:\\:queue_card\\(\\) has parameter \\$totals with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\StatusPanel\:\:queue_card\(\) has parameter \$totals with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/StatusPanel.php
 
 		-
-			message: "#^Method OblioWoo\\\\Admin\\\\StatusPanel\\:\\:summary\\(\\) has parameter \\$totals with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Admin\\StatusPanel\:\:summary\(\) has parameter \$totals with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/StatusPanel.php
 
 		-
-			message: "#^Method OblioWoo\\\\Api\\\\OblioClient\\:\\:access_token\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Api\\OblioClient\:\:access_token\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Api/OblioClient.php
 
 		-
-			message: "#^Method OblioWoo\\\\Api\\\\OblioClient\\:\\:authenticate\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Api\\OblioClient\:\:authenticate\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Api/OblioClient.php
 
 		-
-			message: "#^Method OblioWoo\\\\Api\\\\OblioClient\\:\\:cancel_document\\(\\) has parameter \\$number with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Api\\OblioClient\:\:cancel_document\(\) has parameter \$number with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Api/OblioClient.php
 
 		-
-			message: "#^Method OblioWoo\\\\Api\\\\OblioClient\\:\\:cancel_document\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Api\\OblioClient\:\:cancel_document\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Api/OblioClient.php
 
 		-
-			message: "#^Method OblioWoo\\\\Api\\\\OblioClient\\:\\:collect_invoice\\(\\) has parameter \\$collect with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Api\\OblioClient\:\:collect_invoice\(\) has parameter \$collect with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Api/OblioClient.php
 
 		-
-			message: "#^Method OblioWoo\\\\Api\\\\OblioClient\\:\\:collect_invoice\\(\\) has parameter \\$number with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Api\\OblioClient\:\:collect_invoice\(\) has parameter \$number with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Api/OblioClient.php
 
 		-
-			message: "#^Method OblioWoo\\\\Api\\\\OblioClient\\:\\:collect_invoice\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Api\\OblioClient\:\:collect_invoice\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Api/OblioClient.php
 
 		-
-			message: "#^Method OblioWoo\\\\Api\\\\OblioClient\\:\\:companies\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Api\\OblioClient\:\:companies\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Api/OblioClient.php
 
 		-
-			message: "#^Method OblioWoo\\\\Api\\\\OblioClient\\:\\:create_document\\(\\) has parameter \\$data with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Api\\OblioClient\:\:create_document\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Api/OblioClient.php
 
 		-
-			message: "#^Method OblioWoo\\\\Api\\\\OblioClient\\:\\:create_document\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Api\\OblioClient\:\:create_document\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Api/OblioClient.php
 
 		-
-			message: "#^Method OblioWoo\\\\Api\\\\OblioClient\\:\\:create_webhook\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Api\\OblioClient\:\:create_webhook\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Api/OblioClient.php
 
 		-
-			message: "#^Method OblioWoo\\\\Api\\\\OblioClient\\:\\:delete_document\\(\\) has parameter \\$number with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Api\\OblioClient\:\:delete_document\(\) has parameter \$number with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Api/OblioClient.php
 
 		-
-			message: "#^Method OblioWoo\\\\Api\\\\OblioClient\\:\\:delete_document\\(\\) has parameter \\$opts with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Api\\OblioClient\:\:delete_document\(\) has parameter \$opts with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Api/OblioClient.php
 
 		-
-			message: "#^Method OblioWoo\\\\Api\\\\OblioClient\\:\\:delete_document\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Api\\OblioClient\:\:delete_document\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Api/OblioClient.php
 
 		-
-			message: "#^Method OblioWoo\\\\Api\\\\OblioClient\\:\\:delete_webhook\\(\\) has parameter \\$id with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Api\\OblioClient\:\:delete_webhook\(\) has parameter \$id with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Api/OblioClient.php
 
 		-
-			message: "#^Method OblioWoo\\\\Api\\\\OblioClient\\:\\:delete_webhook\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Api\\OblioClient\:\:delete_webhook\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Api/OblioClient.php
 
 		-
-			message: "#^Method OblioWoo\\\\Api\\\\OblioClient\\:\\:do_request\\(\\) has parameter \\$opts with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Api\\OblioClient\:\:do_request\(\) has parameter \$opts with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Api/OblioClient.php
 
 		-
-			message: "#^Method OblioWoo\\\\Api\\\\OblioClient\\:\\:do_request\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Api\\OblioClient\:\:do_request\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Api/OblioClient.php
 
 		-
-			message: "#^Method OblioWoo\\\\Api\\\\OblioClient\\:\\:list_webhooks\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Api\\OblioClient\:\:list_webhooks\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Api/OblioClient.php
 
 		-
-			message: "#^Method OblioWoo\\\\Api\\\\OblioClient\\:\\:management\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Api\\OblioClient\:\:management\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Api/OblioClient.php
 
 		-
-			message: "#^Method OblioWoo\\\\Api\\\\OblioClient\\:\\:nomenclature\\(\\) has parameter \\$filters with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Api\\OblioClient\:\:nomenclature\(\) has parameter \$filters with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Api/OblioClient.php
 
 		-
-			message: "#^Method OblioWoo\\\\Api\\\\OblioClient\\:\\:nomenclature\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Api\\OblioClient\:\:nomenclature\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Api/OblioClient.php
 
 		-
-			message: "#^Method OblioWoo\\\\Api\\\\OblioClient\\:\\:request\\(\\) has parameter \\$opts with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Api\\OblioClient\:\:request\(\) has parameter \$opts with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Api/OblioClient.php
 
 		-
-			message: "#^Method OblioWoo\\\\Api\\\\OblioClient\\:\\:request\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Api\\OblioClient\:\:request\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Api/OblioClient.php
 
 		-
-			message: "#^Method OblioWoo\\\\Api\\\\OblioClient\\:\\:series\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Api\\OblioClient\:\:series\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Api/OblioClient.php
 
 		-
-			message: "#^Method OblioWoo\\\\Api\\\\OblioClient\\:\\:test_connection\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Api\\OblioClient\:\:test_connection\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Api/OblioClient.php
 
 		-
-			message: "#^Method OblioWoo\\\\Api\\\\TokenStore\\:\\:get\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Api\\TokenStore\:\:get\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Api/TokenStore.php
 
 		-
-			message: "#^Method OblioWoo\\\\Api\\\\TokenStore\\:\\:set\\(\\) has parameter \\$payload with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Api\\TokenStore\:\:set\(\) has parameter \$payload with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Api/TokenStore.php
 
 		-
-			message: "#^Method OblioWoo\\\\Compat\\\\OrderStore\\:\\:get_meta\\(\\) has no return type specified\\.$#"
+			message: '#^Method OblioWoo\\Compat\\OrderStore\:\:get_meta\(\) has no return type specified\.$#'
+			identifier: missingType.return
 			count: 1
 			path: src/Compat/OrderStore.php
 
 		-
-			message: "#^Method OblioWoo\\\\Compat\\\\OrderStore\\:\\:update_meta\\(\\) has parameter \\$value with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Compat\\OrderStore\:\:update_meta\(\) has parameter \$value with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Compat/OrderStore.php
 
 		-
-			message: "#^Method OblioWoo\\\\Compat\\\\OrderStore\\:\\:update_meta_bulk\\(\\) has parameter \\$data with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Compat\\OrderStore\:\:update_meta_bulk\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Compat/OrderStore.php
 
 		-
-			message: "#^Method OblioWoo\\\\Document\\\\DocumentIssuer\\:\\:issue\\(\\) has parameter \\$options with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Document\\DocumentIssuer\:\:issue\(\) has parameter \$options with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Document/DocumentIssuer.php
 
 		-
-			message: "#^Method OblioWoo\\\\Document\\\\DocumentResult\\:\\:from_api\\(\\) has parameter \\$data with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Document\\DocumentResult\:\:from_api\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Document/DocumentResult.php
 
 		-
-			message: "#^Method OblioWoo\\\\Document\\\\DocumentService\\:\\:issue\\(\\) has parameter \\$options with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Document\\DocumentService\:\:issue\(\) has parameter \$options with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Document/DocumentService.php
 
 		-
-			message: "#^Method OblioWoo\\\\Document\\\\EmailButton\\:\\:ensure_invoice\\(\\) has no return type specified\\.$#"
+			message: '#^Method OblioWoo\\Document\\EmailButton\:\:ensure_invoice\(\) has no return type specified\.$#'
+			identifier: missingType.return
 			count: 1
 			path: src/Document/EmailButton.php
 
 		-
-			message: "#^Method OblioWoo\\\\Document\\\\EmailButton\\:\\:render\\(\\) has parameter \\$email with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Document\\EmailButton\:\:render\(\) has parameter \$email with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Document/EmailButton.php
 
 		-
-			message: "#^Method OblioWoo\\\\Document\\\\EmailButton\\:\\:render\\(\\) has parameter \\$order with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Document\\EmailButton\:\:render\(\) has parameter \$order with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Document/EmailButton.php
 
 		-
-			message: "#^Method OblioWoo\\\\Document\\\\EmailButton\\:\\:render\\(\\) has parameter \\$plain_text with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Document\\EmailButton\:\:render\(\) has parameter \$plain_text with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Document/EmailButton.php
 
 		-
-			message: "#^Method OblioWoo\\\\Document\\\\EmailButton\\:\\:render\\(\\) has parameter \\$sent_to_admin with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Document\\EmailButton\:\:render\(\) has parameter \$sent_to_admin with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Document/EmailButton.php
 
 		-
-			message: "#^Method OblioWoo\\\\Document\\\\InvoiceBuilder\\:\\:build\\(\\) has parameter \\$options with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Document\\InvoiceBuilder\:\:build\(\) has parameter \$options with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Document/InvoiceBuilder.php
 
 		-
-			message: "#^Method OblioWoo\\\\Document\\\\InvoiceBuilder\\:\\:build\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Document\\InvoiceBuilder\:\:build\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Document/InvoiceBuilder.php
 
 		-
-			message: "#^Method OblioWoo\\\\Document\\\\InvoiceBuilder\\:\\:issue_date\\(\\) has parameter \\$options with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Document\\InvoiceBuilder\:\:issue_date\(\) has parameter \$options with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Document/InvoiceBuilder.php
 
 		-
-			message: "#^Method OblioWoo\\\\Document\\\\InvoiceBuilder\\:\\:products\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Document\\InvoiceBuilder\:\:products\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Document/InvoiceBuilder.php
 
 		-
-			message: "#^Method OblioWoo\\\\Document\\\\InvoiceBuilder\\:\\:reference_document\\(\\) has parameter \\$options with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Document\\InvoiceBuilder\:\:reference_document\(\) has parameter \$options with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Document/InvoiceBuilder.php
 
 		-
-			message: "#^Method OblioWoo\\\\Document\\\\InvoiceBuilder\\:\\:reference_document\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Document\\InvoiceBuilder\:\:reference_document\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Document/InvoiceBuilder.php
 
 		-
-			message: "#^Method OblioWoo\\\\Document\\\\Mapper\\\\ClientMapper\\:\\:map\\(\\) has parameter \\$ctx with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Document\\Mapper\\ClientMapper\:\:map\(\) has parameter \$ctx with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Document/Mapper/ClientMapper.php
 
 		-
-			message: "#^Method OblioWoo\\\\Document\\\\Mapper\\\\ClientMapper\\:\\:map\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Document\\Mapper\\ClientMapper\:\:map\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Document/Mapper/ClientMapper.php
 
 		-
-			message: "#^Method OblioWoo\\\\Document\\\\Mapper\\\\CollectMapper\\:\\:map\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Document\\Mapper\\CollectMapper\:\:map\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Document/Mapper/CollectMapper.php
 
 		-
-			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_product\\(\\)\\.$#"
+			message: '#^Call to an undefined method WC_Order_Item\:\:get_product\(\)\.$#'
+			identifier: method.notFound
 			count: 1
 			path: src/Document/Mapper/LineItemMapper.php
 
 		-
-			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_subtotal\\(\\)\\.$#"
+			message: '#^Call to an undefined method WC_Order_Item\:\:get_subtotal\(\)\.$#'
+			identifier: method.notFound
 			count: 1
 			path: src/Document/Mapper/LineItemMapper.php
 
 		-
-			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_subtotal_tax\\(\\)\\.$#"
+			message: '#^Call to an undefined method WC_Order_Item\:\:get_subtotal_tax\(\)\.$#'
+			identifier: method.notFound
 			count: 1
 			path: src/Document/Mapper/LineItemMapper.php
 
 		-
-			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_total\\(\\)\\.$#"
+			message: '#^Call to an undefined method WC_Order_Item\:\:get_total\(\)\.$#'
+			identifier: method.notFound
 			count: 1
 			path: src/Document/Mapper/LineItemMapper.php
 
 		-
-			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_total_tax\\(\\)\\.$#"
+			message: '#^Call to an undefined method WC_Order_Item\:\:get_total_tax\(\)\.$#'
+			identifier: method.notFound
 			count: 1
 			path: src/Document/Mapper/LineItemMapper.php
 
 		-
-			message: "#^Method OblioWoo\\\\Document\\\\Mapper\\\\LineItemMapper\\:\\:map\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Call to function method_exists\(\) with WC_Order_Item_Product and ''get_all_formatted…'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
 			count: 1
 			path: src/Document/Mapper/LineItemMapper.php
 
 		-
-			message: "#^Method OblioWoo\\\\Document\\\\Mapper\\\\LineItemMapper\\:\\:regular_price\\(\\) has parameter \\$product with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Document\\Mapper\\LineItemMapper\:\:map\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Document/Mapper/LineItemMapper.php
 
 		-
-			message: "#^Method OblioWoo\\\\Document\\\\Mapper\\\\LineItemMapper\\:\\:sku\\(\\) has parameter \\$product with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Document\\Mapper\\LineItemMapper\:\:regular_price\(\) has parameter \$product with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Document/Mapper/LineItemMapper.php
 
 		-
-			message: "#^Parameter \\#1 \\$item of method OblioWoo\\\\Document\\\\Mapper\\\\LineItemMapper\\:\\:description\\(\\) expects WC_Order_Item_Product, WC_Order_Item given\\.$#"
+			message: '#^Method OblioWoo\\Document\\Mapper\\LineItemMapper\:\:sku\(\) has parameter \$product with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Document/Mapper/LineItemMapper.php
 
 		-
-			message: "#^Parameter \\#1 \\$item of method OblioWoo\\\\Document\\\\Mapper\\\\LineItemMapper\\:\\:package_number\\(\\) expects WC_Order_Item_Product, WC_Order_Item given\\.$#"
+			message: '#^Parameter \#1 \$item of method OblioWoo\\Document\\Mapper\\LineItemMapper\:\:description\(\) expects WC_Order_Item_Product, WC_Order_Item given\.$#'
+			identifier: argument.type
 			count: 1
 			path: src/Document/Mapper/LineItemMapper.php
 
 		-
-			message: "#^Parameter \\#1 \\$item of method OblioWoo\\\\Document\\\\Mapper\\\\LineItemMapper\\:\\:product_type\\(\\) expects WC_Order_Item_Product, WC_Order_Item given\\.$#"
+			message: '#^Parameter \#1 \$item of method OblioWoo\\Document\\Mapper\\LineItemMapper\:\:package_number\(\) expects WC_Order_Item_Product, WC_Order_Item given\.$#'
+			identifier: argument.type
 			count: 1
 			path: src/Document/Mapper/LineItemMapper.php
 
 		-
-			message: "#^Parameter \\#1 \\$item of method OblioWoo\\\\Document\\\\Mapper\\\\LineItemMapper\\:\\:regular_price\\(\\) expects WC_Order_Item_Product, WC_Order_Item given\\.$#"
+			message: '#^Parameter \#1 \$item of method OblioWoo\\Document\\Mapper\\LineItemMapper\:\:product_type\(\) expects WC_Order_Item_Product, WC_Order_Item given\.$#'
+			identifier: argument.type
 			count: 1
 			path: src/Document/Mapper/LineItemMapper.php
 
 		-
-			message: "#^Parameter \\#1 \\$item of method OblioWoo\\\\Document\\\\Mapper\\\\LineItemMapper\\:\\:sku\\(\\) expects WC_Order_Item_Product, WC_Order_Item given\\.$#"
+			message: '#^Parameter \#1 \$item of method OblioWoo\\Document\\Mapper\\LineItemMapper\:\:regular_price\(\) expects WC_Order_Item_Product, WC_Order_Item given\.$#'
+			identifier: argument.type
 			count: 1
 			path: src/Document/Mapper/LineItemMapper.php
 
 		-
-			message: "#^Method OblioWoo\\\\Document\\\\Mapper\\\\ShippingFeeMapper\\:\\:map\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Parameter \#1 \$item of method OblioWoo\\Document\\Mapper\\LineItemMapper\:\:sku\(\) expects WC_Order_Item_Product, WC_Order_Item given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Document/Mapper/LineItemMapper.php
+
+		-
+			message: '#^Method OblioWoo\\Document\\Mapper\\ShippingFeeMapper\:\:map\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Document/Mapper/ShippingFeeMapper.php
 
 		-
-			message: "#^Method OblioWoo\\\\Document\\\\Mapper\\\\ShippingFeeMapper\\:\\:service_line\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Document\\Mapper\\ShippingFeeMapper\:\:service_line\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Document/Mapper/ShippingFeeMapper.php
 
 		-
-			message: "#^Method OblioWoo\\\\Extensibility\\\\HookInspector\\:\\:all_overrides\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Extensibility\\HookInspector\:\:all_overrides\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Extensibility/HookInspector.php
 
 		-
-			message: "#^Method OblioWoo\\\\Extensibility\\\\HookInspector\\:\\:describe\\(\\) has parameter \\$callback with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Extensibility\\HookInspector\:\:describe\(\) has parameter \$callback with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Extensibility/HookInspector.php
 
 		-
-			message: "#^Method OblioWoo\\\\Extensibility\\\\HookInspector\\:\\:describe\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Extensibility\\HookInspector\:\:describe\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Extensibility/HookInspector.php
 
 		-
-			message: "#^Method OblioWoo\\\\Extensibility\\\\HookInspector\\:\\:from_reflection\\(\\) has parameter \\$reflection with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Extensibility\\HookInspector\:\:from_reflection\(\) has parameter \$reflection with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Extensibility/HookInspector.php
 
 		-
-			message: "#^Method OblioWoo\\\\Extensibility\\\\HookInspector\\:\\:from_reflection\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Extensibility\\HookInspector\:\:from_reflection\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Extensibility/HookInspector.php
 
 		-
-			message: "#^Method OblioWoo\\\\Extensibility\\\\HookInspector\\:\\:overrides_for\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Extensibility\\HookInspector\:\:overrides_for\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Extensibility/HookInspector.php
 
 		-
-			message: "#^Method OblioWoo\\\\Extensibility\\\\HookRegistry\\:\\:all\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Extensibility\\HookRegistry\:\:all\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Extensibility/HookRegistry.php
 
 		-
-			message: "#^Method OblioWoo\\\\Extensibility\\\\HookRegistry\\:\\:for_section\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Extensibility\\HookRegistry\:\:for_section\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Extensibility/HookRegistry.php
 
 		-
-			message: "#^Method OblioWoo\\\\Frontend\\\\AccountInvoices\\:\\:link\\(\\) has parameter \\$document with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Frontend\\AccountInvoices\:\:link\(\) has parameter \$document with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Frontend/AccountInvoices.php
 
 		-
-			message: "#^Method OblioWoo\\\\Frontend\\\\AccountInvoices\\:\\:menu_item\\(\\) has parameter \\$items with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Frontend\\AccountInvoices\:\:menu_item\(\) has parameter \$items with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Frontend/AccountInvoices.php
 
 		-
-			message: "#^Method OblioWoo\\\\Frontend\\\\AccountInvoices\\:\\:menu_item\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Frontend\\AccountInvoices\:\:menu_item\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Frontend/AccountInvoices.php
 
 		-
-			message: "#^Method OblioWoo\\\\Frontend\\\\AccountInvoices\\:\\:query_vars\\(\\) has parameter \\$vars with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Frontend\\AccountInvoices\:\:query_vars\(\) has parameter \$vars with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Frontend/AccountInvoices.php
 
 		-
-			message: "#^Method OblioWoo\\\\Frontend\\\\AccountInvoices\\:\\:query_vars\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Frontend\\AccountInvoices\:\:query_vars\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Frontend/AccountInvoices.php
 
 		-
-			message: "#^Method OblioWoo\\\\Legacy\\\\Importer\\:\\:convert\\(\\) has no return type specified\\.$#"
+			message: '#^Method OblioWoo\\Legacy\\Importer\:\:convert\(\) has no return type specified\.$#'
+			identifier: missingType.return
 			count: 1
 			path: src/Legacy/Importer.php
 
 		-
-			message: "#^Method OblioWoo\\\\Legacy\\\\Importer\\:\\:convert\\(\\) has parameter \\$value with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Legacy\\Importer\:\:convert\(\) has parameter \$value with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Legacy/Importer.php
 
 		-
-			message: "#^Method OblioWoo\\\\Legacy\\\\Importer\\:\\:map\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Legacy\\Importer\:\:map\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Legacy/Importer.php
 
 		-
-			message: "#^Method OblioWoo\\\\Order\\\\OrderMeta\\:\\:get\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Order\\OrderMeta\:\:get\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Order/OrderMeta.php
 
 		-
-			message: "#^Method OblioWoo\\\\Order\\\\OrderMeta\\:\\:legacy_get\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Order\\OrderMeta\:\:legacy_get\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Order/OrderMeta.php
 
 		-
-			message: "#^Method OblioWoo\\\\Order\\\\OrderMeta\\:\\:storno_list\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Order\\OrderMeta\:\:storno_list\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Order/OrderMeta.php
 
 		-
-			message: "#^Method OblioWoo\\\\Queue\\\\AutoIssue\\:\\:entered\\(\\) has parameter \\$targets with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Queue\\AutoIssue\:\:entered\(\) has parameter \$targets with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Queue/AutoIssue.php
 
 		-
-			message: "#^Method OblioWoo\\\\Queue\\\\AutoIssue\\:\\:on_status_changed\\(\\) has parameter \\$from with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Queue\\AutoIssue\:\:on_status_changed\(\) has parameter \$from with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Queue/AutoIssue.php
 
 		-
-			message: "#^Method OblioWoo\\\\Queue\\\\AutoIssue\\:\\:on_status_changed\\(\\) has parameter \\$order with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Queue\\AutoIssue\:\:on_status_changed\(\) has parameter \$order with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Queue/AutoIssue.php
 
 		-
-			message: "#^Method OblioWoo\\\\Queue\\\\AutoIssue\\:\\:on_status_changed\\(\\) has parameter \\$order_id with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Queue\\AutoIssue\:\:on_status_changed\(\) has parameter \$order_id with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Queue/AutoIssue.php
 
 		-
-			message: "#^Method OblioWoo\\\\Queue\\\\AutoIssue\\:\\:on_status_changed\\(\\) has parameter \\$to with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Queue\\AutoIssue\:\:on_status_changed\(\) has parameter \$to with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Queue/AutoIssue.php
 
 		-
-			message: "#^Method OblioWoo\\\\Queue\\\\AutoIssue\\:\\:on_thankyou\\(\\) has parameter \\$order_id with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Queue\\AutoIssue\:\:on_thankyou\(\) has parameter \$order_id with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Queue/AutoIssue.php
 
 		-
-			message: "#^Method OblioWoo\\\\Queue\\\\Jobs\\\\GenerateDocument\\:\\:maybe_retry\\(\\) has parameter \\$options with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Queue\\Jobs\\GenerateDocument\:\:maybe_retry\(\) has parameter \$options with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Queue/Jobs/GenerateDocument.php
 
 		-
-			message: "#^Method OblioWoo\\\\Queue\\\\Jobs\\\\GenerateDocument\\:\\:run\\(\\) has parameter \\$payload with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Queue\\Jobs\\GenerateDocument\:\:run\(\) has parameter \$payload with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Queue/Jobs/GenerateDocument.php
 
 		-
-			message: "#^Method OblioWoo\\\\Queue\\\\Jobs\\\\GenerateRefund\\:\\:run\\(\\) has parameter \\$payload with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Queue\\Jobs\\GenerateRefund\:\:run\(\) has parameter \$payload with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Queue/Jobs/GenerateRefund.php
 
 		-
-			message: "#^Method OblioWoo\\\\Queue\\\\Jobs\\\\ProcessWebhookEvent\\:\\:run\\(\\) has parameter \\$payload with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Queue\\Jobs\\ProcessWebhookEvent\:\:run\(\) has parameter \$payload with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Queue/Jobs/ProcessWebhookEvent.php
 
 		-
-			message: "#^Method OblioWoo\\\\Queue\\\\Jobs\\\\StockSyncBatch\\:\\:fetch_page\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Queue\\Jobs\\StockSyncBatch\:\:fetch_page\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Queue/Jobs/StockSyncBatch.php
 
 		-
-			message: "#^Method OblioWoo\\\\Queue\\\\Jobs\\\\StockSyncBatch\\:\\:log_page\\(\\) has parameter \\$totals with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Queue\\Jobs\\StockSyncBatch\:\:log_page\(\) has parameter \$totals with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Queue/Jobs/StockSyncBatch.php
 
 		-
-			message: "#^Method OblioWoo\\\\Queue\\\\Jobs\\\\StockSyncBatch\\:\\:process_page\\(\\) has parameter \\$products with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Queue\\Jobs\\StockSyncBatch\:\:process_page\(\) has parameter \$products with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Queue/Jobs/StockSyncBatch.php
 
 		-
-			message: "#^Method OblioWoo\\\\Queue\\\\Jobs\\\\StockSyncBatch\\:\\:record_progress\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Queue\\Jobs\\StockSyncBatch\:\:record_progress\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Queue/Jobs/StockSyncBatch.php
 
 		-
-			message: "#^Method OblioWoo\\\\Queue\\\\Jobs\\\\StockSyncBatch\\:\\:resolve_skus\\(\\) has parameter \\$products with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Queue\\Jobs\\StockSyncBatch\:\:resolve_skus\(\) has parameter \$products with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Queue/Jobs/StockSyncBatch.php
 
 		-
-			message: "#^Method OblioWoo\\\\Queue\\\\Jobs\\\\StockSyncBatch\\:\\:resolve_skus\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Queue\\Jobs\\StockSyncBatch\:\:resolve_skus\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Queue/Jobs/StockSyncBatch.php
 
 		-
-			message: "#^Method OblioWoo\\\\Queue\\\\Jobs\\\\StockSyncBatch\\:\\:run\\(\\) has parameter \\$payload with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Queue\\Jobs\\StockSyncBatch\:\:run\(\) has parameter \$payload with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Queue/Jobs/StockSyncBatch.php
 
 		-
-			message: "#^Method OblioWoo\\\\Queue\\\\Jobs\\\\StockSyncBatch\\:\\:run_step\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Queue\\Jobs\\StockSyncBatch\:\:run_step\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Queue/Jobs/StockSyncBatch.php
 
 		-
-			message: "#^Function as_enqueue_async_action not found\\.$#"
+			message: '#^Function as_enqueue_async_action not found\.$#'
+			identifier: function.notFound
 			count: 4
 			path: src/Queue/Scheduler.php
 
 		-
-			message: "#^Function as_next_scheduled_action not found\\.$#"
+			message: '#^Function as_next_scheduled_action not found\.$#'
+			identifier: function.notFound
 			count: 3
 			path: src/Queue/Scheduler.php
 
 		-
-			message: "#^Function as_schedule_recurring_action not found\\.$#"
+			message: '#^Function as_schedule_recurring_action not found\.$#'
+			identifier: function.notFound
 			count: 2
 			path: src/Queue/Scheduler.php
 
 		-
-			message: "#^Function as_schedule_single_action not found\\.$#"
+			message: '#^Function as_schedule_single_action not found\.$#'
+			identifier: function.notFound
 			count: 6
 			path: src/Queue/Scheduler.php
 
 		-
-			message: "#^Function as_unschedule_all_actions not found\\.$#"
+			message: '#^Function as_unschedule_all_actions not found\.$#'
+			identifier: function.notFound
 			count: 4
 			path: src/Queue/Scheduler.php
 
 		-
-			message: "#^Method OblioWoo\\\\Queue\\\\Scheduler\\:\\:build_pending_map\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Queue\\Scheduler\:\:build_pending_map\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Queue/Scheduler.php
 
 		-
-			message: "#^Method OblioWoo\\\\Queue\\\\Scheduler\\:\\:enqueue_document\\(\\) has parameter \\$options with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Queue\\Scheduler\:\:enqueue_document\(\) has parameter \$options with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Queue/Scheduler.php
 
 		-
-			message: "#^Method OblioWoo\\\\Queue\\\\Scheduler\\:\\:enqueue_webhook\\(\\) has parameter \\$data with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Queue\\Scheduler\:\:enqueue_webhook\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Queue/Scheduler.php
 
 		-
-			message: "#^Method OblioWoo\\\\Queue\\\\Scheduler\\:\\:pending_payloads\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Queue\\Scheduler\:\:pending_payloads\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Queue/Scheduler.php
 
 		-
-			message: "#^Method OblioWoo\\\\Queue\\\\Scheduler\\:\\:reschedule_document\\(\\) has parameter \\$options with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Queue\\Scheduler\:\:reschedule_document\(\) has parameter \$options with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Queue/Scheduler.php
 
 		-
-			message: "#^Property OblioWoo\\\\Queue\\\\Scheduler\\:\\:\\$pending_generate type has no value type specified in iterable type array\\.$#"
+			message: '#^Property OblioWoo\\Queue\\Scheduler\:\:\$pending_generate type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Queue/Scheduler.php
 
 		-
-			message: "#^Property OblioWoo\\\\Queue\\\\Scheduler\\:\\:\\$pending_refund type has no value type specified in iterable type array\\.$#"
+			message: '#^Property OblioWoo\\Queue\\Scheduler\:\:\$pending_refund type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Queue/Scheduler.php
 
 		-
-			message: "#^Method OblioWoo\\\\Refund\\\\RefundAutoIssue\\:\\:on_refunded\\(\\) has parameter \\$order_id with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Refund\\RefundAutoIssue\:\:on_refunded\(\) has parameter \$order_id with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Refund/RefundAutoIssue.php
 
 		-
-			message: "#^Method OblioWoo\\\\Refund\\\\RefundAutoIssue\\:\\:on_refunded\\(\\) has parameter \\$refund_id with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Refund\\RefundAutoIssue\:\:on_refunded\(\) has parameter \$refund_id with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Refund/RefundAutoIssue.php
 
 		-
-			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_product\\(\\)\\.$#"
+			message: '#^Call to an undefined method WC_Order_Item\:\:get_product\(\)\.$#'
+			identifier: method.notFound
 			count: 1
 			path: src/Refund/RefundService.php
 
 		-
-			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_total\\(\\)\\.$#"
+			message: '#^Call to an undefined method WC_Order_Item\:\:get_total\(\)\.$#'
+			identifier: method.notFound
 			count: 2
 			path: src/Refund/RefundService.php
 
 		-
-			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_total_tax\\(\\)\\.$#"
+			message: '#^Call to an undefined method WC_Order_Item\:\:get_total_tax\(\)\.$#'
+			identifier: method.notFound
 			count: 2
 			path: src/Refund/RefundService.php
 
 		-
-			message: "#^Method OblioWoo\\\\Refund\\\\RefundService\\:\\:amount_only_line\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Refund\\RefundService\:\:amount_only_line\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Refund/RefundService.php
 
 		-
-			message: "#^Method OblioWoo\\\\Refund\\\\RefundService\\:\\:build_storno\\(\\) has parameter \\$invoice with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Refund\\RefundService\:\:build_storno\(\) has parameter \$invoice with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Refund/RefundService.php
 
 		-
-			message: "#^Method OblioWoo\\\\Refund\\\\RefundService\\:\\:build_storno\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Refund\\RefundService\:\:build_storno\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Refund/RefundService.php
 
 		-
-			message: "#^Method OblioWoo\\\\Refund\\\\RefundService\\:\\:reconcile_products\\(\\) has parameter \\$products with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Refund\\RefundService\:\:reconcile_products\(\) has parameter \$products with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Refund/RefundService.php
 
 		-
-			message: "#^Method OblioWoo\\\\Refund\\\\RefundService\\:\\:reconcile_products\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Refund\\RefundService\:\:reconcile_products\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Refund/RefundService.php
 
 		-
-			message: "#^Method OblioWoo\\\\Refund\\\\RefundService\\:\\:refund_products\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Refund\\RefundService\:\:refund_products\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Refund/RefundService.php
 
 		-
-			message: "#^Method OblioWoo\\\\Refund\\\\RefundService\\:\\:storno_adjustment\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Refund\\RefundService\:\:storno_adjustment\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Refund/RefundService.php
 
 		-
-			message: "#^Method OblioWoo\\\\Returns\\\\ReturnsIntegration\\:\\:candidate_hooks\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Call to function method_exists\(\) with ''Automattic\\\\WooCommerce\\\\Utilities\\\\FeaturesUtil'' and ''feature_is_enabled'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
 			count: 1
 			path: src/Returns/ReturnsIntegration.php
 
 		-
-			message: "#^Method OblioWoo\\\\Returns\\\\ReturnsIntegration\\:\\:on_return_event\\(\\) has parameter \\$primary with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Returns\\ReturnsIntegration\:\:candidate_hooks\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Returns/ReturnsIntegration.php
 
 		-
-			message: "#^Method OblioWoo\\\\Returns\\\\ReturnsIntegration\\:\\:on_return_event\\(\\) has parameter \\$secondary with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Returns\\ReturnsIntegration\:\:on_return_event\(\) has parameter \$primary with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Returns/ReturnsIntegration.php
 
 		-
-			message: "#^Method OblioWoo\\\\Returns\\\\ReturnsIntegration\\:\\:resolve_order\\(\\) has parameter \\$primary with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Returns\\ReturnsIntegration\:\:on_return_event\(\) has parameter \$secondary with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Returns/ReturnsIntegration.php
 
 		-
-			message: "#^Method OblioWoo\\\\Returns\\\\ReturnsIntegration\\:\\:resolve_order\\(\\) has parameter \\$secondary with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Returns\\ReturnsIntegration\:\:resolve_order\(\) has parameter \$primary with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Returns/ReturnsIntegration.php
 
 		-
-			message: "#^Method OblioWoo\\\\Returns\\\\ReturnsIntegration\\:\\:resolve_refund_id\\(\\) has parameter \\$primary with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Returns\\ReturnsIntegration\:\:resolve_order\(\) has parameter \$secondary with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Returns/ReturnsIntegration.php
 
 		-
-			message: "#^Method OblioWoo\\\\Returns\\\\ReturnsIntegration\\:\\:resolve_refund_id\\(\\) has parameter \\$secondary with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Returns\\ReturnsIntegration\:\:resolve_refund_id\(\) has parameter \$primary with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Returns/ReturnsIntegration.php
 
 		-
-			message: "#^Method OblioWoo\\\\Stock\\\\LocationAggregator\\:\\:aggregate\\(\\) has parameter \\$product with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Returns\\ReturnsIntegration\:\:resolve_refund_id\(\) has parameter \$secondary with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: src/Returns/ReturnsIntegration.php
+
+		-
+			message: '#^Method OblioWoo\\Stock\\LocationAggregator\:\:aggregate\(\) has parameter \$product with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Stock/LocationAggregator.php
 
 		-
-			message: "#^Method OblioWoo\\\\Stock\\\\LocationAggregator\\:\\:aggregate\\(\\) has parameter \\$selected with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Stock\\LocationAggregator\:\:aggregate\(\) has parameter \$selected with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Stock/LocationAggregator.php
 
 		-
-			message: "#^Method OblioWoo\\\\Stock\\\\LocationAggregator\\:\\:aggregate\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Stock\\LocationAggregator\:\:aggregate\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Stock/LocationAggregator.php
 
 		-
-			message: "#^Method OblioWoo\\\\Stock\\\\ProductUpdater\\:\\:currency_matches\\(\\) has parameter \\$agg with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Stock\\ProductUpdater\:\:currency_matches\(\) has parameter \$agg with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Stock/ProductUpdater.php
 
 		-
-			message: "#^Method OblioWoo\\\\Stock\\\\ProductUpdater\\:\\:currency_matches\\(\\) has parameter \\$movement with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Stock\\ProductUpdater\:\:currency_matches\(\) has parameter \$movement with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Stock/ProductUpdater.php
 
 		-
-			message: "#^Method OblioWoo\\\\Stock\\\\ProductUpdater\\:\\:update\\(\\) has parameter \\$agg with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Stock\\ProductUpdater\:\:update\(\) has parameter \$agg with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Stock/ProductUpdater.php
 
 		-
-			message: "#^Method OblioWoo\\\\Stock\\\\ProductUpdater\\:\\:update\\(\\) has parameter \\$product with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Stock\\ProductUpdater\:\:update\(\) has parameter \$product with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Stock/ProductUpdater.php
 
 		-
-			message: "#^Method OblioWoo\\\\Stock\\\\ProductUpdater\\:\\:update\\(\\) has parameter \\$reservations with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Stock\\ProductUpdater\:\:update\(\) has parameter \$reservations with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Stock/ProductUpdater.php
 
 		-
-			message: "#^Method OblioWoo\\\\Stock\\\\ProductUpdater\\:\\:update\\(\\) has parameter \\$sku_map with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Stock\\ProductUpdater\:\:update\(\) has parameter \$sku_map with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Stock/ProductUpdater.php
 
 		-
-			message: "#^Method OblioWoo\\\\Stock\\\\StockReservations\\:\\:build\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Stock\\StockReservations\:\:build\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Stock/StockReservations.php
 
 		-
-			message: "#^Method OblioWoo\\\\Stock\\\\StockReservations\\:\\:map\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Stock\\StockReservations\:\:map\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Stock/StockReservations.php
 
 		-
-			message: "#^Method OblioWoo\\\\Stock\\\\StockReservations\\:\\:sum_reserved_quantities\\(\\) has parameter \\$order_ids with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Stock\\StockReservations\:\:sum_reserved_quantities\(\) has parameter \$order_ids with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Stock/StockReservations.php
 
 		-
-			message: "#^Method OblioWoo\\\\Stock\\\\StockReservations\\:\\:sum_reserved_quantities\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Stock\\StockReservations\:\:sum_reserved_quantities\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Stock/StockReservations.php
 
 		-
-			message: "#^Action callback returns bool but should not return anything\\.$#"
+			message: '#^Action callback returns bool but should not return anything\.$#'
+			identifier: return.void
 			count: 1
 			path: src/Stock/StockSyncCoordinator.php
 
 		-
-			message: "#^Method OblioWoo\\\\Stock\\\\StockSyncCoordinator\\:\\:begin_full_sync\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Stock\\StockSyncCoordinator\:\:begin_full_sync\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Stock/StockSyncCoordinator.php
 
 		-
-			message: "#^Method OblioWoo\\\\Stock\\\\StockSyncCoordinator\\:\\:step\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Stock\\StockSyncCoordinator\:\:step\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Stock/StockSyncCoordinator.php
 
 		-
-			message: "#^Property OblioWoo\\\\Support\\\\Container\\:\\:\\$factories type has no value type specified in iterable type array\\.$#"
+			message: '#^Property OblioWoo\\Support\\Container\:\:\$factories type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Support/Container.php
 
 		-
-			message: "#^Property OblioWoo\\\\Support\\\\Container\\:\\:\\$resolved type has no value type specified in iterable type array\\.$#"
+			message: '#^Property OblioWoo\\Support\\Container\:\:\$resolved type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Support/Container.php
 
 		-
-			message: "#^Method OblioWoo\\\\Support\\\\Logger\\:\\:debug\\(\\) has parameter \\$context with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Support\\Logger\:\:debug\(\) has parameter \$context with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Support/Logger.php
 
 		-
-			message: "#^Method OblioWoo\\\\Support\\\\Logger\\:\\:error\\(\\) has parameter \\$context with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Support\\Logger\:\:error\(\) has parameter \$context with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Support/Logger.php
 
 		-
-			message: "#^Method OblioWoo\\\\Support\\\\Logger\\:\\:info\\(\\) has parameter \\$context with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Support\\Logger\:\:info\(\) has parameter \$context with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Support/Logger.php
 
 		-
-			message: "#^Method OblioWoo\\\\Support\\\\Logger\\:\\:log\\(\\) has parameter \\$context with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Support\\Logger\:\:log\(\) has parameter \$context with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Support/Logger.php
 
 		-
-			message: "#^Method OblioWoo\\\\Support\\\\Logger\\:\\:warning\\(\\) has parameter \\$context with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Support\\Logger\:\:warning\(\) has parameter \$context with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Support/Logger.php
 
 		-
-			message: "#^Property OblioWoo\\\\Support\\\\Logger\\:\\:\\$logger has no type specified\\.$#"
+			message: '#^Property OblioWoo\\Support\\Logger\:\:\$logger has no type specified\.$#'
+			identifier: missingType.property
 			count: 1
 			path: src/Support/Logger.php
 
 		-
-			message: "#^Method OblioWoo\\\\Support\\\\RateLimiter\\:\\:plan\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Support\\RateLimiter\:\:plan\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Support/RateLimiter.php
 
 		-
-			message: "#^Property OblioWoo\\\\Support\\\\RateLimiter\\:\\:\\$clock has no type specified\\.$#"
+			message: '#^Property OblioWoo\\Support\\RateLimiter\:\:\$clock has no type specified\.$#'
+			identifier: missingType.property
 			count: 1
 			path: src/Support/RateLimiter.php
 
 		-
-			message: "#^Property OblioWoo\\\\Support\\\\RateLimiter\\:\\:\\$sleeper has no type specified\\.$#"
+			message: '#^Property OblioWoo\\Support\\RateLimiter\:\:\$sleeper has no type specified\.$#'
+			identifier: missingType.property
 			count: 1
 			path: src/Support/RateLimiter.php
 
 		-
-			message: "#^Method OblioWoo\\\\Support\\\\Settings\\:\\:default\\(\\) has no return type specified\\.$#"
+			message: '#^Method OblioWoo\\Support\\Settings\:\:default\(\) has no return type specified\.$#'
+			identifier: missingType.return
 			count: 1
 			path: src/Support/Settings.php
 
 		-
-			message: "#^Method OblioWoo\\\\Support\\\\Settings\\:\\:get\\(\\) has no return type specified\\.$#"
+			message: '#^Method OblioWoo\\Support\\Settings\:\:get\(\) has no return type specified\.$#'
+			identifier: missingType.return
 			count: 1
 			path: src/Support/Settings.php
 
 		-
-			message: "#^Method OblioWoo\\\\Support\\\\Settings\\:\\:get\\(\\) has parameter \\$default with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Support\\Settings\:\:get\(\) has parameter \$default with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Support/Settings.php
 
 		-
-			message: "#^Method OblioWoo\\\\Support\\\\Settings\\:\\:invoice_statuses\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Support\\Settings\:\:invoice_statuses\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Support/Settings.php
 
 		-
-			message: "#^Method OblioWoo\\\\Support\\\\Settings\\:\\:set\\(\\) has parameter \\$value with no type specified\\.$#"
+			message: '#^Method OblioWoo\\Support\\Settings\:\:set\(\) has parameter \$value with no type specified\.$#'
+			identifier: missingType.parameter
 			count: 1
 			path: src/Support/Settings.php
 
 		-
-			message: "#^Method OblioWoo\\\\Webhook\\\\Handler\\\\CollectInsertedHandler\\:\\:handle\\(\\) has parameter \\$data with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Webhook\\Handler\\CollectInsertedHandler\:\:handle\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Webhook/Handler/CollectInsertedHandler.php
 
 		-
-			message: "#^Method OblioWoo\\\\Webhook\\\\Handler\\\\StockHandler\\:\\:handle\\(\\) has parameter \\$data with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Webhook\\Handler\\StockHandler\:\:handle\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Webhook/Handler/StockHandler.php
 
 		-
-			message: "#^Method OblioWoo\\\\Webhook\\\\RestController\\:\\:extract_event\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Webhook\\RestController\:\:extract_event\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Webhook/RestController.php
 
 		-
-			message: "#^Method OblioWoo\\\\Webhook\\\\TopicRegistry\\:\\:dispatch\\(\\) has parameter \\$data with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Webhook\\TopicRegistry\:\:dispatch\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Webhook/TopicRegistry.php
 
 		-
-			message: "#^Property OblioWoo\\\\Webhook\\\\TopicRegistry\\:\\:\\$handlers type has no value type specified in iterable type array\\.$#"
+			message: '#^Property OblioWoo\\Webhook\\TopicRegistry\:\:\$handlers type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Webhook/TopicRegistry.php
 
 		-
-			message: "#^Method OblioWoo\\\\Webhook\\\\WebhookHandler\\:\\:handle\\(\\) has parameter \\$data with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Webhook\\WebhookHandler\:\:handle\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Webhook/WebhookHandler.php
 
 		-
-			message: "#^Method OblioWoo\\\\Webhook\\\\WebhookManager\\:\\:desired_topics\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Webhook\\WebhookManager\:\:desired_topics\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Webhook/WebhookManager.php
 
 		-
-			message: "#^Method OblioWoo\\\\Webhook\\\\WebhookManager\\:\\:is_reusable\\(\\) has parameter \\$desired with no value type specified in iterable type array\\.$#"
+			message: '#^Method OblioWoo\\Webhook\\WebhookManager\:\:is_reusable\(\) has parameter \$desired with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Webhook/WebhookManager.php

@@ -104,7 +104,7 @@ final class RefundService implements RefundIssuer {
 		return $result;
 	}
 
-	public function issue_full_storno( WC_Order $order ): ?DocumentResult {
+	public function issue_full_storno( WC_Order $order ): DocumentResult {
 		$invoice = OrderMeta::get( $order, OrderMeta::TYPE_INVOICE );
 		if ( null === $invoice ) {
 			throw new DocumentException( esc_html__( 'Nu există factură pentru care să se emită storno.', 'facturare-gestiune-oblio-woocommerce' ) );

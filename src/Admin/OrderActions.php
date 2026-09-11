@@ -75,9 +75,9 @@ final class OrderActions {
 					$result = $this->refunds->issue_full_storno( $order );
 					wp_send_json_success(
 						array(
-							'series' => $result ? $result->series_name : '',
-							'number' => $result ? $result->number : '',
-							'link'   => $result ? $result->link : '',
+							'series' => $result->series_name,
+							'number' => $result->number,
+							'link'   => $result->link,
 						)
 					);
 					break;
