@@ -6,6 +6,7 @@ on:
     paths:
       - 'oblio-fgwoo.php'
       - 'readme.txt'
+  workflow_dispatch: {}
 
 permissions:
   contents: write
@@ -43,17 +44,17 @@ jobs:
         if: steps.check_tag.outputs.exists == 'false'
         id: changelog
         run: |
-          {
-            echo "notes<<CHANGELOG_EOF"
-            awk -v ver="= ${{ steps.version.outputs.version }} =" \
-              'found && /^= [0-9]/ { exit } $0 == ver { found=1; next } found' readme.txt
-            echo "CHANGELOG_EOF"
-          } >> "$GITHUB_OUTPUT"
+          awk -v ver="= ${{ steps.version.outputs.version }} =" \
+            'found && /^= [0-9]/ { exit } $0 == ver { found=1; next } found' readme.txt > release_notes.md
 
       # Uses RELEASE_TOKEN (a PAT) instead of the default token so the tag push this creates
       # is able to trigger the tag-based deploy.yml workflow. Falls back to GITHUB_TOKEN if the
       # secret isn't set yet, in which case the GitHub Release is still created but deploy.yml
       # will need a manual run (workflow_dispatch) until the PAT is added.
+      #
+      # Notes come from --notes-file (not an inline --notes "${{ ... }}") because the changelog
+      # text can contain double quotes; interpolating it straight into the shell string breaks
+      # the command line the moment it does.
       - name: Create tag + GitHub Release
         if: steps.check_tag.outputs.exists == 'false'
         env:
@@ -61,5 +62,5 @@ jobs:
         run: |
           gh release create "${{ steps.version.outputs.version }}" \
             --title "${{ steps.version.outputs.version }}" \
-            --notes "${{ steps.changelog.outputs.notes }}" \
+            --notes-file release_notes.md \
             --target "${{ github.sha }}"
