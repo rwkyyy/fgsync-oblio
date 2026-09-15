@@ -46,7 +46,7 @@ final class ReturnsIntegration {
 		foreach ( $this->candidate_hooks() as $hook ) {
 			add_action( $hook, array( $this, 'on_return_event' ), 20, 2 );
 		}
-		$this->logger->debug( 'Integrare retururi activă' );
+		$this->logger->debug( 'Returns integration active' );
 	}
 
 	public function is_feature_active(): bool {
@@ -70,21 +70,21 @@ final class ReturnsIntegration {
 	public function on_return_event( $primary = null, $secondary = null ): void {
 		$order = $this->resolve_order( $primary, $secondary );
 		if ( null === $order ) {
-			$this->logger->warning( 'Retururi: nu s-a putut identifica comanda din eveniment' );
+			$this->logger->warning( 'Returns: could not identify the order from the event' );
 			return;
 		}
 
 		$refund_id = $this->resolve_refund_id( $primary, $secondary );
 		if ( 0 === $refund_id ) {
 
-			$this->logger->debug( sprintf( 'Retururi: eveniment pentru comanda #%d fără rambursare, se amână', $order->get_id() ) );
+			$this->logger->debug( sprintf( 'Returns: event for order #%d has no refund yet, deferring', $order->get_id() ) );
 			return;
 		}
 
 		try {
 			$this->refunds->issue_for_refund( $order->get_id(), $refund_id );
 		} catch ( Throwable $exception ) {
-			$this->logger->error( sprintf( 'Retururi: stornoul pentru comanda #%d rambursarea #%d a eșuat: %s', $order->get_id(), $refund_id, $exception->getMessage() ) );
+			$this->logger->error( sprintf( 'Returns: storno for order #%d refund #%d failed: %s', $order->get_id(), $refund_id, $exception->getMessage() ) );
 		}
 	}
 

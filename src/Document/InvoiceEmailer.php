@@ -10,14 +10,18 @@ declare( strict_types=1 );
 namespace OblioWoo\Document;
 
 use OblioWoo\Order\OrderMeta;
+use OblioWoo\Support\Logger;
 use OblioWoo\Support\Settings;
 use WC_Order;
 final class InvoiceEmailer {
 
 	private Settings $settings;
 
-	public function __construct( Settings $settings ) {
+	private Logger $logger;
+
+	public function __construct( Settings $settings, Logger $logger ) {
 		$this->settings = $settings;
+		$this->logger   = $logger;
 	}
 
 	public function maybe_send( WC_Order $order, DocumentResult $result ): void {
@@ -28,12 +32,13 @@ final class InvoiceEmailer {
 
 		$to = $order->get_billing_email();
 		if ( '' === $to || ! is_email( $to ) ) {
+			$this->logger->warning( sprintf( 'Document email: order #%d has no valid billing email, skipped', $order->get_id() ) );
 			return;
 		}
 
 		$type = OrderMeta::TYPE_PROFORMA === $result->doc_type
-			? __( 'Proforma', 'facturare-gestiune-oblio-woocommerce' )
-			: __( 'Factura', 'facturare-gestiune-oblio-woocommerce' );
+			? __( 'Proforma', 'oblio-fgwoo' )
+			: __( 'Factura', 'oblio-fgwoo' );
 
 		$created  = $order->get_date_created();
 		$issue_ts = $created ? (int) $created->format( 'U' ) : time();
@@ -69,6 +74,11 @@ final class InvoiceEmailer {
 			$headers[] = sprintf( 'From: %s <%s>', get_option( 'blogname' ), $from );
 		}
 
-		wp_mail( $to, $subject, $message, $headers );
+		$sent = wp_mail( $to, $subject, $message, $headers );
+		if ( $sent ) {
+			$this->logger->info( sprintf( 'Document email: order #%d, %s %s sent to %s', $order->get_id(), $result->series_name, $result->number, $to ) );
+		} else {
+			$this->logger->error( sprintf( 'Document email: order #%d, %s %s, wp_mail() failed sending to %s', $order->get_id(), $result->series_name, $result->number, $to ) );
+		}
 	}
 }

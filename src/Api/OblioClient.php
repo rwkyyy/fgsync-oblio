@@ -167,7 +167,7 @@ final class OblioClient {
 
 		if ( is_wp_error( $response ) ) {
 			$message = $response->get_error_message();
-			$this->logger->error( sprintf( '%s %s: eroare de transport: %s', $method, $path, $message ) );
+			$this->logger->error( sprintf( '%s %s: transport error: %s', $method, $path, $message ) );
 			throw new ApiException( esc_html( $message ) );
 		}
 
@@ -185,7 +185,7 @@ final class OblioClient {
 			$status_message = is_array( $decoded ) && isset( $decoded['statusMessage'] )
 				? (string) $decoded['statusMessage']
 				: sprintf( 'HTTP %d', $code );
-			$this->logger->error( sprintf( '%s %s a eșuat (%d): %s', $method, $path, $code, $status_message ) );
+			$this->logger->error( sprintf( '%s %s failed (%d): %s', $method, $path, $code, $status_message ) );
 			throw new ApiException( esc_html( $status_message ), (int) $code, esc_html( $status_message ) );
 		}
 
@@ -202,7 +202,7 @@ final class OblioClient {
 
 	private function authenticate(): array {
 		if ( '' === $this->email || '' === $this->secret ) {
-			throw new AuthException( esc_html__( 'Email sau API secret lipsă.', 'facturare-gestiune-oblio-woocommerce' ) );
+			throw new AuthException( esc_html__( 'Email sau API secret lipsă.', 'oblio-fgwoo' ) );
 		}
 
 		$response = wp_remote_post(
@@ -229,12 +229,12 @@ final class OblioClient {
 			$message = is_array( $data ) && isset( $data['statusMessage'] )
 				? (string) $data['statusMessage']
 				: sprintf( 'Autorizare eșuată (HTTP %d)', $code );
-			$this->logger->error( 'Autentificare eșuată: ' . $message );
+			$this->logger->error( 'Authentication failed: ' . $message );
 			throw new AuthException( esc_html( $message ), (int) $code, esc_html( $message ) );
 		}
 
 		$this->tokens->set( $data );
-		$this->logger->debug( 'Token de acces obținut', array( 'expires_in' => $data['expires_in'] ?? null ) );
+		$this->logger->debug( 'Access token obtained', array( 'expires_in' => $data['expires_in'] ?? null ) );
 
 		return $this->tokens->get() ?? array(
 			'access_token' => (string) $data['access_token'],

@@ -58,7 +58,7 @@ final class DocumentService implements DocumentIssuer {
 		$result  = DocumentResult::from_api( $doc_type, $data );
 
 		if ( '' === $result->series_name && '' === $result->number ) {
-			throw new DocumentException( esc_html__( 'Răspuns invalid de la Oblio la emiterea documentului.', 'facturare-gestiune-oblio-woocommerce' ) );
+			throw new DocumentException( esc_html__( 'Răspuns invalid de la Oblio la emiterea documentului.', 'oblio-fgwoo' ) );
 		}
 
 		if ( OrderMeta::TYPE_INVOICE === $doc_type ) {
@@ -66,20 +66,11 @@ final class DocumentService implements DocumentIssuer {
 			OrderMeta::record_invoice_stock_usage( $order, ! empty( $options['use_stock'] ) );
 		}
 		OrderMeta::save( $order, $result );
-		$order->add_order_note(
-			sprintf(
-				/* translators: 1: doc type, 2: series, 3: number */
-				__( 'Oblio: %1$s %2$s %3$s emisă.', 'facturare-gestiune-oblio-woocommerce' ),
-				$doc_type,
-				$result->series_name,
-				$result->number
-			)
-		);
 
 		do_action( 'oblio_fgwoo_document_issued', $order, $result, $options );
 
 		$this->emailer->maybe_send( $order, $result );
-		$this->logger->info( sprintf( 'Comanda #%d: %s %s %s emis', $order->get_id(), $doc_type, $result->series_name, $result->number ) );
+		$this->logger->info( sprintf( 'Order #%d: %s %s %s issued', $order->get_id(), $doc_type, $result->series_name, $result->number ) );
 
 		return $result;
 	}
@@ -101,7 +92,7 @@ final class DocumentService implements DocumentIssuer {
 		OrderMeta::clear( $order, $doc_type );
 
 		do_action( 'oblio_fgwoo_document_deleted', $order, $doc_type, $doc );
-		$this->logger->info( sprintf( 'Comanda #%d: %s %s %s șters', $order->get_id(), $doc_type, $doc['series'], $doc['number'] ) );
+		$this->logger->info( sprintf( 'Order #%d: %s %s %s deleted', $order->get_id(), $doc_type, $doc['series'], $doc['number'] ) );
 
 		return true;
 	}
@@ -120,7 +111,7 @@ final class DocumentService implements DocumentIssuer {
 			$this->delete( $order, OrderMeta::TYPE_PROFORMA );
 		} catch ( \Throwable $exception ) {
 
-			$this->logger->warning( 'Nu s-a putut șterge proforma înainte de factură: ' . $exception->getMessage() );
+			$this->logger->warning( 'Could not delete the proforma before the invoice: ' . $exception->getMessage() );
 			throw $exception;
 		}
 	}

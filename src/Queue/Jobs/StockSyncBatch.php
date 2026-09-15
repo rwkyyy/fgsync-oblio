@@ -101,7 +101,7 @@ final class StockSyncBatch {
 		if ( ! $this->settings->has_credentials() || '' === (string) $this->settings->get( 'cif' ) ) {
 			return array(
 				'ok'     => false,
-				'reason' => __( 'Verifică emailul, secretul și firma.', 'facturare-gestiune-oblio-woocommerce' ),
+				'reason' => __( 'Verifică emailul, secretul și firma.', 'oblio-fgwoo' ),
 			);
 		}
 
@@ -129,7 +129,7 @@ final class StockSyncBatch {
 				$completed = true;
 				return array(
 					'ok'     => false,
-					'reason' => __( 'Sincronizarea a fost înlocuită de o rulare mai nouă.', 'facturare-gestiune-oblio-woocommerce' ),
+					'reason' => __( 'Sincronizarea a fost înlocuită de o rulare mai nouă.', 'oblio-fgwoo' ),
 				);
 			}
 
@@ -187,7 +187,7 @@ final class StockSyncBatch {
 
 		$current = (string) get_option( StockSyncCoordinator::RUN_TOKEN_OPTION, '' );
 		if ( '' === $token || $token === $current ) {
-			$this->logger->error( sprintf( 'Sincronizare stoc: cererea a fost întreruptă (%s), blocarea a fost eliberată automat', $error['message'] ) );
+			$this->logger->error( sprintf( 'Stock sync: request was interrupted (%s), lock released automatically', $error['message'] ) );
 			$this->abort();
 		}
 	}
@@ -225,7 +225,7 @@ final class StockSyncBatch {
 	private function log_page( int $offset, int $count, int $updated, array $totals ): void {
 		$this->logger->info(
 			sprintf(
-				'Sincronizare stoc: pagina de la segmentul %d - %d actualizate din %d produse (total %d/%d)',
+				'Stock sync: page from offset %d - %d updated out of %d products (total %d/%d)',
 				$offset,
 				$updated,
 				$count,
@@ -236,7 +236,7 @@ final class StockSyncBatch {
 	}
 
 	private function log_step_failure( int $offset, string $reason ): void {
-		$this->logger->error( sprintf( 'Sincronizare stoc: pagina de la segmentul %d a eșuat: %s', $offset, $reason ) );
+		$this->logger->error( sprintf( 'Stock sync: page from offset %d failed: %s', $offset, $reason ) );
 	}
 
 	private function resolve_skus( array $products ): array {
@@ -279,11 +279,11 @@ final class StockSyncBatch {
 		if ( $retryable && $attempt < self::MAX_ATTEMPTS ) {
 			$delay = $this->scheduler->backoff( $attempt );
 			$this->scheduler->enqueue_stock_batch( $offset, $attempt + 1, $delay, $token );
-			$this->logger->warning( sprintf( 'Sincronizare stoc: pagina de la segmentul %d a eșuat (încercarea %d): %s, reîncercare în %ds', $offset, $attempt, $reason, $delay ) );
+			$this->logger->warning( sprintf( 'Stock sync: page from offset %d failed (attempt %d): %s, retrying in %ds', $offset, $attempt, $reason, $delay ) );
 			return;
 		}
 
-		$this->logger->error( sprintf( 'Sincronizare stoc: pagina de la segmentul %d abandonată (încercarea %d): %s', $offset, $attempt, $reason ) );
+		$this->logger->error( sprintf( 'Stock sync: page from offset %d abandoned (attempt %d): %s', $offset, $attempt, $reason ) );
 		$this->abort();
 	}
 
@@ -318,7 +318,7 @@ final class StockSyncBatch {
 		$updated  = is_array( $progress ) ? (int) ( $progress['updated'] ?? 0 ) : 0;
 
 		update_option( StockSyncCoordinator::LAST_SYNC_OPTION, time(), false );
-		$this->logger->info( sprintf( 'Sincronizare stoc finalizată: %d din %d produse actualizate', $updated, $scanned ) );
+		$this->logger->info( sprintf( 'Stock sync finished: %d out of %d products updated', $updated, $scanned ) );
 
 		delete_transient( StockSyncCoordinator::PROGRESS_TRANSIENT );
 		delete_option( StockSyncCoordinator::RUN_TOKEN_OPTION );

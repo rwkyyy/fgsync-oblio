@@ -137,7 +137,13 @@ final class Plugin {
 		$container->set( ShippingFeeMapper::class, static fn (): ShippingFeeMapper => new ShippingFeeMapper() );
 		$container->set( CollectMapper::class, static fn ( Container $container ): CollectMapper => new CollectMapper( $container->get( Settings::class ) ) );
 		$container->set( LifecyclePolicy::class, static fn ( Container $container ): LifecyclePolicy => new LifecyclePolicy( $container->get( Settings::class ) ) );
-		$container->set( InvoiceEmailer::class, static fn ( Container $container ): InvoiceEmailer => new InvoiceEmailer( $container->get( Settings::class ) ) );
+		$container->set(
+			InvoiceEmailer::class,
+			static fn ( Container $container ): InvoiceEmailer => new InvoiceEmailer(
+				$container->get( Settings::class ),
+				$container->get( Logger::class )
+			)
+		);
 		$container->set(
 			EmailButton::class,
 			static fn ( Container $container ): EmailButton => new EmailButton(
@@ -298,7 +304,8 @@ final class Plugin {
 			RestController::class,
 			static fn ( Container $container ): RestController => new RestController(
 				$container->get( Settings::class ),
-				$container->get( Scheduler::class )
+				$container->get( Scheduler::class ),
+				$container->get( Logger::class )
 			)
 		);
 
@@ -334,7 +341,8 @@ final class Plugin {
 			NomenclatureCache::class,
 			static fn ( Container $container ): NomenclatureCache => new NomenclatureCache(
 				$container->get( ClientFactory::class ),
-				$container->get( Settings::class )
+				$container->get( Settings::class ),
+				$container->get( Logger::class )
 			)
 		);
 
@@ -357,7 +365,8 @@ final class Plugin {
 				$container->get( NomenclatureCache::class ),
 				$container->get( StatusPanel::class ),
 				$container->get( HookRegistry::class ),
-				$container->get( HookInspector::class )
+				$container->get( HookInspector::class ),
+				$container->get( Logger::class )
 			)
 		);
 
@@ -366,7 +375,8 @@ final class Plugin {
 			static fn ( Container $container ): OrderActions => new OrderActions(
 				$container->get( DocumentService::class ),
 				$container->get( RefundService::class ),
-				$container->get( OrderStore::class )
+				$container->get( OrderStore::class ),
+				$container->get( Logger::class )
 			)
 		);
 		$container->set( OrderMetaBox::class, static fn ( Container $container ): OrderMetaBox => new OrderMetaBox( $container->get( Settings::class ) ) );
@@ -378,7 +388,8 @@ final class Plugin {
 			static fn ( Container $container ): BulkActions => new BulkActions(
 				$container->get( Settings::class ),
 				$container->get( Scheduler::class ),
-				$container->get( OrderStore::class )
+				$container->get( OrderStore::class ),
+				$container->get( Logger::class )
 			)
 		);
 		$container->set( AccountInvoices::class, static fn (): AccountInvoices => new AccountInvoices() );
@@ -407,7 +418,8 @@ final class Plugin {
 			ConnectionTest::class,
 			static fn ( Container $container ): ConnectionTest => new ConnectionTest(
 				$container->get( ClientFactory::class ),
-				$container->get( NomenclatureCache::class )
+				$container->get( NomenclatureCache::class ),
+				$container->get( Logger::class )
 			)
 		);
 	}
@@ -451,6 +463,11 @@ final class Plugin {
 		}
 
 		if ( is_admin() ) {
+			if ( ! get_option( 'oblio_fgwoo_webhook_stock_removed' ) ) {
+				update_option( 'oblio_fgwoo_webhook_stock_removed', 1, false );
+				add_action( 'shutdown', fn () => $this->get( WebhookManager::class )->reconcile() );
+			}
+
 			$this->get( NomenclatureCache::class )->register();
 			$this->get( SettingsPage::class )->register();
 			$this->get( SettingsShortcut::class )->register();

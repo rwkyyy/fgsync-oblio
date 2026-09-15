@@ -24,7 +24,7 @@ final class ImportAction {
 
 	public function handle(): void {
 		if ( ! check_ajax_referer( ConnectionTest::NONCE_ACTION, 'nonce', false ) || ! current_user_can( 'manage_woocommerce' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Acțiune neautorizată.', 'facturare-gestiune-oblio-woocommerce' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'Acțiune neautorizată.', 'oblio-fgwoo' ) ), 403 );
 		}
 
 		$count = $this->importer->import();
@@ -33,7 +33,7 @@ final class ImportAction {
 			array(
 				'message' => sprintf(
 					/* translators: %d: number of settings */
-					_n( '%d setare importată din pluginul vechi.', '%d setări importate din pluginul vechi.', $count, 'facturare-gestiune-oblio-woocommerce' ),
+					_n( '%d setare importată din pluginul vechi.', '%d setări importate din pluginul vechi.', $count, 'oblio-fgwoo' ),
 					$count
 				),
 			)

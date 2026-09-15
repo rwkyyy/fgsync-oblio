@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'facturare-gestiune-oblio-woocommerce.php'
+      - 'oblio-fgwoo.php'
       - 'readme.txt'
 
 permissions:
@@ -22,7 +22,7 @@ jobs:
       - name: Read plugin version
         id: version
         run: |
-          PLUGIN_VERSION=$(grep -m1 '^ \* Version:' facturare-gestiune-oblio-woocommerce.php | sed -E 's/^[^:]+:[[:space:]]*//')
+          PLUGIN_VERSION=$(grep -m1 '^ \* Version:' oblio-fgwoo.php | sed -E 's/^[^:]+:[[:space:]]*//')
           README_VERSION=$(grep -m1 '^Stable tag:' readme.txt | sed -E 's/^Stable tag:[[:space:]]*//')
           if [ -z "$PLUGIN_VERSION" ] || [ "$PLUGIN_VERSION" != "$README_VERSION" ]; then
             echo "::error::Plugin header version ($PLUGIN_VERSION) and readme.txt Stable tag ($README_VERSION) do not match."

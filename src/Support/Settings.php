@@ -127,41 +127,30 @@ final class Settings {
 		return $mode;
 	}
 
-	public function webhook_stock_enabled(): bool {
-		$raw = get_option( self::PREFIX . 'webhook_stock', null );
-		if ( null !== $raw ) {
-			return 'yes' === $raw;
-		}
-		$legacy = get_option( self::PREFIX . 'webhook_topics', null );
-		return is_array( $legacy ) && in_array( 'stock', $legacy, true );
-	}
-
 	public function stock_sync_trigger(): string {
 		$stored = (string) get_option( self::PREFIX . 'stock_sync_trigger', '' );
-		if ( in_array( $stored, array( 'off', 'schedule', 'webhook', 'both' ), true ) ) {
+
+		// Webhook trigger temporarily disabled (payload under verification); keep any existing schedule state.
+		if ( 'both' === $stored ) {
+			return 'schedule';
+		}
+		if ( 'webhook' === $stored ) {
+			return 'off';
+		}
+		if ( in_array( $stored, array( 'off', 'schedule' ), true ) ) {
 			return $stored;
 		}
 
 		$scheduled = 'yes' === get_option( self::PREFIX . 'stock_sync', 'no' );
-		$webhook   = 'yes' === get_option( self::PREFIX . 'webhooks_enabled', 'no' ) && $this->webhook_stock_enabled();
-		if ( $scheduled && $webhook ) {
-			return 'both';
-		}
-		if ( $webhook ) {
-			return 'webhook';
-		}
-		if ( $scheduled ) {
-			return 'schedule';
-		}
-		return 'off';
+		return $scheduled ? 'schedule' : 'off';
 	}
 
 	public function stock_schedule_enabled(): bool {
-		return in_array( $this->stock_sync_trigger(), array( 'schedule', 'both' ), true );
+		return 'schedule' === $this->stock_sync_trigger();
 	}
 
 	public function stock_webhook_enabled(): bool {
-		return in_array( $this->stock_sync_trigger(), array( 'webhook', 'both' ), true );
+		return false;
 	}
 
 	public function stock_sync_configured(): bool {

@@ -54,7 +54,7 @@ final class RefundService implements RefundIssuer {
 
 		$invoice = OrderMeta::get( $order, OrderMeta::TYPE_INVOICE );
 		if ( null === $invoice ) {
-			throw new DocumentException( esc_html__( 'Nu există factură pentru care să se emită storno.', 'facturare-gestiune-oblio-woocommerce' ) );
+			throw new DocumentException( esc_html__( 'Nu există factură pentru care să se emită storno.', 'oblio-fgwoo' ) );
 		}
 
 		if ( '' !== (string) $order->get_meta( OrderMeta::key( OrderMeta::TYPE_STORNO, 'full' ) ) ) {
@@ -68,7 +68,7 @@ final class RefundService implements RefundIssuer {
 		$result = DocumentResult::from_api( OrderMeta::TYPE_STORNO, $data );
 
 		if ( '' === $result->series_name && '' === $result->number ) {
-			throw new DocumentException( esc_html__( 'Răspuns invalid de la Oblio la emiterea storno.', 'facturare-gestiune-oblio-woocommerce' ) );
+			throw new DocumentException( esc_html__( 'Răspuns invalid de la Oblio la emiterea storno.', 'oblio-fgwoo' ) );
 		}
 
 		$order->update_meta_data(
@@ -87,19 +87,9 @@ final class RefundService implements RefundIssuer {
 		$this->record_storno( $order, $result, $is_full );
 		OrderMeta::save( $order, $result );
 
-		$order->add_order_note(
-			sprintf(
-				/* translators: 1: full/partial, 2: series, 3: number */
-				__( 'Oblio: storno %1$s %2$s %3$s emis.', 'facturare-gestiune-oblio-woocommerce' ),
-				$is_full ? __( 'total', 'facturare-gestiune-oblio-woocommerce' ) : __( 'parțial', 'facturare-gestiune-oblio-woocommerce' ),
-				$result->series_name,
-				$result->number
-			)
-		);
-
 		do_action( 'oblio_fgwoo_storno_issued', $order, $result, $refund_id, $is_full );
 
-		$this->logger->info( sprintf( 'Comanda #%d rambursarea #%d: storno %s %s (%s)', $order_id, $refund_id, $result->series_name, $result->number, $is_full ? 'total' : 'parțial' ) );
+		$this->logger->info( sprintf( 'Order #%d refund #%d: storno %s %s (%s)', $order_id, $refund_id, $result->series_name, $result->number, $is_full ? 'full' : 'partial' ) );
 
 		return $result;
 	}
@@ -107,7 +97,7 @@ final class RefundService implements RefundIssuer {
 	public function issue_full_storno( WC_Order $order ): DocumentResult {
 		$invoice = OrderMeta::get( $order, OrderMeta::TYPE_INVOICE );
 		if ( null === $invoice ) {
-			throw new DocumentException( esc_html__( 'Nu există factură pentru care să se emită storno.', 'facturare-gestiune-oblio-woocommerce' ) );
+			throw new DocumentException( esc_html__( 'Nu există factură pentru care să se emită storno.', 'oblio-fgwoo' ) );
 		}
 
 		$full_key = OrderMeta::key( OrderMeta::TYPE_STORNO, 'full' );
@@ -120,7 +110,7 @@ final class RefundService implements RefundIssuer {
 		}
 
 		if ( null !== OrderMeta::get( $order, OrderMeta::TYPE_STORNO ) ) {
-			throw new DocumentException( esc_html__( 'Există deja un storno pentru această factură. Storneaz restul printr-o rambursare WooCommerce.', 'facturare-gestiune-oblio-woocommerce' ) );
+			throw new DocumentException( esc_html__( 'Există deja un storno pentru această factură. Storneaz restul printr-o rambursare WooCommerce.', 'oblio-fgwoo' ) );
 		}
 
 		$payload = array(
@@ -141,22 +131,14 @@ final class RefundService implements RefundIssuer {
 		$result = DocumentResult::from_api( OrderMeta::TYPE_STORNO, $data );
 
 		if ( '' === $result->series_name && '' === $result->number ) {
-			throw new DocumentException( esc_html__( 'Răspuns invalid de la Oblio la emiterea storno.', 'facturare-gestiune-oblio-woocommerce' ) );
+			throw new DocumentException( esc_html__( 'Răspuns invalid de la Oblio la emiterea storno.', 'oblio-fgwoo' ) );
 		}
 
 		$order->update_meta_data( $full_key, current_time( 'mysql' ) );
 		$this->record_storno( $order, $result, true );
 		OrderMeta::save( $order, $result );
-		$order->add_order_note(
-			sprintf(
-				/* translators: 1: series, 2: number */
-				__( 'Oblio: storno total %1$s %2$s emis.', 'facturare-gestiune-oblio-woocommerce' ),
-				$result->series_name,
-				$result->number
-			)
-		);
 		do_action( 'oblio_fgwoo_storno_issued', $order, $result, 0, true );
-		$this->logger->info( sprintf( 'Comanda #%d: storno total manual %s %s', $order->get_id(), $result->series_name, $result->number ) );
+		$this->logger->info( sprintf( 'Order #%d: manual full storno %s %s', $order->get_id(), $result->series_name, $result->number ) );
 
 		return $result;
 	}
@@ -264,7 +246,7 @@ final class RefundService implements RefundIssuer {
 		$ship_tax = abs( (float) $refund->get_shipping_tax() );
 		if ( $shipping + $ship_tax > 0 ) {
 			$products[] = array(
-				'name'          => __( 'Transport', 'facturare-gestiune-oblio-woocommerce' ),
+				'name'          => __( 'Transport', 'oblio-fgwoo' ),
 				'code'          => '',
 				'price'         => $shipping + $ship_tax,
 				'measuringUnit' => $ctx->measuring_unit,
@@ -293,7 +275,7 @@ final class RefundService implements RefundIssuer {
 
 		return array(
 			array(
-				'name'          => '' !== $reason ? $reason : __( 'Rambursare', 'facturare-gestiune-oblio-woocommerce' ),
+				'name'          => '' !== $reason ? $reason : __( 'Rambursare', 'oblio-fgwoo' ),
 				'code'          => '',
 				'price'         => round( $amount, $ctx->precision + 2 ),
 				'measuringUnit' => $ctx->measuring_unit,
@@ -329,7 +311,7 @@ final class RefundService implements RefundIssuer {
 		$ctx      = BuildContext::from_settings( $this->settings, $currency );
 
 		$products[] = array(
-			'name'          => __( 'Ajustare storno', 'facturare-gestiune-oblio-woocommerce' ),
+			'name'          => __( 'Ajustare storno', 'oblio-fgwoo' ),
 			'code'          => '',
 			'price'         => $adjustment['price'],
 			'measuringUnit' => $ctx->measuring_unit,

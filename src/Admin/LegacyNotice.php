@@ -23,7 +23,7 @@ final class LegacyNotice {
 
 		$message = sprintf(
 			/* translators: %s: URL of the Plugins admin page */
-			__( '<strong>ATENȚIE</strong> modulul „WooCommerce Oblio” vechi este activ! Continuarea poate genera facturi dublate! Vă recomandăm să dezactivați modulul vechi din secțiunea <a href="%s">plugin-uri</a>.', 'facturare-gestiune-oblio-woocommerce' ),
+			__( '<strong>ATENȚIE</strong> modulul „WooCommerce Oblio” vechi este activ! Continuarea poate genera facturi dublate! Vă recomandăm să dezactivați modulul vechi din secțiunea <a href="%s">plugin-uri</a>.', 'oblio-fgwoo' ),
 			esc_url( admin_url( 'plugins.php' ) )
 		);
 

@@ -60,7 +60,7 @@ final class GenerateRefund {
 
 		$order = $this->orders->get_order( $order_id );
 		if ( null === $order ) {
-			$this->logger->warning( sprintf( 'Coadă: comanda #%d nu a fost găsită, se omite stornoul pentru rambursarea #%d', $order_id, $refund_id ) );
+			$this->logger->warning( sprintf( 'Queue: order #%d not found, skipping storno for refund #%d', $order_id, $refund_id ) );
 			return;
 		}
 
@@ -93,19 +93,12 @@ final class GenerateRefund {
 		}
 		$delay = $this->scheduler->backoff( $attempt );
 		$this->scheduler->enqueue_refund( $order->get_id(), $refund_id, $attempt + 1, $delay );
-		$this->logger->warning( sprintf( 'Coadă: stornoul pentru comanda #%d rambursarea #%d a eșuat (încercarea %d/%d): %s, reîncercare în %ds', $order->get_id(), $refund_id, $attempt, self::MAX_ATTEMPTS, $reason, $delay ) );
+		$this->logger->warning( sprintf( 'Queue: storno for order #%d refund #%d failed (attempt %d/%d): %s, retrying in %ds', $order->get_id(), $refund_id, $attempt, self::MAX_ATTEMPTS, $reason, $delay ) );
 	}
 
 	private function fail( WC_Order $order, int $refund_id, string $reason, bool $exhausted ): void {
 		$order->update_meta_data( 'oblio_fgwoo_storno_failed_' . $refund_id, $reason );
-		$order->add_order_note(
-			sprintf(
-				/* translators: %s: reason */
-				__( 'Oblio: emiterea storno a eșuat, %s', 'facturare-gestiune-oblio-woocommerce' ),
-				$reason
-			)
-		);
 		$order->save();
-		$this->logger->error( sprintf( 'Coadă: stornoul pentru comanda #%d rambursarea #%d %s: %s', $order->get_id(), $refund_id, $exhausted ? 'abandonat' : 'eroare permanentă', $reason ) );
+		$this->logger->error( sprintf( 'Queue: storno for order #%d refund #%d %s: %s', $order->get_id(), $refund_id, $exhausted ? 'abandoned' : 'permanent failure', $reason ) );
 	}
 }

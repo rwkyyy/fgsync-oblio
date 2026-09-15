@@ -59,7 +59,7 @@ final class StockSyncCoordinator {
 		}
 
 		$this->scheduler->enqueue_stock_batch( 0, 1, 0, $token );
-		$this->logger->info( 'Sincronizare stoc pornită (programată)' );
+		$this->logger->info( 'Stock sync started (scheduled)' );
 
 		return true;
 	}
@@ -70,12 +70,12 @@ final class StockSyncCoordinator {
 			return array(
 				'ok'     => false,
 				'reason' => $this->is_configured()
-					? __( 'O sincronizare este deja în curs.', 'facturare-gestiune-oblio-woocommerce' )
-					: __( 'Sincronizarea stocului nu este configurată.', 'facturare-gestiune-oblio-woocommerce' ),
+					? __( 'O sincronizare este deja în curs.', 'oblio-fgwoo' )
+					: __( 'Sincronizarea stocului nu este configurată.', 'oblio-fgwoo' ),
 			);
 		}
 
-		$this->logger->info( 'Sincronizare stoc pornită (manual)' );
+		$this->logger->info( 'Stock sync started (manual)' );
 
 		return array(
 			'ok'    => true,
@@ -92,7 +92,7 @@ final class StockSyncCoordinator {
 			return null;
 		}
 		if ( ! AtomicLock::acquire( self::RUN_LOCK, self::RUN_LOCK_TTL ) ) {
-			$this->logger->info( 'Sincronizare stoc omisă: o rulare este deja în curs' );
+			$this->logger->info( 'Stock sync skipped: a run is already in progress' );
 			return null;
 		}
 
@@ -118,7 +118,7 @@ final class StockSyncCoordinator {
 		if ( ! $this->scheduler->settle_pending() ) {
 			$this->scheduler->schedule_settle( $this->settings->webhook_stock_delay() );
 		}
-		$this->logger->info( 'Webhook stoc: sincronizare solicitată (temporizată)' );
+		$this->logger->info( 'Stock webhook: sync requested (debounced)' );
 	}
 
 	public function run_settle(): void {
@@ -153,7 +153,7 @@ final class StockSyncCoordinator {
 	}
 
 	public function unlock(): void {
-		$this->logger->warning( 'Sincronizare stoc: blocare eliberată manual' );
+		$this->logger->warning( 'Stock sync: lock released manually' );
 		$this->cancel_run();
 	}
 

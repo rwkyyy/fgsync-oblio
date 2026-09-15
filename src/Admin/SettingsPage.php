@@ -12,6 +12,7 @@ namespace OblioWoo\Admin;
 use OblioWoo\Api\ClientFactory;
 use OblioWoo\Extensibility\HookInspector;
 use OblioWoo\Extensibility\HookRegistry;
+use OblioWoo\Support\Logger;
 use OblioWoo\Support\Settings;
 use WC_Admin_Settings;
 final class SettingsPage {
@@ -30,6 +31,8 @@ final class SettingsPage {
 
 	private HookInspector $hook_inspector;
 
+	private Logger $logger;
+
 	private ?array $sections_cache = null;
 
 	public function __construct(
@@ -38,7 +41,8 @@ final class SettingsPage {
 		NomenclatureCache $nomenclature,
 		StatusPanel $status_panel,
 		HookRegistry $hook_registry,
-		HookInspector $hook_inspector
+		HookInspector $hook_inspector,
+		Logger $logger
 	) {
 		$this->settings       = $settings;
 		$this->factory        = $factory;
@@ -46,6 +50,7 @@ final class SettingsPage {
 		$this->status_panel   = $status_panel;
 		$this->hook_registry  = $hook_registry;
 		$this->hook_inspector = $hook_inspector;
+		$this->logger         = $logger;
 	}
 
 	public function register(): void {
@@ -61,8 +66,8 @@ final class SettingsPage {
 
 	public function add_menu(): void {
 		add_menu_page(
-			__( 'Oblio', 'facturare-gestiune-oblio-woocommerce' ),
-			__( 'Oblio', 'facturare-gestiune-oblio-woocommerce' ),
+			__( 'Oblio', 'oblio-fgwoo' ),
+			__( 'Oblio', 'oblio-fgwoo' ),
 			'manage_woocommerce',
 			self::PAGE_SLUG,
 			array( $this, 'render' ),
@@ -98,12 +103,12 @@ final class SettingsPage {
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 				'nonce'   => wp_create_nonce( ConnectionTest::NONCE_ACTION ),
 				'i18n'    => array(
-					'testing'       => __( 'Se testează…', 'facturare-gestiune-oblio-woocommerce' ),
-					'syncing'       => __( 'Se sincronizează integral, poate dura…', 'facturare-gestiune-oblio-woocommerce' ),
-					'select'        => __( 'Selectează', 'facturare-gestiune-oblio-woocommerce' ),
-					'error'         => __( 'Eroare', 'facturare-gestiune-oblio-woocommerce' ),
-					'requestFailed' => __( 'Cererea a eșuat', 'facturare-gestiune-oblio-woocommerce' ),
-					'confirmImport' => __( 'Import setările din pluginul vechi?', 'facturare-gestiune-oblio-woocommerce' ),
+					'testing'       => __( 'Se testează…', 'oblio-fgwoo' ),
+					'syncing'       => __( 'Se sincronizează integral, poate dura…', 'oblio-fgwoo' ),
+					'select'        => __( 'Selectează', 'oblio-fgwoo' ),
+					'error'         => __( 'Eroare', 'oblio-fgwoo' ),
+					'requestFailed' => __( 'Cererea a eșuat', 'oblio-fgwoo' ),
+					'confirmImport' => __( 'Import setările din pluginul vechi?', 'oblio-fgwoo' ),
 				),
 			)
 		);
@@ -111,13 +116,13 @@ final class SettingsPage {
 
 	private function get_sections(): array {
 		return array(
-			''           => __( 'Conectare', 'facturare-gestiune-oblio-woocommerce' ),
-			'documents'  => __( 'Documente', 'facturare-gestiune-oblio-woocommerce' ),
-			'collection' => __( 'Încasare', 'facturare-gestiune-oblio-woocommerce' ),
-			'stock'      => __( 'Sincronizare', 'facturare-gestiune-oblio-woocommerce' ),
-			'email'      => __( 'Email', 'facturare-gestiune-oblio-woocommerce' ),
-			'advanced'   => __( 'Avansat', 'facturare-gestiune-oblio-woocommerce' ),
-			'status'     => __( 'Stare', 'facturare-gestiune-oblio-woocommerce' ),
+			''           => __( 'Conectare', 'oblio-fgwoo' ),
+			'documents'  => __( 'Documente', 'oblio-fgwoo' ),
+			'collection' => __( 'Încasare', 'oblio-fgwoo' ),
+			'stock'      => __( 'Sincronizare', 'oblio-fgwoo' ),
+			'email'      => __( 'Email', 'oblio-fgwoo' ),
+			'advanced'   => __( 'Avansat', 'oblio-fgwoo' ),
+			'status'     => __( 'Stare', 'oblio-fgwoo' ),
 		);
 	}
 
@@ -133,8 +138,8 @@ final class SettingsPage {
 			<div class="oblio-page-head">
 				<img class="oblio-page-logo" src="<?php echo esc_url( OBLIO_FGWOO_URL . 'assets/images/oblio.png' ); ?>"
 					width="24" height="24" alt=""/>
-				<span class="oblio-page-title"><?php esc_html_e( 'Oblio', 'facturare-gestiune-oblio-woocommerce' ); ?></span>
-				<span class="oblio-page-sub"><?php esc_html_e( 'Facturare și Gestiune pentru WooCommerce', 'facturare-gestiune-oblio-woocommerce' ); ?></span>
+				<span class="oblio-page-title"><?php esc_html_e( 'Oblio', 'oblio-fgwoo' ); ?></span>
+				<span class="oblio-page-sub"><?php esc_html_e( 'Facturare și Gestiune pentru WooCommerce', 'oblio-fgwoo' ); ?></span>
 				<span class="oblio-page-ver">v<?php echo esc_html( OBLIO_FGWOO_VERSION ); ?></span>
 			</div>
 
@@ -152,7 +157,7 @@ final class SettingsPage {
 			<div class="oblio-page-body" data-active="<?php echo esc_attr( $active_dom ); ?>">
 				<?php
 				if ( $saved ) {
-					echo '<div class="notice notice-success inline oblio-saved"><p>' . esc_html__( 'Setările au fost salvate.', 'facturare-gestiune-oblio-woocommerce' ) . '</p></div>';
+					echo '<div class="notice notice-success inline oblio-saved"><p>' . esc_html__( 'Setările au fost salvate.', 'oblio-fgwoo' ) . '</p></div>';
 				}
 
 				if ( 'status' === $section ) {
@@ -170,7 +175,7 @@ final class SettingsPage {
 					?>
 					<p class="submit">
 						<button type="submit" name="oblio_fgwoo_save" value="1"
-								class="button button-primary"><?php esc_html_e( 'Salvează modificările', 'facturare-gestiune-oblio-woocommerce' ); ?></button>
+								class="button button-primary"><?php esc_html_e( 'Salvează modificările', 'oblio-fgwoo' ); ?></button>
 					</p>
 					<?php
 					echo '</form>';
@@ -217,6 +222,10 @@ final class SettingsPage {
 
 		delete_transient( \OblioWoo\Queue\Scheduler::SCHEDULE_CHECK );
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only, only used for the log message; the save itself was already nonce-checked above.
+		$tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : '';
+		$this->logger->info( sprintf( 'Settings saved (tab: %s) by user #%d', '' !== $tab ? $tab : 'general', get_current_user_id() ) );
+
 		return true;
 	}
 
@@ -244,7 +253,7 @@ final class SettingsPage {
 			if ( '' !== (string) ( $field['desc'] ?? '' ) && empty( $field['desc_tip'] ) ) {
 				$field['desc_tip'] = $field['desc'];
 			}
-			$field['desc'] = __( 'Activare', 'facturare-gestiune-oblio-woocommerce' );
+			$field['desc'] = __( 'Activare', 'oblio-fgwoo' );
 		}
 		unset( $field );
 
@@ -263,9 +272,9 @@ final class SettingsPage {
 		}
 		printf(
 			'<div class="notice notice-info inline"><p>%s <code>%s</code>. %s</p></div>',
-			esc_html__( 'Comportament personalizat prin filtre:', 'facturare-gestiune-oblio-woocommerce' ),
+			esc_html__( 'Comportament personalizat prin filtre:', 'oblio-fgwoo' ),
 			implode( '</code>, <code>', array_map( 'esc_html', $overridden ) ),
-			esc_html__( 'Vezi tabul „Stare” pentru sursă.', 'facturare-gestiune-oblio-woocommerce' )
+			esc_html__( 'Vezi tabul „Stare” pentru sursă.', 'oblio-fgwoo' )
 		);
 	}
 
@@ -293,23 +302,23 @@ final class SettingsPage {
 	private function connection_fields( callable $opt ): array {
 		return array(
 			array(
-				'title' => __( 'Conectare Oblio', 'facturare-gestiune-oblio-woocommerce' ),
+				'title' => __( 'Conectare Oblio', 'oblio-fgwoo' ),
 				'type'  => 'title',
 				'desc'  => sprintf(
 					/* translators: %s: link to the Oblio account settings page */
-					__( 'Cheia API se găsește în Oblio → Contul meu → Setări → Date cont. %s', 'facturare-gestiune-oblio-woocommerce' ),
-					'<a href="https://www.oblio.eu/account/settings" target="_blank" rel="noopener noreferrer" class="oblio-link">' . esc_html__( 'Deschide setările Oblio ↗', 'facturare-gestiune-oblio-woocommerce' ) . '</a>'
+					__( 'Cheia API se găsește în Oblio → Contul meu → Setări → Date cont. %s', 'oblio-fgwoo' ),
+					'<a href="https://www.oblio.eu/account/settings" target="_blank" rel="noopener noreferrer" class="oblio-link">' . esc_html__( 'Deschide setările Oblio ↗', 'oblio-fgwoo' ) . '</a>'
 				),
 				'id'    => 'oblio_fgwoo_connection',
 			),
 			array(
-				'title' => __( 'Email', 'facturare-gestiune-oblio-woocommerce' ),
+				'title' => __( 'Email', 'oblio-fgwoo' ),
 				'type'  => 'email',
 				'id'    => $opt( 'email' ),
-				'desc'  => __( 'Emailul contului Oblio.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'  => __( 'Emailul contului Oblio.', 'oblio-fgwoo' ),
 			),
 			array(
-				'title' => __( 'Cheie API', 'facturare-gestiune-oblio-woocommerce' ),
+				'title' => __( 'Cheie API', 'oblio-fgwoo' ),
 				'type'  => 'oblio_secret',
 				'id'    => $opt( 'secret' ),
 			),
@@ -319,11 +328,11 @@ final class SettingsPage {
 			),
 
 			array(
-				'title'   => __( 'Firmă (CIF)', 'facturare-gestiune-oblio-woocommerce' ),
+				'title'   => __( 'Firmă (CIF)', 'oblio-fgwoo' ),
 				'type'    => 'select',
 				'id'      => $opt( 'cif' ),
 				'options' => $this->cif_options(),
-				'desc'    => __( 'Firma pentru care se emit documentele. Apasă „Preia ultimele date” ca să o încarci.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'    => __( 'Firma pentru care se emit documentele. Apasă „Preia ultimele date” ca să o încarci.', 'oblio-fgwoo' ),
 			),
 			array(
 				'type' => 'oblio_import',
@@ -340,62 +349,62 @@ final class SettingsPage {
 		return array(
 
 			array(
-				'title' => __( 'Serii și date document', 'facturare-gestiune-oblio-woocommerce' ),
+				'title' => __( 'Serii și date document', 'oblio-fgwoo' ),
 				'type'  => 'title',
-				'desc'  => __( 'Aici poți configura setările comune ale documentelor, dar și opțiuni per document.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'  => __( 'Aici poți configura setările comune ale documentelor, dar și opțiuni per document.', 'oblio-fgwoo' ),
 				'id'    => 'oblio_fgwoo_documents_series',
 			),
 			array(
-				'title'   => __( 'Serie factură', 'facturare-gestiune-oblio-woocommerce' ),
+				'title'   => __( 'Serie factură', 'oblio-fgwoo' ),
 				'type'    => 'select',
 				'id'      => $opt( 'series_invoice' ),
 				'options' => $this->series_options( 'Factura' ),
-				'desc'    => __( 'Seria pe care se emit facturile.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'    => __( 'Seria pe care se emit facturile.', 'oblio-fgwoo' ),
 			),
 			array(
-				'title'   => __( 'Serie proformă', 'facturare-gestiune-oblio-woocommerce' ),
+				'title'   => __( 'Serie proformă', 'oblio-fgwoo' ),
 				'type'    => 'select',
 				'id'      => $opt( 'series_proforma' ),
 				'options' => $this->series_options( 'Proforma' ),
-				'desc'    => __( 'Seria pe care se emit proformele.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'    => __( 'Seria pe care se emit proformele.', 'oblio-fgwoo' ),
 			),
 			array(
-				'title'   => __( 'Serie aviz', 'facturare-gestiune-oblio-woocommerce' ),
+				'title'   => __( 'Serie aviz', 'oblio-fgwoo' ),
 				'type'    => 'select',
 				'id'      => $opt( 'series_notice' ),
 				'options' => $this->series_options( 'Aviz' ),
-				'desc'    => __( 'Seria pe care se emit avizele de însoțire.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'    => __( 'Seria pe care se emit avizele de însoțire.', 'oblio-fgwoo' ),
 			),
 			array(
-				'title'   => __( 'Data documentului', 'facturare-gestiune-oblio-woocommerce' ),
+				'title'   => __( 'Data documentului', 'oblio-fgwoo' ),
 				'type'    => 'select',
 				'id'      => $opt( 'issue_date_basis' ),
 				'options' => array(
-					'issue' => __( 'Data emiterii', 'facturare-gestiune-oblio-woocommerce' ),
-					'order' => __( 'Data comenzii', 'facturare-gestiune-oblio-woocommerce' ),
+					'issue' => __( 'Data emiterii', 'oblio-fgwoo' ),
+					'order' => __( 'Data comenzii', 'oblio-fgwoo' ),
 				),
-				'desc'    => __( 'Ce dată apare pe document: ziua emiterii sau ziua comenzii.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'    => __( 'Ce dată apare pe document: ziua emiterii sau ziua comenzii.', 'oblio-fgwoo' ),
 			),
 
 			array(
-				'title'   => __( 'Punct de lucru', 'facturare-gestiune-oblio-woocommerce' ),
+				'title'   => __( 'Punct de lucru', 'oblio-fgwoo' ),
 				'type'    => 'select',
 				'id'      => $opt( 'workstation' ),
-				'options' => array( '' => __( 'Implicit', 'facturare-gestiune-oblio-woocommerce' ) ) + $this->nomenclature->workstations(),
-				'desc'    => __( 'Punctul de lucru pe care se emit documentele. „Implicit” folosește setarea din Oblio.', 'facturare-gestiune-oblio-woocommerce' ),
+				'options' => array( '' => __( 'Implicit', 'oblio-fgwoo' ) ) + $this->nomenclature->workstations(),
+				'desc'    => __( 'Punctul de lucru pe care se emit documentele. „Implicit” folosește setarea din Oblio.', 'oblio-fgwoo' ),
 			),
 			array(
-				'title'   => __( 'Gestiune (emitere)', 'facturare-gestiune-oblio-woocommerce' ),
+				'title'   => __( 'Gestiune (emitere)', 'oblio-fgwoo' ),
 				'type'    => 'select',
 				'id'      => $opt( 'management' ),
-				'options' => array( '' => __( 'Implicit', 'facturare-gestiune-oblio-woocommerce' ) ) + $this->nomenclature->managements(),
-				'desc'    => __( 'Gestiunea din care se descarcă stocul la emiterea documentelor.', 'facturare-gestiune-oblio-woocommerce' ),
+				'options' => array( '' => __( 'Implicit', 'oblio-fgwoo' ) ) + $this->nomenclature->managements(),
+				'desc'    => __( 'Gestiunea din care se descarcă stocul la emiterea documentelor.', 'oblio-fgwoo' ),
 			),
 			array(
-				'title'       => __( 'Unitate de măsură', 'facturare-gestiune-oblio-woocommerce' ),
+				'title'       => __( 'Unitate de măsură', 'oblio-fgwoo' ),
 				'type'        => 'text',
 				'id'          => $opt( 'measuring_unit' ),
-				'desc'        => __( 'Unitatea implicită pentru produsele fără una setată.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'        => __( 'Unitatea implicită pentru produsele fără una setată.', 'oblio-fgwoo' ),
 				'default'     => 'buc',
 				'placeholder' => 'ex: buc',
 			),
@@ -405,41 +414,41 @@ final class SettingsPage {
 			),
 
 			array(
-				'title' => __( 'Proformă', 'facturare-gestiune-oblio-woocommerce' ),
+				'title' => __( 'Proformă', 'oblio-fgwoo' ),
 				'type'  => 'title',
 				'id'    => 'oblio_fgwoo_documents_proforma',
 			),
 			array(
-				'title' => __( 'Emite proformă automat', 'facturare-gestiune-oblio-woocommerce' ),
+				'title' => __( 'Emite proformă automat', 'oblio-fgwoo' ),
 				'type'  => 'checkbox',
 				'id'    => $opt( 'proforma_autogen' ),
-				'desc'  => __( 'Generează o proformă automat, după regulile de mai jos.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'  => __( 'Generează o proformă automat, după regulile de mai jos.', 'oblio-fgwoo' ),
 			),
 			array(
-				'title'   => __( 'La primirea comenzii', 'facturare-gestiune-oblio-woocommerce' ),
+				'title'   => __( 'La primirea comenzii', 'oblio-fgwoo' ),
 				'type'    => 'checkbox',
 				'id'      => $opt( 'proforma_on_received' ),
 				'default' => 'yes',
-				'desc'    => __( 'Emite proforma la recepționarea comenzii. Debifează pentru a o emite când comanda intră în anumite statusuri (alese mai jos).', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'    => __( 'Emite proforma la recepționarea comenzii. Debifează pentru a o emite când comanda intră în anumite statusuri (alese mai jos).', 'oblio-fgwoo' ),
 			),
 			array(
-				'title'   => __( 'Statusuri pentru proformă', 'facturare-gestiune-oblio-woocommerce' ),
+				'title'   => __( 'Statusuri pentru proformă', 'oblio-fgwoo' ),
 				'type'    => 'multiselect',
 				'class'   => 'wc-enhanced-select',
 				'id'      => $opt( 'proforma_autogen_statuses' ),
 				'options' => $this->order_status_options(),
-				'desc'    => __( 'Proforma se emite când comanda intră într-unul dintre aceste statusuri. Folosit doar când „La primirea comenzii” este debifat.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'    => __( 'Proforma se emite când comanda intră într-unul dintre aceste statusuri. Folosit doar când „La primirea comenzii” este debifat.', 'oblio-fgwoo' ),
 			),
 			array(
-				'title'   => __( 'Când se facturează o comandă cu proformă', 'facturare-gestiune-oblio-woocommerce' ),
+				'title'   => __( 'Când se facturează o comandă cu proformă', 'oblio-fgwoo' ),
 				'type'    => 'select',
 				'id'      => $opt( 'proforma_on_invoice' ),
 				'default' => 'transform',
 				'options' => array(
-					'transform' => __( 'Emite factura pe baza proformei', 'facturare-gestiune-oblio-woocommerce' ),
-					'delete'    => __( 'Șterge proforma, apoi emite o factură nouă', 'facturare-gestiune-oblio-woocommerce' ),
+					'transform' => __( 'Emite factura pe baza proformei', 'oblio-fgwoo' ),
+					'delete'    => __( 'Șterge proforma, apoi emite o factură nouă', 'oblio-fgwoo' ),
 				),
-				'desc'    => __( 'Implicit, factura se generează pe baza proformei, iar proforma rămâne în Oblio, legată de factură (așa funcționează Oblio). „Șterge” elimină proforma din Oblio și emite o factură separată, fără legătură cu proforma.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'    => __( 'Implicit, factura se generează pe baza proformei, iar proforma rămâne în Oblio, legată de factură (așa funcționează Oblio). „Șterge” elimină proforma din Oblio și emite o factură separată, fără legătură cu proforma.', 'oblio-fgwoo' ),
 			),
 			array(
 				'type' => 'sectionend',
@@ -447,54 +456,54 @@ final class SettingsPage {
 			),
 
 			array(
-				'title' => __( 'Factură', 'facturare-gestiune-oblio-woocommerce' ),
+				'title' => __( 'Factură', 'oblio-fgwoo' ),
 				'type'  => 'title',
 				'id'    => 'oblio_fgwoo_documents_invoice',
 			),
 			array(
-				'title' => __( 'Emite factură automat', 'facturare-gestiune-oblio-woocommerce' ),
+				'title' => __( 'Emite factură automat', 'oblio-fgwoo' ),
 				'type'  => 'checkbox',
 				'id'    => $opt( 'invoice_autogen' ),
-				'desc'  => __( 'Când comanda ajunge la unul din statusurile alese mai jos.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'  => __( 'Când comanda ajunge la unul din statusurile alese mai jos.', 'oblio-fgwoo' ),
 			),
 			array(
-				'title'   => __( 'Când se emit facturile', 'facturare-gestiune-oblio-woocommerce' ),
+				'title'   => __( 'Când se emit facturile', 'oblio-fgwoo' ),
 				'type'    => 'select',
 				'id'      => $opt( 'invoice_generation' ),
 				'options' => array(
-					'event' => __( 'La schimbarea statusului (imediat)', 'facturare-gestiune-oblio-woocommerce' ),
-					'batch' => __( 'Programat (în loturi, la interval)', 'facturare-gestiune-oblio-woocommerce' ),
+					'event' => __( 'La schimbarea statusului (imediat)', 'oblio-fgwoo' ),
+					'batch' => __( 'Programat (în loturi, la interval)', 'oblio-fgwoo' ),
 				),
-				'desc'    => __( '„Imediat” emite factura când comanda intră în status. „Programat” emite periodic, util dacă factura se face abia la livrare.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'    => __( '„Imediat” emite factura când comanda intră în status. „Programat” emite periodic, util dacă factura se face abia la livrare.', 'oblio-fgwoo' ),
 			),
 			array(
-				'title'   => __( 'Interval programare', 'facturare-gestiune-oblio-woocommerce' ),
+				'title'   => __( 'Interval programare', 'oblio-fgwoo' ),
 				'type'    => 'select',
 				'id'      => $opt( 'invoice_batch_interval' ),
 				'options' => $this->batch_interval_options(),
-				'desc'    => __( 'Folosit doar în modul „Programat”. Independent de acest interval, factura se emite mai devreme dacă o altă acțiune are nevoie de ea (de exemplu, trimiterea emailului cu factura).', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'    => __( 'Folosit doar în modul „Programat”. Independent de acest interval, factura se emite mai devreme dacă o altă acțiune are nevoie de ea (de exemplu, trimiterea emailului cu factura).', 'oblio-fgwoo' ),
 			),
 			array(
-				'title'   => __( 'Statusuri pentru emitere', 'facturare-gestiune-oblio-woocommerce' ),
+				'title'   => __( 'Statusuri pentru emitere', 'oblio-fgwoo' ),
 				'type'    => 'multiselect',
 				'class'   => 'wc-enhanced-select',
 				'id'      => $opt( 'invoice_autogen_statuses' ),
 				'options' => $this->order_status_options(),
 				'default' => $this->settings->default( 'invoice_autogen_statuses' ),
-				'desc'    => __( 'Se poate selecta unul sau mai multe statusuri.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'    => __( 'Se poate selecta unul sau mai multe statusuri.', 'oblio-fgwoo' ),
 			),
 			array(
-				'title' => __( 'Descarcă din stoc la factura automată', 'facturare-gestiune-oblio-woocommerce' ),
+				'title' => __( 'Descarcă din stoc la factura automată', 'oblio-fgwoo' ),
 				'type'  => 'checkbox',
 				'id'    => $opt( 'invoice_autogen_use_stock' ),
-				'desc'  => __( 'Scade cantitățile din gestiunea Oblio când factura se emite automat.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'  => __( 'Scade cantitățile din gestiunea Oblio când factura se emite automat.', 'oblio-fgwoo' ),
 			),
 			array(
-				'title'             => __( 'Scadență (zile)', 'facturare-gestiune-oblio-woocommerce' ),
+				'title'             => __( 'Scadență (zile)', 'oblio-fgwoo' ),
 				'type'              => 'number',
 				'id'                => $opt( 'invoice_due' ),
 				'custom_attributes' => array( 'min' => 0 ),
-				'desc'              => __( 'Numărul de zile până la scadență. 0 = fără termen.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'              => __( 'Numărul de zile până la scadență. 0 = fără termen.', 'oblio-fgwoo' ),
 			),
 			array(
 				'type' => 'sectionend',
@@ -502,15 +511,15 @@ final class SettingsPage {
 			),
 
 			array(
-				'title' => __( 'Storno (rambursări)', 'facturare-gestiune-oblio-woocommerce' ),
+				'title' => __( 'Storno (rambursări)', 'oblio-fgwoo' ),
 				'type'  => 'title',
 				'id'    => 'oblio_fgwoo_documents_storno',
 			),
 			array(
-				'title' => __( 'Emite storno automat la rambursări', 'facturare-gestiune-oblio-woocommerce' ),
+				'title' => __( 'Emite storno automat la rambursări', 'oblio-fgwoo' ),
 				'type'  => 'checkbox',
 				'id'    => $opt( 'storno_autogen' ),
-				'desc'  => __( 'La o rambursare WooCommerce (parțială sau totală) se emite un storno în Oblio.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'  => __( 'La o rambursare WooCommerce (parțială sau totală) se emite un storno în Oblio.', 'oblio-fgwoo' ),
 			),
 			...$this->returns_field( $opt ),
 			array(
@@ -527,10 +536,10 @@ final class SettingsPage {
 
 		return array(
 			array(
-				'title' => __( 'Emite storno la retururi (experimental)', 'facturare-gestiune-oblio-woocommerce' ),
+				'title' => __( 'Emite storno la retururi (experimental)', 'oblio-fgwoo' ),
 				'type'  => 'checkbox',
 				'id'    => $opt( 'returns_storno' ),
-				'desc'  => __( 'Experimental: funcția „Returns” din WooCommerce nu are încă un API stabil, așa că integrarea folosește hook-uri presupuse (filtrabile). Necesită funcția „Returns” activă. A nu se folosi în producție fără testare.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'  => __( 'Experimental: funcția „Returns” din WooCommerce nu are încă un API stabil, așa că integrarea folosește hook-uri presupuse (filtrabile). Necesită funcția „Returns” activă. A nu se folosi în producție fără testare.', 'oblio-fgwoo' ),
 			),
 		);
 	}
@@ -538,37 +547,37 @@ final class SettingsPage {
 	private function collection_fields( callable $opt ): array {
 		return array(
 			array(
-				'title' => __( 'Încasare („marchează ca plătit”)', 'facturare-gestiune-oblio-woocommerce' ),
+				'title' => __( 'Încasare („marchează ca plătit”)', 'oblio-fgwoo' ),
 				'type'  => 'title',
-				'desc'  => __( 'Marchează facturile ca încasate în Oblio, în funcție de metoda de plată.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'  => __( 'Marchează facturile ca încasate în Oblio, în funcție de metoda de plată.', 'oblio-fgwoo' ),
 				'id'    => 'oblio_fgwoo_collection',
 			),
 			array(
-				'title'   => __( 'Mod încasare', 'facturare-gestiune-oblio-woocommerce' ),
+				'title'   => __( 'Mod încasare', 'oblio-fgwoo' ),
 				'type'    => 'select',
 				'id'      => $opt( 'collect_mode' ),
 				'options' => array(
-					'off'      => __( 'Dezactivat', 'facturare-gestiune-oblio-woocommerce' ),
-					'card'     => __( 'Doar plăți cu cardul (nu ramburs / transfer)', 'facturare-gestiune-oblio-woocommerce' ),
-					'all'      => __( 'Toate metodele (cu excepții)', 'facturare-gestiune-oblio-woocommerce' ),
-					'selected' => __( 'Doar metodele selectate', 'facturare-gestiune-oblio-woocommerce' ),
+					'off'      => __( 'Dezactivat', 'oblio-fgwoo' ),
+					'card'     => __( 'Doar plăți cu cardul (nu ramburs / transfer)', 'oblio-fgwoo' ),
+					'all'      => __( 'Toate metodele (cu excepții)', 'oblio-fgwoo' ),
+					'selected' => __( 'Doar metodele selectate', 'oblio-fgwoo' ),
 				),
 			),
 			array(
-				'title'   => __( 'Metode încasate', 'facturare-gestiune-oblio-woocommerce' ),
+				'title'   => __( 'Metode încasate', 'oblio-fgwoo' ),
 				'type'    => 'multiselect',
 				'class'   => 'wc-enhanced-select',
 				'id'      => $opt( 'collect_gateways' ),
 				'options' => $this->gateway_options(),
-				'desc'    => __( 'Folosit când modul este „Doar metodele selectate”.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'    => __( 'Folosit când modul este „Doar metodele selectate”.', 'oblio-fgwoo' ),
 			),
 			array(
-				'title'   => __( 'Excepții', 'facturare-gestiune-oblio-woocommerce' ),
+				'title'   => __( 'Excepții', 'oblio-fgwoo' ),
 				'type'    => 'multiselect',
 				'class'   => 'wc-enhanced-select',
 				'id'      => $opt( 'collect_exceptions' ),
 				'options' => $this->gateway_options(),
-				'desc'    => __( 'Aceste metode NU se marchează ca încasate.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'    => __( 'Aceste metode NU se marchează ca încasate.', 'oblio-fgwoo' ),
 			),
 			array(
 				'type' => 'sectionend',
@@ -578,81 +587,53 @@ final class SettingsPage {
 	}
 
 	private function stock_fields( callable $opt ): array {
-		$endpoint = '<code>' . esc_html( rest_url( 'oblio/v1/webhook/' ) ) . '</code>';
-
 		return array(
 			array(
-				'title' => __( 'Sincronizare stoc', 'facturare-gestiune-oblio-woocommerce' ),
+				'title' => __( 'Sincronizare stoc', 'oblio-fgwoo' ),
 				'type'  => 'title',
-				'desc'  => __( 'Poți să preiei stocul (și prețul) din Oblio în WooCommerce. <u>Codul produsului</u> Oblio trebuie să fie identic cu SKU-ul din WooCommerce. <br>O sincronizare parcurge întotdeauna întregul catalog, în loturi, nu doar produsul modificat, iar durata este proporțională cu numărul de modificări necesare.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'  => __( 'Poți să preiei stocul (și prețul) din Oblio în WooCommerce. <u>Codul produsului</u> Oblio trebuie să fie identic cu SKU-ul din WooCommerce. <br>O sincronizare parcurge întotdeauna întregul catalog, în loturi, nu doar produsul modificat, iar durata este proporțională cu numărul de modificări necesare.', 'oblio-fgwoo' ),
 				'id'    => 'oblio_fgwoo_stock',
 			),
 			array(
-				'title'   => __( 'Mod sincronizare', 'facturare-gestiune-oblio-woocommerce' ),
+				'title'   => __( 'Mod sincronizare', 'oblio-fgwoo' ),
 				'type'    => 'select',
 				'id'      => $opt( 'stock_sync_trigger' ),
 				'default' => $this->settings->stock_sync_trigger(),
 				'options' => array(
-					'off'      => __( 'Dezactivată', 'facturare-gestiune-oblio-woocommerce' ),
-					'schedule' => __( 'Programată', 'facturare-gestiune-oblio-woocommerce' ),
-					'webhook'  => __( 'Webhook (notificare din Oblio)', 'facturare-gestiune-oblio-woocommerce' ),
-					'both'     => __( 'Ambele', 'facturare-gestiune-oblio-woocommerce' ),
+					'off'      => __( 'Dezactivată', 'oblio-fgwoo' ),
+					'schedule' => __( 'Programată', 'oblio-fgwoo' ),
 				),
-				'desc'    => __(
-					'<strong>Programată</strong> - rulează la un interval fix definit mai jos și preia toate modificările.<br><strong>Webhook</strong> - pornește când Oblio anunță o modificare de stoc - actualizare mai rapidă, dar se face o sincronizare completă a catalogului.<br><strong>Ambele</strong> - folosește ambele sisteme.',
-					'facturare-gestiune-oblio-woocommerce'
-				),
+				'desc'    => __( 'Rulează la un interval fix definit mai jos și preia toate modificările.', 'oblio-fgwoo' ),
 			),
 			array(
-				'title'   => __( 'Interval', 'facturare-gestiune-oblio-woocommerce' ),
+				'title'   => __( 'Interval', 'oblio-fgwoo' ),
 				'type'    => 'select',
 				'id'      => $opt( 'stock_interval' ),
 				'options' => $this->interval_options(),
-				'desc'    => __( 'Cât de des rulează sincronizarea programată.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'    => __( 'Cât de des rulează sincronizarea programată.', 'oblio-fgwoo' ),
 			),
 			array(
-				'title'             => __( 'Întârziere după webhook (minute)', 'facturare-gestiune-oblio-woocommerce' ),
-				'type'              => 'number',
-				'id'                => $opt( 'webhook_stock_delay' ),
-				'default'           => 15,
-				'custom_attributes' => array(
-					'min'  => 1,
-					'step' => 1,
-				),
-				/* translators: %s: webhook endpoint URL */
-				'desc'              => sprintf(
-					__(
-						'Când Oblio trimite notificare de actualizare, integrarea așteaptă numărul definit mai jos înainte să înceapă.<br>
-                                                        Fiecare notificare nouă resetează cronometrul! Astfel multiple notificări declanșează o singură sincronizare.<br>
-                                                        Dacă o sincronizare este deja în curs când pornește cea nouă, cea în curs este oprită și repornită cu datele noi!<br> 
-                                                        <strong>De reținut</strong>: dacă folosești o casă de marcat sau o aplicații POS care schimbă stocul de multe ori, fiecare schimbare trimite o notificare separată, iar pentru astfel de cazuri recomandăm ambele sincronizări active.',
-						'facturare-gestiune-oblio-woocommerce'
-					),
-					$endpoint
-				),
-			),
-			array(
-				'title'   => __( 'Gestiuni (locații)', 'facturare-gestiune-oblio-woocommerce' ),
+				'title'   => __( 'Gestiuni (locații)', 'oblio-fgwoo' ),
 				'type'    => 'multiselect',
 				'class'   => 'wc-enhanced-select',
 				'id'      => $opt( 'stock_locations' ),
 				'options' => $this->nomenclature->locations(),
-				'desc'    => __( 'Implicit - stocul se însumează pe locațiile selectate. <br>Lăsați câmpul gol pentru a le prelua pe toate SAU selectați locația de unde doriți actualizarea de stoc', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'    => __( 'Implicit - stocul se însumează pe locațiile selectate. <br>Lăsați câmpul gol pentru a le prelua pe toate SAU selectați locația de unde doriți actualizarea de stoc', 'oblio-fgwoo' ),
 			),
 			array(
-				'title' => __( 'Actualizează prețul la sincronizare', 'facturare-gestiune-oblio-woocommerce' ),
+				'title' => __( 'Actualizează prețul la sincronizare', 'oblio-fgwoo' ),
 				'type'  => 'checkbox',
 				'id'    => $opt( 'stock_update_price' ),
-				'desc'  => __( 'Preia prețul produsului din Oblio.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'  => __( 'Preia prețul produsului din Oblio.', 'oblio-fgwoo' ),
 			),
 			array(
-				'title' => __( 'Rezervă stoc pentru comenzi nefacturate', 'facturare-gestiune-oblio-woocommerce' ),
+				'title' => __( 'Rezervă stoc pentru comenzi nefacturate', 'oblio-fgwoo' ),
 				'type'  => 'checkbox',
 				'id'    => $opt( 'stock_reserve_orders' ),
-				'desc'  => __( 'Scade din stoc comenzile în așteptare / în procesare, din intervalul de mai jos.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'  => __( 'Scade din stoc comenzile în așteptare / în procesare, din intervalul de mai jos.', 'oblio-fgwoo' ),
 			),
 			array(
-				'title'             => __( 'Interval rezervare (zile)', 'facturare-gestiune-oblio-woocommerce' ),
+				'title'             => __( 'Interval rezervare (zile)', 'oblio-fgwoo' ),
 				'type'              => 'number',
 				'id'                => $opt( 'stock_reserve_days' ),
 				'default'           => 30,
@@ -660,10 +641,10 @@ final class SettingsPage {
 					'min'  => 1,
 					'step' => 1,
 				),
-				'desc'              => __( 'Câte zile în urmă se caută comenzile nefacturate care rezervă stoc. Implicit 30.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'              => __( 'Câte zile în urmă se caută comenzile nefacturate care rezervă stoc. Implicit 30.', 'oblio-fgwoo' ),
 			),
 			array(
-				'title'             => __( 'Produse per segment (opțional)', 'facturare-gestiune-oblio-woocommerce' ),
+				'title'             => __( 'Produse per segment (opțional)', 'oblio-fgwoo' ),
 				'type'              => 'number',
 				'id'                => $opt( 'stock_manual_batch' ),
 				'default'           => 250,
@@ -671,7 +652,7 @@ final class SettingsPage {
 					'min'  => 0,
 					'step' => 250,
 				),
-				'desc'              => __( 'Folosit de "Sincronizează acum". Oblio răspunde cu maxim 250 de produse per cerere, deci valoarea trebuie să fie multiplu de 250 - alege un număr mai mare pentru mai puține cereri (mai rapid), sau 0 pentru tot catalogul dintr-o singură cerere (poate dura mult și atinge limita de timp a serverului pe cataloage mari).', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'              => __( 'Folosit de "Sincronizează acum". Oblio răspunde cu maxim 250 de produse per cerere, deci valoarea trebuie să fie multiplu de 250 - alege un număr mai mare pentru mai puține cereri (mai rapid), sau 0 pentru tot catalogul dintr-o singură cerere (poate dura mult și atinge limita de timp a serverului pe cataloage mari).', 'oblio-fgwoo' ),
 			),
 			array(
 				'type' => 'oblio_stock_sync',
@@ -689,68 +670,68 @@ final class SettingsPage {
 
 		return array(
 			array(
-				'title' => __( 'Email către clienți', 'facturare-gestiune-oblio-woocommerce' ),
+				'title' => __( 'Email către clienți', 'oblio-fgwoo' ),
 				'type'  => 'title',
 				'id'    => 'oblio_fgwoo_email',
 			),
 			array(
-				'title'   => __( 'Mod notificare', 'facturare-gestiune-oblio-woocommerce' ),
+				'title'   => __( 'Mod notificare', 'oblio-fgwoo' ),
 				'type'    => 'select',
 				'id'      => $opt( 'email_mode' ),
 				'default' => $this->settings->email_mode(),
 				'options' => array(
-					'off'        => __( 'Dezactivat', 'facturare-gestiune-oblio-woocommerce' ),
-					'button'     => __( 'Nativ în mail-ul WooCommerce', 'facturare-gestiune-oblio-woocommerce' ),
-					'standalone' => __( 'Email separat (la emitere)', 'facturare-gestiune-oblio-woocommerce' ),
+					'off'        => __( 'Dezactivat', 'oblio-fgwoo' ),
+					'button'     => __( 'Nativ în mail-ul WooCommerce', 'oblio-fgwoo' ),
+					'standalone' => __( 'Email separat (la emitere)', 'oblio-fgwoo' ),
 				),
-				'desc'    => __( '<strong>Email separat</strong> - trimite un mesaj propriu la emiterea documentului.<br><strong>Buton</strong> - adaugă un buton către factură în emailul WooCommerce al comenzii.<br><strong>Dacă factura nu există</strong> la trimiterea acelui email, atunci aceasta este emisă pe loc (chiar dacă emiterea automată este oprită)!', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'    => __( '<strong>Email separat</strong> - trimite un mesaj propriu la emiterea documentului.<br><strong>Buton</strong> - adaugă un buton către factură în emailul WooCommerce al comenzii.<br><strong>Dacă factura nu există</strong> la trimiterea acelui email, atunci aceasta este emisă pe loc (chiar dacă emiterea automată este oprită)!', 'oblio-fgwoo' ),
 			),
 
 			array(
-				'title' => __( 'De la (email)', 'facturare-gestiune-oblio-woocommerce' ),
+				'title' => __( 'De la (email)', 'oblio-fgwoo' ),
 				'type'  => 'email',
 				'id'    => $opt( 'email_from' ),
-				'desc'  => __( 'Adresa afișată ca expeditor. Gol = adresa site-ului.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'  => __( 'Adresa afișată ca expeditor. Gol = adresa site-ului.', 'oblio-fgwoo' ),
 			),
 			array(
-				'title' => __( 'CC', 'facturare-gestiune-oblio-woocommerce' ),
+				'title' => __( 'CC', 'oblio-fgwoo' ),
 				'type'  => 'text',
 				'id'    => $opt( 'email_cc' ),
-				'desc'  => __( 'Adrese suplimentare în copie, separate prin virgulă.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'  => __( 'Adrese suplimentare în copie, separate prin virgulă.', 'oblio-fgwoo' ),
 			),
 			array(
-				'title'       => __( 'Subiect', 'facturare-gestiune-oblio-woocommerce' ),
+				'title'       => __( 'Subiect', 'oblio-fgwoo' ),
 				'type'        => 'text',
 				'id'          => $opt( 'email_subject' ),
 				'default'     => $this->settings->default( 'email_subject' ),
 				'placeholder' => (string) $this->settings->default( 'email_subject' ),
 			),
 			array(
-				'title'       => __( 'Mesaj', 'facturare-gestiune-oblio-woocommerce' ),
+				'title'       => __( 'Mesaj', 'oblio-fgwoo' ),
 				'type'        => 'textarea',
 				'id'          => $opt( 'email_message' ),
 				'default'     => $this->settings->default( 'email_message' ),
 				'placeholder' => (string) $this->settings->default( 'email_message' ),
 				/* translators: %s: list of tokens */
-					'desc'    => sprintf( __( 'Taguri: %s', 'facturare-gestiune-oblio-woocommerce' ), '<code>' . esc_html( $tokens ) . '</code>' ),
+					'desc'    => sprintf( __( 'Taguri: %s', 'oblio-fgwoo' ), '<code>' . esc_html( $tokens ) . '</code>' ),
 				'css'         => 'min-width:400px;height:150px;',
 			),
 
 			array(
-				'title'   => __( 'Status de comandă', 'facturare-gestiune-oblio-woocommerce' ),
+				'title'   => __( 'Status de comandă', 'oblio-fgwoo' ),
 				'type'    => 'multiselect',
 				'class'   => 'wc-enhanced-select',
 				'id'      => $opt( 'email_button_statuses' ),
 				'options' => $this->order_status_options(),
 				'default' => $this->settings->default( 'email_button_statuses' ),
-				'desc'    => __( 'Butonul apare în emailurile WooCommerce pentru aceste statusuri (ex. „Finalizată / Completed”).', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'    => __( 'Butonul apare în emailurile WooCommerce pentru aceste statusuri (ex. „Finalizată / Completed”).', 'oblio-fgwoo' ),
 			),
 			array(
-				'title'   => __( 'Text buton', 'facturare-gestiune-oblio-woocommerce' ),
+				'title'   => __( 'Text buton', 'oblio-fgwoo' ),
 				'type'    => 'text',
 				'id'      => $opt( 'email_button_label' ),
 				'default' => $this->settings->default( 'email_button_label' ),
-				'desc'    => __( 'Textul afișat pe butonul din email.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'    => __( 'Textul afișat pe butonul din email.', 'oblio-fgwoo' ),
 			),
 			array(
 				'type' => 'sectionend',
@@ -761,77 +742,77 @@ final class SettingsPage {
 
 	private function advanced_fields( callable $opt ): array {
 		$mention_tokens      = '[order_id] [date] [payment] [shipping] [site]';
-		$mention_placeholder = __( "Pentru comanda [order_id], din [date], plătit prin [payment], livrat prin [shipping].\nComandă efectuată pe [site]", 'facturare-gestiune-oblio-woocommerce' );
+		$mention_placeholder = __( "Pentru comanda [order_id], din [date], plătit prin [payment], livrat prin [shipping].\nComandă efectuată pe [site]", 'oblio-fgwoo' );
 
 		return array(
 			array(
-				'title' => __( 'Opțiuni avansate', 'facturare-gestiune-oblio-woocommerce' ),
+				'title' => __( 'Opțiuni avansate', 'oblio-fgwoo' ),
 				'type'  => 'title',
 				'id'    => 'oblio_fgwoo_advanced',
 			),
 			array(
-				'title'   => __( 'Limbă document', 'facturare-gestiune-oblio-woocommerce' ),
+				'title'   => __( 'Limbă document', 'oblio-fgwoo' ),
 				'type'    => 'select',
 				'id'      => $opt( 'language' ),
 				'options' => $this->language_options(),
-				'desc'    => __( 'Limba în care se emit documentele în Oblio.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'    => __( 'Limba în care se emit documentele în Oblio.', 'oblio-fgwoo' ),
 			),
 			array(
-				'title'   => __( 'Tip produs implicit', 'facturare-gestiune-oblio-woocommerce' ),
+				'title'   => __( 'Tip produs implicit', 'oblio-fgwoo' ),
 				'type'    => 'select',
 				'id'      => $opt( 'product_type' ),
 				'options' => $this->product_type_options(),
-				'desc'    => __( 'Tipul cu care se trimit produsele noi către Oblio.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'    => __( 'Tipul cu care se trimit produsele noi către Oblio.', 'oblio-fgwoo' ),
 			),
 			array(
-				'title'       => __( 'Mențiuni', 'facturare-gestiune-oblio-woocommerce' ),
+				'title'       => __( 'Mențiuni', 'oblio-fgwoo' ),
 				'type'        => 'textarea',
 				'id'          => $opt( 'invoice_mentions' ),
 				'placeholder' => $mention_placeholder,
 				/* translators: %s: list of tokens */
-					'desc'    => sprintf( __( 'Taguri: %s', 'facturare-gestiune-oblio-woocommerce' ), '<code>' . esc_html( $mention_tokens ) . '</code>' ),
+					'desc'    => sprintf( __( 'Taguri: %s', 'oblio-fgwoo' ), '<code>' . esc_html( $mention_tokens ) . '</code>' ),
 			),
 			array(
-				'title' => __( 'Întocmit de', 'facturare-gestiune-oblio-woocommerce' ),
+				'title' => __( 'Întocmit de', 'oblio-fgwoo' ),
 				'type'  => 'text',
 				'id'    => $opt( 'invoice_issuer_name' ),
-				'desc'  => __( 'Numele persoanei care apare ca întocmitor al documentului.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'  => __( 'Numele persoanei care apare ca întocmitor al documentului.', 'oblio-fgwoo' ),
 			),
 			array(
-				'title' => __( 'Delegat', 'facturare-gestiune-oblio-woocommerce' ),
+				'title' => __( 'Delegat', 'oblio-fgwoo' ),
 				'type'  => 'text',
 				'id'    => $opt( 'invoice_deputy_name' ),
-				'desc'  => __( 'Numele delegatului, dacă documentul îl cere.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'  => __( 'Numele delegatului, dacă documentul îl cere.', 'oblio-fgwoo' ),
 			),
 			array(
-				'title' => __( 'Completează automat datele firmelor după CIF', 'facturare-gestiune-oblio-woocommerce' ),
+				'title' => __( 'Completează automat datele firmelor după CIF', 'oblio-fgwoo' ),
 				'type'  => 'checkbox',
 				'id'    => $opt( 'autocomplete_company' ),
-				'desc'  => __( 'La comenzile tip B2B, preia datele firmei din Oblio pe baza CIF-ului pentru a fi folosite în datele de facturare', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'  => __( 'La comenzile tip B2B, preia datele firmei din Oblio pe baza CIF-ului pentru a fi folosite în datele de facturare', 'oblio-fgwoo' ),
 			),
 			array(
-				'title' => __( 'Ascunde detalii produs', 'facturare-gestiune-oblio-woocommerce' ),
+				'title' => __( 'Ascunde detalii produs', 'oblio-fgwoo' ),
 				'type'  => 'checkbox',
 				'id'    => $opt( 'hide_description' ),
-				'desc'  => __( 'Trece pe document doar numele produsului, fără descriere.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'  => __( 'Trece pe document doar numele produsului, fără descriere.', 'oblio-fgwoo' ),
 			),
 			array(
-				'title' => __( 'Include discountul în prețul produsului', 'facturare-gestiune-oblio-woocommerce' ),
+				'title' => __( 'Include discountul în prețul produsului', 'oblio-fgwoo' ),
 				'type'  => 'checkbox',
 				'id'    => $opt( 'invoice_discount_in_product' ),
-				'desc'  => __( 'Scade discountul direct din preț, fără o linie separată de reducere.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'  => __( 'Scade discountul direct din preț, fără o linie separată de reducere.', 'oblio-fgwoo' ),
 			),
 			array(
-				'title' => __( 'NU salva prețul în Oblio la emitere', 'facturare-gestiune-oblio-woocommerce' ),
+				'title' => __( 'NU salva prețul în Oblio la emitere', 'oblio-fgwoo' ),
 				'type'  => 'checkbox',
 				'id'    => $opt( 'notsave_price' ),
-				'desc'  => __( 'Emite documentul fără a actualiza prețul produsului în nomenclatorul Oblio.', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'  => __( 'Emite documentul fără a actualiza prețul produsului în nomenclatorul Oblio.', 'oblio-fgwoo' ),
 			),
 			array(
-				'title' => __( 'Jurnalizare / debug', 'facturare-gestiune-oblio-woocommerce' ),
+				'title' => __( 'Jurnalizare / debug', 'oblio-fgwoo' ),
 				'type'  => 'checkbox',
 				'id'    => $opt( 'debug_logging' ),
-				'desc'  => __( 'Adaugă intrări detaliate în jurnalul WooCommerce, le poți vedea în secțiunea "Stare".', 'facturare-gestiune-oblio-woocommerce' ),
+				'desc'  => __( 'Adaugă intrări detaliate în jurnalul WooCommerce, le poți vedea în secțiunea "Stare".', 'oblio-fgwoo' ),
 			),
 			array(
 				'type' => 'sectionend',
@@ -841,7 +822,7 @@ final class SettingsPage {
 	}
 
 	private function cif_options(): array {
-		$options = array( '' => __( 'Selectează', 'facturare-gestiune-oblio-woocommerce' ) );
+		$options = array( '' => __( 'Selectează', 'oblio-fgwoo' ) );
 		foreach ( $this->nomenclature->companies() as $cif => $name ) {
 			$options[ (string) $cif ] = sprintf( '%s (%s)', (string) $name, (string) $cif );
 		}
@@ -854,7 +835,7 @@ final class SettingsPage {
 	}
 
 	private function series_options( string $type ): array {
-		return array( '' => __( 'Selectează', 'facturare-gestiune-oblio-woocommerce' ) ) + $this->nomenclature->series( $type );
+		return array( '' => __( 'Selectează', 'oblio-fgwoo' ) ) + $this->nomenclature->series( $type );
 	}
 
 	private function gateway_options(): array {
@@ -871,23 +852,23 @@ final class SettingsPage {
 
 	private function interval_options(): array {
 		return array(
-			'hourly' => __( 'La fiecare oră', 'facturare-gestiune-oblio-woocommerce' ),
-			'6h'     => __( 'La fiecare 6 ore', 'facturare-gestiune-oblio-woocommerce' ),
-			'12h'    => __( 'La fiecare 12 ore', 'facturare-gestiune-oblio-woocommerce' ),
-			'daily'  => __( 'La fiecare 24 ore', 'facturare-gestiune-oblio-woocommerce' ),
+			'hourly' => __( 'La fiecare oră', 'oblio-fgwoo' ),
+			'6h'     => __( 'La fiecare 6 ore', 'oblio-fgwoo' ),
+			'12h'    => __( 'La fiecare 12 ore', 'oblio-fgwoo' ),
+			'daily'  => __( 'La fiecare 24 ore', 'oblio-fgwoo' ),
 		);
 	}
 
 	private function batch_interval_options(): array {
 		return array(
-			'1min'   => __( 'La fiecare minut', 'facturare-gestiune-oblio-woocommerce' ),
-			'5min'   => __( 'La fiecare 5 minute', 'facturare-gestiune-oblio-woocommerce' ),
-			'15min'  => __( 'La fiecare 15 minute', 'facturare-gestiune-oblio-woocommerce' ),
-			'30min'  => __( 'La fiecare 30 de minute', 'facturare-gestiune-oblio-woocommerce' ),
-			'hourly' => __( 'La fiecare oră', 'facturare-gestiune-oblio-woocommerce' ),
-			'3h'     => __( 'La fiecare 3 ore', 'facturare-gestiune-oblio-woocommerce' ),
-			'6h'     => __( 'La fiecare 6 ore', 'facturare-gestiune-oblio-woocommerce' ),
-			'12h'    => __( 'La fiecare 12 ore', 'facturare-gestiune-oblio-woocommerce' ),
+			'1min'   => __( 'La fiecare minut', 'oblio-fgwoo' ),
+			'5min'   => __( 'La fiecare 5 minute', 'oblio-fgwoo' ),
+			'15min'  => __( 'La fiecare 15 minute', 'oblio-fgwoo' ),
+			'30min'  => __( 'La fiecare 30 de minute', 'oblio-fgwoo' ),
+			'hourly' => __( 'La fiecare oră', 'oblio-fgwoo' ),
+			'3h'     => __( 'La fiecare 3 ore', 'oblio-fgwoo' ),
+			'6h'     => __( 'La fiecare 6 ore', 'oblio-fgwoo' ),
+			'12h'    => __( 'La fiecare 12 ore', 'oblio-fgwoo' ),
 		);
 	}
 
@@ -933,12 +914,12 @@ final class SettingsPage {
 	public function render_secret_field( array $field ): void {
 		$id          = (string) ( $field['id'] ?? '' );
 		$placeholder = $this->factory->has_secret()
-				? __( '••••••••(setat, lasă gol pentru a păstra)', 'facturare-gestiune-oblio-woocommerce' )
+				? __( '••••••••(setat, lasă gol pentru a păstra)', 'oblio-fgwoo' )
 				: '';
 		?>
 		<tr valign="top">
 			<th scope="row" class="titledesc"><label
-						for="<?php echo esc_attr( $id ); ?>"><?php esc_html_e( 'API secret', 'facturare-gestiune-oblio-woocommerce' ); ?></label>
+						for="<?php echo esc_attr( $id ); ?>"><?php esc_html_e( 'API secret', 'oblio-fgwoo' ); ?></label>
 			</th>
 			<td class="forminp">
 				<input type="password" name="<?php echo esc_attr( $id ); ?>" id="<?php echo esc_attr( $id ); ?>"
@@ -956,9 +937,9 @@ final class SettingsPage {
 			<th scope="row" class="titledesc"></th>
 			<td class="forminp">
 				<button type="button" class="button button-primary"
-						id="oblio_fgwoo_test_connection"><?php esc_html_e( 'Preia ultimele date', 'facturare-gestiune-oblio-woocommerce' ); ?></button>
+						id="oblio_fgwoo_test_connection"><?php esc_html_e( 'Preia ultimele date', 'oblio-fgwoo' ); ?></button>
 				<span id="oblio_fgwoo_test_result" style="margin-inline-start:8px;"></span>
-				<p class="description"><?php esc_html_e( 'Verifică datele de conectare și încarcă firma și seriile din Oblio.', 'facturare-gestiune-oblio-woocommerce' ); ?></p>
+				<p class="description"><?php esc_html_e( 'Verifică datele de conectare și încarcă firma și seriile din Oblio.', 'oblio-fgwoo' ); ?></p>
 			</td>
 		</tr>
 		<?php
@@ -972,12 +953,12 @@ final class SettingsPage {
 		?>
 		<tr valign="top">
 			<th scope="row"
-				class="titledesc"><?php esc_html_e( 'Import din pluginul vechi', 'facturare-gestiune-oblio-woocommerce' ); ?></th>
+				class="titledesc"><?php esc_html_e( 'Import din pluginul vechi', 'oblio-fgwoo' ); ?></th>
 			<td class="forminp">
 				<button type="button"
-						class="button oblio-import-now"><?php esc_html_e( 'Importă setările', 'facturare-gestiune-oblio-woocommerce' ); ?></button>
+						class="button oblio-import-now"><?php esc_html_e( 'Importă setările', 'oblio-fgwoo' ); ?></button>
 				<span class="oblio-import-result" style="margin-inline-start:8px;"></span>
-				<p class="description"><?php esc_html_e( 'Copiază setările din „WooCommerce Oblio”. Facturile deja emise se afișează automat.', 'facturare-gestiune-oblio-woocommerce' ); ?></p>
+				<p class="description"><?php esc_html_e( 'Copiază setările din „WooCommerce Oblio”. Facturile deja emise se afișează automat.', 'oblio-fgwoo' ); ?></p>
 			</td>
 		</tr>
 		<?php
@@ -990,17 +971,17 @@ final class SettingsPage {
 		?>
 		<tr valign="top">
 			<th scope="row"
-				class="titledesc"><?php esc_html_e( 'Sincronizare manuală', 'facturare-gestiune-oblio-woocommerce' ); ?></th>
+				class="titledesc"><?php esc_html_e( 'Sincronizare manuală', 'oblio-fgwoo' ); ?></th>
 			<td class="forminp">
 				<?php if ( $this->settings->stock_sync_configured() ) : ?>
 					<button type="button"
-							class="button oblio-sync-now"><?php esc_html_e( 'Sincronizează acum', 'facturare-gestiune-oblio-woocommerce' ); ?></button>
+							class="button oblio-sync-now"><?php esc_html_e( 'Sincronizează acum', 'oblio-fgwoo' ); ?></button>
 					<span class="oblio-sync-result" style="margin-inline-start:8px;"></span>
-					<p class="description"><?php esc_html_e( 'Rulează sincronizare completă imediat. Pentru a accelera procesul, te rugăm să nu pleci din pagină!', 'facturare-gestiune-oblio-woocommerce' ); ?></p>
+					<p class="description"><?php esc_html_e( 'Rulează sincronizare completă imediat. Pentru a accelera procesul, te rugăm să nu pleci din pagină!', 'oblio-fgwoo' ); ?></p>
 					<?php if ( $locked ) : ?>
 						<p class="description oblio-lock-warning">
-							<?php esc_html_e( 'O sincronizare pare blocată (probabil întreruptă de server înainte să termine). Dacă nu pornește din nou de la sine, o poți debloca manual:', 'facturare-gestiune-oblio-woocommerce' ); ?>
-							<button type="button" class="button oblio-sync-unlock"><?php esc_html_e( 'Deblochează sincronizarea', 'facturare-gestiune-oblio-woocommerce' ); ?></button>
+							<?php esc_html_e( 'O sincronizare pare blocată (probabil întreruptă de server înainte să termine). Dacă nu pornește din nou de la sine, o poți debloca manual:', 'oblio-fgwoo' ); ?>
+							<button type="button" class="button oblio-sync-unlock"><?php esc_html_e( 'Deblochează sincronizarea', 'oblio-fgwoo' ); ?></button>
 							<span class="oblio-unlock-result"></span>
 						</p>
 					<?php endif; ?>
@@ -1008,12 +989,12 @@ final class SettingsPage {
 						<p class="description">
 							<?php
 							/* translators: %s: human time diff */
-							printf( esc_html__( '<strong>Ultima sincronizare:</strong> %s în urmă.', 'facturare-gestiune-oblio-woocommerce' ), esc_html( human_time_diff( $last ) ) );
+							printf( esc_html__( '<strong>Ultima sincronizare:</strong> %s în urmă.', 'oblio-fgwoo' ), esc_html( human_time_diff( $last ) ) );
 							?>
 						</p>
 					<?php endif; ?>
 				<?php else : ?>
-					<p class="description"><?php esc_html_e( 'Alege un mod de declanșare mai sus (altul decât „Dezactivată”) pentru a putea sincroniza manual.', 'facturare-gestiune-oblio-woocommerce' ); ?></p>
+					<p class="description"><?php esc_html_e( 'Alege un mod de declanșare mai sus (altul decât „Dezactivată”) pentru a putea sincroniza manual.', 'oblio-fgwoo' ); ?></p>
 				<?php endif; ?>
 			</td>
 		</tr>

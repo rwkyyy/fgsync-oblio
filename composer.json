@@ -1,6 +1,6 @@
 {
-    "name": "oblio/facturare-gestiune-oblio-woocommerce",
-    "description": "Oblio - Facturare și Gestiune pentru WooCommerce. Native Oblio.eu integration with queues, stock sync and webhooks.",
+    "name": "oblio/oblio-fgwoo",
+    "description": "Oblio Invoicing. Native Oblio.eu integration with queues and stock sync.",
     "type": "wordpress-plugin",
     "license": "GPL-2.0-or-later",
     "require": {
@@ -36,6 +36,6 @@
         "phpcbf": "phpcbf",
         "phpstan": "phpstan analyse --memory-limit=1G",
         "test": "phpunit",
-        "make-pot": "wp i18n make-pot . languages/facturare-gestiune-oblio-woocommerce.pot --exclude=tests,vendor,node_modules"
+        "make-pot": "wp i18n make-pot . languages/oblio-fgwoo.pot --slug=oblio-fgwoo --exclude=tests,vendor,node_modules"
     }
 }

@@ -47,7 +47,7 @@ final class InvoiceBuilder {
 		$series = $this->series_name( $doc_type );
 
 		if ( '' === $cif || '' === $series ) {
-			throw new DocumentException( esc_html__( 'Configurare incompletă: verifică Oblio → Setări.', 'facturare-gestiune-oblio-woocommerce' ) );
+			throw new DocumentException( esc_html__( 'Configurare incompletă: verifică Oblio → Setări.', 'oblio-fgwoo' ) );
 		}
 
 		$currency  = $this->currency( $order );
@@ -111,8 +111,8 @@ final class InvoiceBuilder {
 			$difference = $order_total - $total;
 			$products[] = array(
 				'name'                     => $difference > 0
-					? __( 'Alte taxe', 'facturare-gestiune-oblio-woocommerce' )
-					: __( 'Discount', 'facturare-gestiune-oblio-woocommerce' ),
+					? __( 'Alte taxe', 'oblio-fgwoo' )
+					: __( 'Discount', 'oblio-fgwoo' ),
 				'code'                     => '',
 				'description'              => '',
 				'price'                    => (float) number_format( $difference, 2, '.', '' ),
@@ -128,7 +128,7 @@ final class InvoiceBuilder {
 		}
 
 		if ( '0.00' === number_format( $total, 2, '.', '' ) ) {
-			throw new DocumentException( esc_html__( 'Comanda are valoare 0.00.', 'facturare-gestiune-oblio-woocommerce' ) );
+			throw new DocumentException( esc_html__( 'Comanda are valoare 0.00.', 'oblio-fgwoo' ) );
 		}
 
 		return $products;

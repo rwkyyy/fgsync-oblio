@@ -22,7 +22,7 @@ final class ShippingFeeMapper {
 			$shipping_tax = (float) $order->get_shipping_tax();
 			$value        = $shipping_total + $shipping_tax;
 			$products[]   = $this->service_line(
-				__( 'Transport', 'facturare-gestiune-oblio-woocommerce' ),
+				__( 'Transport', 'oblio-fgwoo' ),
 				$value,
 				$shipping_total,
 				$shipping_tax,

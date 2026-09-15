@@ -99,7 +99,7 @@ final class WebhookManager {
 					}
 				}
 				delete_option( self::IDS_OPTION );
-				$this->logger->info( sprintf( 'Webhookuri dezactivate: %d abonament(e) eliminat(e)', $removed ) );
+				$this->logger->info( sprintf( 'Webhooks disabled: %d subscription(s) removed', $removed ) );
 				return;
 			}
 
@@ -117,7 +117,7 @@ final class WebhookManager {
 						$ids[ $topic ] = $sub['id'];
 					} elseif ( null !== $sub['id'] ) {
 						$client->delete_webhook( $sub['id'] );
-						$this->logger->info( sprintf( 'Webhook eliminat (expirat): %s', $topic ) );
+						$this->logger->info( sprintf( 'Webhook removed (expired): %s', $topic ) );
 					}
 				}
 			}
@@ -128,12 +128,12 @@ final class WebhookManager {
 				}
 				$created       = $client->create_webhook( $cif, $topic, $this->endpoint_for( $topic ) );
 				$ids[ $topic ] = $created['id'] ?? null;
-				$this->logger->info( sprintf( 'Webhook înregistrat: %s', $topic ) );
+				$this->logger->info( sprintf( 'Webhook registered: %s', $topic ) );
 			}
 
 			update_option( self::IDS_OPTION, $ids, false );
 		} catch ( ApiException $exception ) {
-			$this->logger->error( 'Sincronizare webhookuri eșuată: ' . $exception->status_message() );
+			$this->logger->error( 'Webhook sync failed: ' . $exception->status_message() );
 		}
 	}
 

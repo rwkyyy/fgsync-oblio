@@ -1,9 +1,9 @@
 <?php
 /**
- * Plugin Name:       Oblio - Facturare și Gestiune pentru WooCommerce
+ * Plugin Name:       Oblio Invoicing
  * Plugin URI:        https://www.oblio.eu/integrari/woocommerce
- * Description:       Emitere automată de facturi, proforme, avize și storno în Oblio, cu procesare pe coadă, sincronizare stoc pe gestiuni și webhooks. Integrare nativă WooCommerce (HPOS + clasic).
- * Version:           1.0.0
+ * Description:       Automatic invoices, proformas, delivery notes and credit notes in Oblio, with queued processing and warehouse-based stock sync. Native WooCommerce integration (HPOS + classic orders).
+ * Version:           1.0.2
  * Requires at least: 6.5
  * Requires PHP:      8.1
  * Requires Plugins:  woocommerce
@@ -11,7 +11,7 @@
  * Author URI:        https://www.oblio.eu
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain:       facturare-gestiune-oblio-woocommerce
+ * Text Domain:       oblio-fgwoo
  * Domain Path:       /languages
  *
  * @package OblioWoo
@@ -19,7 +19,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'OBLIO_FGWOO_VERSION', '1.0.0' );
+define( 'OBLIO_FGWOO_VERSION', '1.0.2' );
 define( 'OBLIO_FGWOO_FILE', __FILE__ );
 define( 'OBLIO_FGWOO_DIR', plugin_dir_path( __FILE__ ) );
 define( 'OBLIO_FGWOO_URL', plugin_dir_url( __FILE__ ) );
@@ -36,7 +36,7 @@ if ( version_compare( PHP_VERSION, OBLIO_FGWOO_MIN_PHP, '<' ) ) {
 				esc_html(
 					sprintf(
 						/* translators: 1: required PHP version, 2: current PHP version */
-						__( 'Facturare Oblio necesită PHP %1$s sau mai nou. Rulezi PHP %2$s.', 'facturare-gestiune-oblio-woocommerce' ),
+						__( 'Facturare Oblio necesită PHP %1$s sau mai nou. Rulezi PHP %2$s.', 'oblio-fgwoo' ),
 						OBLIO_FGWOO_MIN_PHP,
 						PHP_VERSION
 					)
@@ -100,7 +100,7 @@ add_action(
 						esc_html(
 							sprintf(
 								/* translators: %s: required WooCommerce version */
-								__( 'Facturare Oblio necesită WooCommerce %s sau mai nou să fie activ.', 'facturare-gestiune-oblio-woocommerce' ),
+								__( 'Facturare Oblio necesită WooCommerce %s sau mai nou să fie activ.', 'oblio-fgwoo' ),
 								OBLIO_FGWOO_MIN_WC
 							)
 						)

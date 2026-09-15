@@ -9,6 +9,7 @@ declare( strict_types=1 );
 
 namespace OblioWoo\Document\Mapper;
 
+use OblioWoo\Admin\ProductFields;
 use OblioWoo\Document\BuildContext;
 use WC_Order;
 use WC_Order_Item_Product;
@@ -119,12 +120,12 @@ final class LineItemMapper {
 	}
 
 	private function package_number( WC_Order_Item_Product $item ): int {
-		$package = (int) get_post_meta( $item->get_product_id(), 'custom_package_number', true );
+		$package = ProductFields::package_number( $item->get_product_id() );
 
 		if ( $item->get_variation_id() > 0 ) {
-			$variation_package = get_post_meta( $item->get_variation_id(), 'cfwc_package_number', true );
-			if ( ! empty( $variation_package ) ) {
-				$package = (int) $variation_package;
+			$variation_package = ProductFields::variation_package_number( $item->get_variation_id() );
+			if ( $variation_package > 0 ) {
+				$package = $variation_package;
 			}
 		}
 
@@ -132,7 +133,7 @@ final class LineItemMapper {
 	}
 
 	private function product_type( WC_Order_Item_Product $item, string $default ): string {
-		$custom = trim( (string) get_post_meta( $item->get_product_id(), 'custom_product_type', true ) );
+		$custom = ProductFields::product_type( $item->get_product_id() );
 		return '' !== $custom ? $custom : $default;
 	}
 

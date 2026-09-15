@@ -11,6 +11,7 @@ namespace OblioWoo\Admin;
 
 use OblioWoo\Api\ClientFactory;
 use OblioWoo\Api\Exception\ApiException;
+use OblioWoo\Support\Logger;
 use OblioWoo\Support\Settings;
 final class NomenclatureCache {
 
@@ -23,9 +24,12 @@ final class NomenclatureCache {
 
 	private Settings $settings;
 
-	public function __construct( ClientFactory $factory, Settings $settings ) {
+	private Logger $logger;
+
+	public function __construct( ClientFactory $factory, Settings $settings, Logger $logger ) {
 		$this->factory  = $factory;
 		$this->settings = $settings;
+		$this->logger   = $logger;
 	}
 
 	public function register(): void {
@@ -49,9 +53,11 @@ final class NomenclatureCache {
 			set_transient( self::SERIES_TRANSIENT, (array) $client->series( $cif ), self::TTL );
 			set_transient( self::MANAGEMENT_TRANSIENT, (array) $client->management( $cif ), self::TTL );
 		} catch ( ApiException $exception ) {
-
+			$this->logger->error( 'Nomenclature refresh failed: ' . $exception->status_message() );
 			return;
 		}
+
+		$this->logger->debug( 'Nomenclature refreshed (series + management)' );
 	}
 
 	public function companies(): array {

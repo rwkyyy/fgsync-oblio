@@ -6,7 +6,7 @@ parameters:
     level: 6
     paths:
         - src
-        - facturare-gestiune-oblio-woocommerce.php
+        - oblio-fgwoo.php
         - uninstall.php
     bootstrapFiles:
         - vendor/php-stubs/woocommerce-stubs/woocommerce-stubs.php

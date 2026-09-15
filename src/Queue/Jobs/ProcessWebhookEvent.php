@@ -40,7 +40,7 @@ final class ProcessWebhookEvent {
 		try {
 			$this->registry->dispatch( $topic, $data );
 		} catch ( Throwable $exception ) {
-			$this->logger->error( sprintf( 'Webhook %s: eroare handler: %s', $topic, $exception->getMessage() ) );
+			$this->logger->error( sprintf( 'Webhook %s: handler error: %s', $topic, $exception->getMessage() ) );
 		}
 	}
 }

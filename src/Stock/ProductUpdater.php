@@ -9,6 +9,7 @@ declare( strict_types=1 );
 
 namespace OblioWoo\Stock;
 
+use OblioWoo\Admin\ProductFields;
 use OblioWoo\Support\Logger;
 use WC_Product;
 final class ProductUpdater {
@@ -112,7 +113,7 @@ final class ProductUpdater {
 		}
 
 		$movement['changed'] = $changed;
-		$this->logger->debug( sprintf( 'Stoc %s: %s', $changed ? 'mișcare' : 'neschimbat', $code ), $movement );
+		$this->logger->debug( sprintf( 'Stock %s: %s', $changed ? 'movement' : 'unchanged', $code ), $movement );
 
 		return $changed;
 	}
@@ -152,16 +153,16 @@ final class ProductUpdater {
 	}
 
 	private function package_number( WC_Product $wc ): int {
-		$package = (int) $wc->get_meta( 'custom_package_number' );
+		$package = ProductFields::package_number( $wc->get_id() );
 
 		if ( $wc->is_type( 'variation' ) ) {
-			$variation_package = (int) $wc->get_meta( 'cfwc_package_number' );
+			$variation_package = ProductFields::variation_package_number( $wc->get_id() );
 			if ( $variation_package > 0 ) {
 				$package = $variation_package;
 			} else {
 				$parent = wc_get_product( $wc->get_parent_id() );
 				if ( $parent instanceof WC_Product ) {
-					$package = (int) $parent->get_meta( 'custom_package_number' );
+					$package = ProductFields::package_number( $parent->get_id() );
 				}
 			}
 		}

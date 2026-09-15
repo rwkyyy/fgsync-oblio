@@ -34,7 +34,7 @@ final class OrderMetaBox {
 
 		add_meta_box(
 			'oblio_fgwoo_order',
-			__( 'Facturare Oblio', 'facturare-gestiune-oblio-woocommerce' ),
+			__( 'Facturare Oblio', 'oblio-fgwoo' ),
 			array( $this, 'render' ),
 			$screen,
 			'side',
@@ -58,10 +58,10 @@ final class OrderMetaBox {
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 				'nonce'   => wp_create_nonce( OrderActions::NONCE_ACTION ),
 				'i18n'    => array(
-					'working'       => __( 'Se procesează…', 'facturare-gestiune-oblio-woocommerce' ),
-					'confirm'       => __( 'Sigur?', 'facturare-gestiune-oblio-woocommerce' ),
-					'error'         => __( 'Eroare', 'facturare-gestiune-oblio-woocommerce' ),
-					'requestFailed' => __( 'Cererea a eșuat', 'facturare-gestiune-oblio-woocommerce' ),
+					'working'       => __( 'Se procesează…', 'oblio-fgwoo' ),
+					'confirm'       => __( 'Sigur?', 'oblio-fgwoo' ),
+					'error'         => __( 'Eroare', 'oblio-fgwoo' ),
+					'requestFailed' => __( 'Cererea a eșuat', 'oblio-fgwoo' ),
 				),
 			)
 		);
@@ -75,59 +75,17 @@ final class OrderMetaBox {
 
 		$order_id = $order->get_id();
 
-		$this->inline_styles();
-
 		echo '<div class="oblio-orderbox" data-order="' . esc_attr( (string) $order_id ) . '">';
 
-		$this->document_row( $order, OrderMeta::TYPE_INVOICE, __( 'Factură', 'facturare-gestiune-oblio-woocommerce' ), true );
-		$this->document_row( $order, OrderMeta::TYPE_PROFORMA, __( 'Proformă', 'facturare-gestiune-oblio-woocommerce' ), false );
+		$this->document_row( $order, OrderMeta::TYPE_INVOICE, __( 'Factură', 'oblio-fgwoo' ), true );
+		$this->document_row( $order, OrderMeta::TYPE_PROFORMA, __( 'Proformă', 'oblio-fgwoo' ), false );
 		if ( $this->settings->is_enabled( 'notice_enabled' ) ) {
-			$this->document_row( $order, OrderMeta::TYPE_NOTICE, __( 'Aviz', 'facturare-gestiune-oblio-woocommerce' ), false );
+			$this->document_row( $order, OrderMeta::TYPE_NOTICE, __( 'Aviz', 'oblio-fgwoo' ), false );
 		}
 		$this->storno_row( $order );
 
 		echo '<div class="oblio-orderbox-result"></div>';
 		echo '</div>';
-	}
-
-	private function inline_styles(): void {
-		$css = <<<'CSS'
-<style>
-.oblio-orderbox .oblio-orderbox-row { margin: 0 0 4px; }
-.oblio-orderbox .button,
-.oblio-orderbox a.button {
-	display: block;
-	width: 100%;
-	box-sizing: border-box;
-	margin: 0 0 8px;
-	padding: 9px 12px;
-	text-align: center;
-	font-size: 13px;
-	font-weight: 600;
-	line-height: 1.4;
-	height: auto;
-	border-radius: 6px;
-	border: 1px solid #623394;
-	background: #623394;
-	color: #fff;
-	text-decoration: none;
-	box-shadow: none;
-	transition: background .12s ease, border-color .12s ease, color .12s ease;
-}
-.oblio-orderbox .button:hover,
-.oblio-orderbox a.button:hover { background: #4d2975; border-color: #4d2975; color: #fff; }
-.oblio-orderbox .button:focus { box-shadow: 0 0 0 1px #b5540e; outline: none; }
-.oblio-orderbox .button-primary,
-.oblio-orderbox .button-primary:focus { background: #f36e21; border-color: #f36e21; color: #fff; text-shadow: none; }
-.oblio-orderbox .button-primary:hover { background: #d8600f; border-color: #d8600f; color: #fff; }
-.oblio-orderbox .oblio-danger { background: #c62d1c; border-color: #c62d1c; color: #fff; }
-.oblio-orderbox .oblio-danger:hover { background: #a02417; border-color: #a02417; color: #fff; }
-.oblio-orderbox .button:disabled,
-.oblio-orderbox .button.disabled { opacity: .6; cursor: default; }
-.oblio-orderbox .oblio-orderbox-result { font-size: 12px; margin-top: 2px; }
-</style>
-CSS;
-		echo $css; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static inline CSS.
 	}
 
 	private function document_row( WC_Order $order, string $doc_type, string $label, bool $with_stock ): void {
@@ -138,7 +96,7 @@ CSS;
 			printf(
 				'<a class="button" href="%s" target="_blank">%s %s %s</a> ',
 				esc_url( $document['link'] ),
-				esc_html( sprintf( /* translators: %s: doc label */ __( 'Vezi %s', 'facturare-gestiune-oblio-woocommerce' ), $label ) ),
+				esc_html( sprintf( /* translators: %s: doc label */ __( 'Vezi %s', 'oblio-fgwoo' ), $label ) ),
 				esc_html( $document['series'] ),
 				esc_html( $document['number'] )
 			);
@@ -147,12 +105,12 @@ CSS;
 				printf(
 					'<button type="button" class="button oblio-danger oblio-order-action" data-task="delete" data-doc-type="%1$s" data-confirm="1" data-confirm-msg="%2$s">%3$s</button>',
 					esc_attr( $doc_type ),
-					esc_attr__( 'Ștergi definitiv acest document din Oblio? Acțiunea este ireversibilă.', 'facturare-gestiune-oblio-woocommerce' ),
-					esc_html__( 'Șterge', 'facturare-gestiune-oblio-woocommerce' )
+					esc_attr__( 'Ștergi definitiv acest document din Oblio? Acțiunea este ireversibilă.', 'oblio-fgwoo' ),
+					esc_html__( 'Șterge', 'oblio-fgwoo' )
 				);
 			} else {
 				echo '<span class="oblio-orderbox-hint" style="color:#6b6577;font-size:12px;">'
-					. esc_html__( 'Nu se poate șterge: nu este ultimul document din serie. Emite un storno.', 'facturare-gestiune-oblio-woocommerce' )
+					. esc_html__( 'Nu se poate șterge: nu este ultimul document din serie. Emite un storno.', 'oblio-fgwoo' )
 					. '</span>';
 			}
 		} else {
@@ -160,13 +118,13 @@ CSS;
 				'<button type="button" class="button button-primary oblio-order-action" data-task="issue" data-doc-type="%1$s"%2$s>%3$s</button>',
 				esc_attr( $doc_type ),
 				$with_stock ? ' data-use-stock="1"' : '',
-				esc_html( sprintf( /* translators: %s: doc label */ __( 'Emite %s', 'facturare-gestiune-oblio-woocommerce' ), $label ) )
+				esc_html( sprintf( /* translators: %s: doc label */ __( 'Emite %s', 'oblio-fgwoo' ), $label ) )
 			);
 			if ( $with_stock ) {
 				printf(
 					' <button type="button" class="button oblio-order-action" data-task="issue" data-doc-type="%1$s">%2$s</button>',
 					esc_attr( $doc_type ),
-					esc_html__( 'Emite fără descărcare', 'facturare-gestiune-oblio-woocommerce' )
+					esc_html__( 'Emite fără descărcare', 'oblio-fgwoo' )
 				);
 			}
 		}
@@ -186,8 +144,8 @@ CSS;
 					continue;
 				}
 				$label = empty( $storno['full'] )
-					? __( 'Vezi storno parțial', 'facturare-gestiune-oblio-woocommerce' )
-					: __( 'Vezi storno total', 'facturare-gestiune-oblio-woocommerce' );
+					? __( 'Vezi storno parțial', 'oblio-fgwoo' )
+					: __( 'Vezi storno total', 'oblio-fgwoo' );
 				printf(
 					'<a class="button" href="%s" target="_blank">%s %s %s</a>',
 					esc_url( $link ),
@@ -199,8 +157,8 @@ CSS;
 		} else {
 			printf(
 				'<button type="button" class="button oblio-order-action oblio-danger" data-task="storno" data-doc-type="invoice" data-confirm="1" data-confirm-msg="%s">%s</button>',
-				esc_attr__( 'Emiți factura storno pentru această comandă? Acțiunea este ireversibilă.', 'facturare-gestiune-oblio-woocommerce' ),
-				esc_html__( 'Stornează factura', 'facturare-gestiune-oblio-woocommerce' )
+				esc_attr__( 'Emiți factura storno pentru această comandă? Acțiunea este ireversibilă.', 'oblio-fgwoo' ),
+				esc_html__( 'Stornează factura', 'oblio-fgwoo' )
 			);
 		}
 		echo '</p>';

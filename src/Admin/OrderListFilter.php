@@ -34,13 +34,13 @@ final class OrderListFilter {
 
 		$current = $this->requested_filter();
 		$options = array(
-			''         => __( 'Documente Oblio: toate', 'facturare-gestiune-oblio-woocommerce' ),
-			'none'     => __( 'Fără documente', 'facturare-gestiune-oblio-woocommerce' ),
-			'proforma' => __( 'Cu proformă (fără factură)', 'facturare-gestiune-oblio-woocommerce' ),
-			'invoice'  => __( 'Cu factură', 'facturare-gestiune-oblio-woocommerce' ),
-			'notice'   => __( 'Cu aviz', 'facturare-gestiune-oblio-woocommerce' ),
-			'storno'   => __( 'Cu storno', 'facturare-gestiune-oblio-woocommerce' ),
-			'failed'   => __( 'Emitere eșuată', 'facturare-gestiune-oblio-woocommerce' ),
+			''         => __( 'Documente Oblio: toate', 'oblio-fgwoo' ),
+			'none'     => __( 'Fără documente', 'oblio-fgwoo' ),
+			'proforma' => __( 'Cu proformă (fără factură)', 'oblio-fgwoo' ),
+			'invoice'  => __( 'Cu factură', 'oblio-fgwoo' ),
+			'notice'   => __( 'Cu aviz', 'oblio-fgwoo' ),
+			'storno'   => __( 'Cu storno', 'oblio-fgwoo' ),
+			'failed'   => __( 'Emitere eșuată', 'oblio-fgwoo' ),
 		);
 
 		echo '<select name="' . esc_attr( self::PARAM ) . '" id="' . esc_attr( self::PARAM ) . '">';

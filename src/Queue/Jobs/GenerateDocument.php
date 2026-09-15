@@ -61,7 +61,7 @@ final class GenerateDocument {
 
 		$order = $this->orders->get_order( $order_id );
 		if ( null === $order ) {
-			$this->logger->warning( sprintf( 'Coadă: comanda #%d nu a fost găsită, se omite %s', $order_id, $doc_type ) );
+			$this->logger->warning( sprintf( 'Queue: order #%d not found, skipping %s', $order_id, $doc_type ) );
 			return;
 		}
 
@@ -92,23 +92,15 @@ final class GenerateDocument {
 		$delay = $this->scheduler->backoff( $attempt );
 		$this->scheduler->enqueue_document( $order->get_id(), $doc_type, $options, $attempt + 1, $delay );
 		$this->logger->warning(
-			sprintf( 'Coadă: %s pentru comanda #%d a eșuat (încercarea %d/%d): %s, reîncercare în %ds', $doc_type, $order->get_id(), $attempt, self::MAX_ATTEMPTS, $reason, $delay )
+			sprintf( 'Queue: %s for order #%d failed (attempt %d/%d): %s, retrying in %ds', $doc_type, $order->get_id(), $attempt, self::MAX_ATTEMPTS, $reason, $delay )
 		);
 	}
 
 	private function fail( \WC_Order $order, string $doc_type, string $reason, bool $exhausted ): void {
 		$order->update_meta_data( OrderMeta::key( $doc_type, 'failed' ), $reason );
-		$order->add_order_note(
-			sprintf(
-				/* translators: 1: doc type, 2: reason */
-				__( 'Oblio: emiterea %1$s a eșuat, %2$s', 'facturare-gestiune-oblio-woocommerce' ),
-				$doc_type,
-				$reason
-			)
-		);
 		$order->save();
 		$this->logger->error(
-			sprintf( 'Coadă: %s pentru comanda #%d %s: %s', $doc_type, $order->get_id(), $exhausted ? 'abandonat după reîncercări' : 'eroare permanentă', $reason )
+			sprintf( 'Queue: %s for order #%d %s: %s', $doc_type, $order->get_id(), $exhausted ? 'abandoned after retries' : 'permanent failure', $reason )
 		);
 	}
 }

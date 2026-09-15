@@ -19,16 +19,16 @@ final class SettingsShortcut {
 	}
 
 	public function add_tab( array $tabs ): array {
-		$tabs[ self::TAB_ID ] = __( 'Oblio', 'facturare-gestiune-oblio-woocommerce' );
+		$tabs[ self::TAB_ID ] = __( 'Oblio', 'oblio-fgwoo' );
 		return $tabs;
 	}
 
 	public function render(): void {
-		echo '<p>' . esc_html__( 'Setările Oblio se află pe pagina dedicată, cu design propriu.', 'facturare-gestiune-oblio-woocommerce' ) . '</p>';
+		echo '<p>' . esc_html__( 'Setările Oblio se află pe pagina dedicată, cu design propriu.', 'oblio-fgwoo' ) . '</p>';
 		printf(
 			'<p><a href="%s" class="button button-primary">%s</a></p>',
 			esc_url( SettingsPage::url() ),
-			esc_html__( 'Deschide setările Oblio', 'facturare-gestiune-oblio-woocommerce' )
+			esc_html__( 'Deschide setările Oblio', 'oblio-fgwoo' )
 		);
 	}
 }

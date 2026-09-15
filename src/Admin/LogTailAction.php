@@ -23,7 +23,7 @@ final class LogTailAction {
 
 	public function handle(): void {
 		if ( ! check_ajax_referer( ConnectionTest::NONCE_ACTION, 'nonce', false ) || ! current_user_can( 'manage_woocommerce' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Acțiune neautorizată.', 'facturare-gestiune-oblio-woocommerce' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'Acțiune neautorizată.', 'oblio-fgwoo' ) ), 403 );
 		}
 
 		wp_send_json_success( array( 'html' => LogRenderer::rows( $this->log->today() ) ) );

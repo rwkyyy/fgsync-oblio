@@ -1,14 +1,14 @@
-=== Oblio - Facturare și Gestiune pentru WooCommerce ===
-Contributors: oblio
+=== Oblio Invoicing ===
+Contributors: rwky, obliosoftware
 Tags: woocommerce, invoicing, oblio, invoice, romania
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.0.0
+Stable tag: 1.0.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Automatically issue invoices, proformas, delivery notes and credit notes in Oblio, with queued processing, multi-warehouse stock sync and webhooks.
+Automatically issue invoices, proformas, delivery notes and credit notes in Oblio, with queued processing and multi-warehouse stock sync.
 
 == Description ==
 
@@ -29,7 +29,6 @@ A native integration between WooCommerce and Oblio.eu, rebuilt from the ground u
 **Collection and notifications**
 
 * Automatic "mark as paid", configurable per payment method, with exceptions.
-* Optional, verified webhooks for real-time stock updates.
 * Invoices issued the moment the order reaches a status, or on a schedule (batch), your choice.
 * Customer notifications two ways: a standalone email from the plugin, or a button linking to the invoice inside WooCommerce's own order emails.
 
@@ -52,7 +51,6 @@ When data is sent:
 * When an order is marked as paid ("collection"), if you enable it.
 * When stock is synchronised from Oblio, on the schedule you set or on demand.
 * When you test the connection or import settings from the connection screen.
-* When webhooks are enabled, Oblio calls your site to notify it of stock changes.
 
 What is sent for a document: your company identifier (CIF), the customer's billing details (name, company, address, tax/registration identifiers, email and phone when present), the order lines (product name, code/SKU, quantity, price, VAT), shipping and fees, totals, and the payment method. Authentication uses your Oblio account email and API secret. No data is sent to any party other than Oblio.
 
@@ -86,19 +84,19 @@ The Oblio settings include an "Import settings" button on the connection screen.
 
 Two modes, under Documents. "Immediately" issues the invoice as soon as the order enters one of the selected statuses, useful when the invoice must exist before the parcel leaves the warehouse. "Scheduled (batch)" issues invoices periodically at the interval you choose, useful when invoicing happens later, e.g. on delivery. In both modes a reconciliation scan re-checks recent orders (the last 7 days by default, adjustable with a filter) and re-queues any invoice a missed hook or a brief Oblio outage skipped.
 
-= What happens when I enable webhooks? =
-
-Webhooks are optional and off by default. When you enable them, Oblio notifies your site in real time (the flow is one way, from Oblio to your site). Enable "real-time stock sync" and, when stock changes in Oblio, your WooCommerce stock updates almost immediately (the scheduled sync stays as a fallback). Each request is verified with a secret in the callback URL. Turning webhooks off removes the subscriptions from Oblio.
-
-= How does the stock webhook work? Can it replace the scheduled sync? =
-
-Oblio is the source of truth for stock. Its webhooks are one-way (Oblio notifies your site), so stock flows from Oblio into WooCommerce, there is no push of WooCommerce stock back to Oblio. With webhooks enabled, a stock change in Oblio triggers a near-real-time (debounced) sync, so the scheduled sync is only a fallback. Stock is decremented in Oblio when you issue an invoice with the "use stock" option. The product's Oblio code must match the WooCommerce SKU.
-
 = How do customers get the invoice by email? =
 
 Under Email, pick a mode. "Standalone" sends a separate message from the plugin when the document is issued, using your subject/message templates. "Button" instead adds a button linking to the Oblio invoice inside WooCommerce's own order emails, for the order statuses you select (for example, the Completed order email). In "Button" mode, if the invoice has not been issued yet when that email is sent, the plugin issues it at that moment so the button always links to a real invoice; this happens even when automatic invoicing is off. Use the `oblio_fgwoo_email_button_issue` filter to disable that behaviour if you only want a button when an invoice already exists.
 
 == Changelog ==
+
+= 1.0.2 =
+* Temporarily disabled the stock webhook trigger (real-time sync on Oblio's notification) while its payload is verified against more real-world traffic; the "Webhook" and "Both" sync modes are removed from settings, existing subscriptions on the Oblio side are cleaned up automatically, and the scheduled sync is unaffected. Sites that had "Webhook only" selected fall back to no automatic sync (was never a schedule they chose) and must pick "Programată" if they want stock kept in sync in the meantime; sites that had "Both" keep their schedule.
+
+= 1.0.1 =
+* Removed redundant order notes for document issue/failure events (the same information is already in the Oblio log).
+* Added logging for previously-silent actions: manual document actions, bulk actions, settings save, connection test, nomenclature refresh, incoming webhooks, and customer document emails.
+* Translated all log messages to English.
 
 = 1.0.0 =
 * First stable release. Complete rewrite: WP HTTP API client, Action Scheduler queues, document engine (invoice, proforma, delivery note, credit note), multi-warehouse stock sync, optional webhooks, status panel, import from the old plugin, HPOS and classic compatibility.

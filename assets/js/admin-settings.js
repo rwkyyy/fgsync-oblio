@@ -1,4 +1,3 @@
-/* global jQuery, oblioFgwoo */
 ( function ( $ ) {
 	'use strict';
 

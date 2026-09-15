@@ -20,10 +20,10 @@ define( 'ABSPATH', sys_get_temp_dir() . '/' );
 if ( ! defined( 'AUTH_KEY' ) ) {
 	define( 'AUTH_KEY', 'phpunit-auth-key-0123456789' );
 }
-define( 'OBLIO_FGWOO_VERSION', '1.0.0' );
+define( 'OBLIO_FGWOO_VERSION', '1.0.2' );
 define( 'OBLIO_FGWOO_DIR', dirname( __DIR__ ) . '/' );
 define( 'OBLIO_FGWOO_URL', 'https://example.test/' );
-define( 'OBLIO_FGWOO_BASENAME', 'oblio/facturare-gestiune-oblio-woocommerce.php' );
+define( 'OBLIO_FGWOO_BASENAME', 'oblio-fgwoo/oblio-fgwoo.php' );
 define( 'HOUR_IN_SECONDS', 3600 );
 define( 'DAY_IN_SECONDS', 86400 );
 

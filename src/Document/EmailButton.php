@@ -62,7 +62,7 @@ final class EmailButton {
 
 		$label = (string) $this->settings->get( 'email_button_label', '' );
 		if ( '' === $label ) {
-			$label = __( 'Vezi factura', 'facturare-gestiune-oblio-woocommerce' );
+			$label = __( 'Vezi factura', 'oblio-fgwoo' );
 		}
 
 		$label = (string) apply_filters( 'oblio_fgwoo_email_button_label', $label, $order );
@@ -124,7 +124,7 @@ final class EmailButton {
 				'date'   => '',
 			);
 		} catch ( \Throwable $exception ) {
-			$this->logger->warning( sprintf( 'Buton email: nu s-a putut asigura factura pentru comanda #%d: %s', $order->get_id(), $exception->getMessage() ) );
+			$this->logger->warning( sprintf( 'Email button: could not ensure the invoice for order #%d: %s', $order->get_id(), $exception->getMessage() ) );
 			return OrderMeta::get( $order, OrderMeta::TYPE_INVOICE );
 		} finally {
 			delete_transient( $lock );

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <ruleset name="Oblio FGWOO">
-	<description>Coding standards for Oblio - Facturare și Gestiune pentru WooCommerce.</description>
+	<description>Coding standards for Oblio Invoicing.</description>
 
 	<file>.</file>
 
@@ -59,7 +59,7 @@
 	<rule ref="WordPress.WP.I18n">
 		<properties>
 			<property name="text_domain" type="array">
-				<element value="facturare-gestiune-oblio-woocommerce"/>
+				<element value="oblio-fgwoo"/>
 			</property>
 		</properties>
 	</rule>

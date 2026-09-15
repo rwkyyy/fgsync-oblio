@@ -13,7 +13,7 @@ final class LogRenderer {
 
 	public static function rows( array $entries ): string {
 		if ( empty( $entries ) ) {
-			return '<p class="oblio-empty">' . esc_html__( 'Fără intrări.', 'facturare-gestiune-oblio-woocommerce' ) . '</p>';
+			return '<p class="oblio-empty">' . esc_html__( 'Fără intrări.', 'oblio-fgwoo' ) . '</p>';
 		}
 
 		$html = '';

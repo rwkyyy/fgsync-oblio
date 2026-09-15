@@ -42,7 +42,7 @@ final class AccountInvoices {
 			$logout = array( 'customer-logout' => $items['customer-logout'] );
 			unset( $items['customer-logout'] );
 		}
-		$items[ self::ENDPOINT ] = __( 'Facturi', 'facturare-gestiune-oblio-woocommerce' );
+		$items[ self::ENDPOINT ] = __( 'Facturi', 'oblio-fgwoo' );
 		return $items + $logout;
 	}
 
@@ -85,14 +85,14 @@ final class AccountInvoices {
 
 		$orders = is_object( $result ) ? (array) $result->orders : array();
 		if ( empty( $orders ) ) {
-			echo '<p>' . esc_html__( 'Nu există facturi.', 'facturare-gestiune-oblio-woocommerce' ) . '</p>';
+			echo '<p>' . esc_html__( 'Nu există facturi.', 'oblio-fgwoo' ) . '</p>';
 			return;
 		}
 
 		echo '<table class="woocommerce-orders-table shop_table"><thead><tr>';
-		echo '<th>' . esc_html__( 'Comandă', 'facturare-gestiune-oblio-woocommerce' ) . '</th>';
-		echo '<th>' . esc_html__( 'Factură', 'facturare-gestiune-oblio-woocommerce' ) . '</th>';
-		echo '<th>' . esc_html__( 'Storno / Retur', 'facturare-gestiune-oblio-woocommerce' ) . '</th>';
+		echo '<th>' . esc_html__( 'Comandă', 'oblio-fgwoo' ) . '</th>';
+		echo '<th>' . esc_html__( 'Factură', 'oblio-fgwoo' ) . '</th>';
+		echo '<th>' . esc_html__( 'Storno / Retur', 'oblio-fgwoo' ) . '</th>';
 		echo '</tr></thead><tbody>';
 
 		foreach ( $orders as $order ) {
@@ -116,21 +116,21 @@ final class AccountInvoices {
 		$base = wc_get_account_endpoint_url( self::ENDPOINT );
 		echo '<div class="woocommerce-pagination oblio-invoices-pagination">';
 		if ( $current > 1 ) {
-			printf( '<a class="button" href="%s">%s</a> ', esc_url( add_query_arg( 'invoices_page', $current - 1, $base ) ), esc_html__( 'Anterioare', 'facturare-gestiune-oblio-woocommerce' ) );
+			printf( '<a class="button" href="%s">%s</a> ', esc_url( add_query_arg( 'invoices_page', $current - 1, $base ) ), esc_html__( 'Anterioare', 'oblio-fgwoo' ) );
 		}
 		printf(
 			'<span class="oblio-invoices-page"> %s </span>',
 			esc_html(
 				sprintf(
 					/* translators: 1: current page, 2: total pages */
-					__( 'Pagina %1$d din %2$d', 'facturare-gestiune-oblio-woocommerce' ),
+					__( 'Pagina %1$d din %2$d', 'oblio-fgwoo' ),
 					$current,
 					$max_pages
 				)
 			)
 		);
 		if ( $current < $max_pages ) {
-			printf( '<a class="button" href="%s">%s</a>', esc_url( add_query_arg( 'invoices_page', $current + 1, $base ) ), esc_html__( 'Următoarele', 'facturare-gestiune-oblio-woocommerce' ) );
+			printf( '<a class="button" href="%s">%s</a>', esc_url( add_query_arg( 'invoices_page', $current + 1, $base ) ), esc_html__( 'Următoarele', 'oblio-fgwoo' ) );
 		}
 		echo '</div>';
 	}
@@ -155,8 +155,8 @@ final class AccountInvoices {
 				continue;
 			}
 			$tag     = empty( $storno['full'] )
-				? __( 'parțial', 'facturare-gestiune-oblio-woocommerce' )
-				: __( 'total', 'facturare-gestiune-oblio-woocommerce' );
+				? __( 'parțial', 'oblio-fgwoo' )
+				: __( 'total', 'oblio-fgwoo' );
 			$links[] = sprintf(
 				'<a href="%s" target="_blank" rel="noopener">%s %s (%s)</a>',
 				esc_url( $link ),

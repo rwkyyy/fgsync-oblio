@@ -10,6 +10,7 @@ declare( strict_types=1 );
 namespace OblioWoo\Webhook;
 
 use OblioWoo\Queue\Scheduler;
+use OblioWoo\Support\Logger;
 use OblioWoo\Support\Settings;
 use WP_REST_Request;
 use WP_REST_Server;
@@ -19,9 +20,12 @@ final class RestController {
 
 	private Scheduler $scheduler;
 
-	public function __construct( Settings $settings, Scheduler $scheduler ) {
+	private Logger $logger;
+
+	public function __construct( Settings $settings, Scheduler $scheduler, Logger $logger ) {
 		$this->settings  = $settings;
 		$this->scheduler = $scheduler;
+		$this->logger    = $logger;
 	}
 
 	public function register(): void {
@@ -45,11 +49,16 @@ final class RestController {
 
 	public function verify( WP_REST_Request $request ): bool {
 		if ( ! $this->settings->stock_webhook_enabled() ) {
+			$this->logger->warning( sprintf( 'Webhook rejected: stock webhooks disabled (topic: %s)', (string) $request->get_param( 'topic' ) ) );
 			return false;
 		}
 		$secret   = (string) $this->settings->get( 'webhook_secret' );
 		$provided = (string) $request->get_param( 'secret' );
-		return '' !== $secret && hash_equals( $secret, $provided );
+		$valid    = '' !== $secret && hash_equals( $secret, $provided );
+		if ( ! $valid ) {
+			$this->logger->warning( sprintf( 'Webhook rejected: invalid secret (topic: %s)', (string) $request->get_param( 'topic' ) ) );
+		}
+		return $valid;
 	}
 
 	public function extract_event( WP_REST_Request $request ): array {
@@ -68,8 +77,13 @@ final class RestController {
 	public function handle( WP_REST_Request $request ): void {
 		$event = $this->extract_event( $request );
 
-		if ( '' !== $event['topic'] && ! $this->is_replay( $event['request_id'] ) ) {
+		if ( '' === $event['topic'] ) {
+			$this->logger->warning( sprintf( 'Webhook received: unknown topic slug "%s"', (string) $request->get_param( 'topic' ) ) );
+		} elseif ( $this->is_replay( $event['request_id'] ) ) {
+			$this->logger->debug( sprintf( 'Webhook received: %s, ignored (replay of request %s)', $event['topic'], $event['request_id'] ) );
+		} else {
 			$this->scheduler->enqueue_webhook( $event['topic'], $event['data'] );
+			$this->logger->info( sprintf( 'Webhook received: %s, queued for processing', $event['topic'] ) );
 		}
 
 		$this->send_ack( base64_encode( $event['request_id'] ) );

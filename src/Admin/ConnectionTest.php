@@ -11,6 +11,7 @@ namespace OblioWoo\Admin;
 
 use OblioWoo\Api\ClientFactory;
 use OblioWoo\Api\Exception\ApiException;
+use OblioWoo\Support\Logger;
 final class ConnectionTest {
 
 	public const NONCE_ACTION     = 'oblio_fgwoo_admin';
@@ -20,9 +21,12 @@ final class ConnectionTest {
 
 	private NomenclatureCache $nomenclature;
 
-	public function __construct( ClientFactory $factory, NomenclatureCache $nomenclature ) {
+	private Logger $logger;
+
+	public function __construct( ClientFactory $factory, NomenclatureCache $nomenclature, Logger $logger ) {
 		$this->factory      = $factory;
 		$this->nomenclature = $nomenclature;
+		$this->logger       = $logger;
 	}
 
 	public function register(): void {
@@ -31,7 +35,7 @@ final class ConnectionTest {
 
 	public function handle(): void {
 		if ( ! check_ajax_referer( self::NONCE_ACTION, 'nonce', false ) || ! current_user_can( 'manage_woocommerce' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Acțiune neautorizată.', 'facturare-gestiune-oblio-woocommerce' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'Acțiune neautorizată.', 'oblio-fgwoo' ) ), 403 );
 		}
 
 		$email  = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
@@ -42,13 +46,14 @@ final class ConnectionTest {
 		}
 
 		if ( '' === $email || '' === $secret ) {
-			wp_send_json_error( array( 'message' => __( 'Introdu emailul și cheia API.', 'facturare-gestiune-oblio-woocommerce' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Introdu emailul și cheia API.', 'oblio-fgwoo' ) ) );
 		}
 
 		try {
 			$client    = $this->factory->create_with( $email, $secret );
 			$companies = $client->test_connection();
 		} catch ( ApiException $exception ) {
+			$this->logger->error( 'Connection test failed: ' . $exception->status_message() );
 			wp_send_json_error( array( 'message' => $exception->status_message() ) );
 		}
 
@@ -63,11 +68,13 @@ final class ConnectionTest {
 		$this->nomenclature->refresh();
 		$this->nomenclature->prime();
 
+		$this->logger->info( sprintf( 'Connection test succeeded, %d compan%s found', count( $map ), 1 === count( $map ) ? 'y' : 'ies' ) );
+
 		wp_send_json_success(
 			array(
 				'message'   => sprintf(
 					/* translators: %d: number of companies */
-					_n( 'Conectat. %d firmă găsită.', 'Conectat. %d firme găsite.', count( $map ), 'facturare-gestiune-oblio-woocommerce' ),
+					_n( 'Conectat. %d firmă găsită.', 'Conectat. %d firme găsite.', count( $map ), 'oblio-fgwoo' ),
 					count( $map )
 				),
 				'companies' => $map,

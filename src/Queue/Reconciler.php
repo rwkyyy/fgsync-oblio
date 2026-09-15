@@ -96,7 +96,7 @@ final class Reconciler {
 		}
 
 		if ( $requeued > 0 ) {
-			$this->logger->warning( sprintf( 'Reconciliere: %d factură(i) omisă(e) repusă(e) în coadă', $requeued ) );
+			$this->logger->warning( sprintf( 'Reconcile: %d missed invoice(s) re-queued', $requeued ) );
 		}
 	}
 }
