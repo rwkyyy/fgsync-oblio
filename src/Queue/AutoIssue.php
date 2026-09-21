@@ -2,16 +2,16 @@
 /**
  * Order event hooks that enqueue document generation.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Queue;
+namespace FGSyncOblio\Queue;
 
-use OblioWoo\Compat\OrderStore;
-use OblioWoo\Order\OrderMeta;
-use OblioWoo\Support\Settings;
+use FGSyncOblio\Compat\OrderStore;
+use FGSyncOblio\Order\OrderMeta;
+use FGSyncOblio\Support\Settings;
 use WC_Order;
 final class AutoIssue {
 

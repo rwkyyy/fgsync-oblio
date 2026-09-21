@@ -2,18 +2,18 @@
 /**
  * Bulk Oblio document actions on the orders list (invoice, proforma, storno).
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Admin;
+namespace FGSyncOblio\Admin;
 
-use OblioWoo\Compat\OrderStore;
-use OblioWoo\Order\OrderMeta;
-use OblioWoo\Queue\Scheduler;
-use OblioWoo\Support\Logger;
-use OblioWoo\Support\Settings;
+use FGSyncOblio\Compat\OrderStore;
+use FGSyncOblio\Order\OrderMeta;
+use FGSyncOblio\Queue\Scheduler;
+use FGSyncOblio\Support\Logger;
+use FGSyncOblio\Support\Settings;
 use WC_Order;
 final class BulkActions {
 
@@ -47,9 +47,9 @@ final class BulkActions {
 	}
 
 	public function add( array $actions ): array {
-		$actions['oblio_fgwoo_issue_invoice']  = __( 'Oblio: emite factură', 'oblio-fgwoo' );
-		$actions['oblio_fgwoo_issue_proforma'] = __( 'Oblio: emite proformă', 'oblio-fgwoo' );
-		$actions['oblio_fgwoo_issue_storno']   = __( 'Oblio: emite storno (rambursare)', 'oblio-fgwoo' );
+		$actions['oblio_fgwoo_issue_invoice']  = __( 'Oblio: emite factură', 'fgsync-oblio' );
+		$actions['oblio_fgwoo_issue_proforma'] = __( 'Oblio: emite proformă', 'fgsync-oblio' );
+		$actions['oblio_fgwoo_issue_storno']   = __( 'Oblio: emite storno (rambursare)', 'fgsync-oblio' );
 		return $actions;
 	}
 
@@ -129,7 +129,7 @@ final class BulkActions {
 		if ( $skipped > 0 ) {
 			$message .= ' ' . sprintf(
 				/* translators: 1: number of orders, 2: reason they were skipped */
-				_n( '%1$d comandă a fost sărită (%2$s).', '%1$d comenzi au fost sărite (%2$s).', $skipped, 'oblio-fgwoo' ),
+				_n( '%1$d comandă a fost sărită (%2$s).', '%1$d comenzi au fost sărite (%2$s).', $skipped, 'fgsync-oblio' ),
 				$skipped,
 				$this->skip_reason( $type )
 			);
@@ -149,13 +149,13 @@ final class BulkActions {
 		switch ( $type ) {
 			case 'invoice':
 				/* translators: %d: number of orders */
-				return sprintf( _n( '%d factură pusă în coadă.', '%d facturi puse în coadă.', $count, 'oblio-fgwoo' ), $count );
+				return sprintf( _n( '%d factură pusă în coadă.', '%d facturi puse în coadă.', $count, 'fgsync-oblio' ), $count );
 			case 'proforma':
 				/* translators: %d: number of orders */
-				return sprintf( _n( '%d proformă pusă în coadă.', '%d proforme puse în coadă.', $count, 'oblio-fgwoo' ), $count );
+				return sprintf( _n( '%d proformă pusă în coadă.', '%d proforme puse în coadă.', $count, 'fgsync-oblio' ), $count );
 			case 'storno':
 				/* translators: %d: number of orders */
-				return sprintf( _n( '%d storno pus în coadă.', '%d storno puse în coadă.', $count, 'oblio-fgwoo' ), $count );
+				return sprintf( _n( '%d storno pus în coadă.', '%d storno puse în coadă.', $count, 'fgsync-oblio' ), $count );
 			default:
 				return '';
 		}
@@ -164,11 +164,11 @@ final class BulkActions {
 	private function skip_reason( string $type ): string {
 		switch ( $type ) {
 			case 'invoice':
-				return __( 'aveau deja factură', 'oblio-fgwoo' );
+				return __( 'aveau deja factură', 'fgsync-oblio' );
 			case 'proforma':
-				return __( 'aveau deja factură sau proformă', 'oblio-fgwoo' );
+				return __( 'aveau deja factură sau proformă', 'fgsync-oblio' );
 			case 'storno':
-				return __( 'nu aveau factură sau aveau deja storno', 'oblio-fgwoo' );
+				return __( 'nu aveau factură sau aveau deja storno', 'fgsync-oblio' );
 			default:
 				return '';
 		}

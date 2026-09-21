@@ -2,16 +2,16 @@
 /**
  * "Test connection" AJAX handler.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Admin;
+namespace FGSyncOblio\Admin;
 
-use OblioWoo\Api\ClientFactory;
-use OblioWoo\Api\Exception\ApiException;
-use OblioWoo\Support\Logger;
+use FGSyncOblio\Api\ClientFactory;
+use FGSyncOblio\Api\Exception\ApiException;
+use FGSyncOblio\Support\Logger;
 final class ConnectionTest {
 
 	public const NONCE_ACTION     = 'oblio_fgwoo_admin';
@@ -35,7 +35,7 @@ final class ConnectionTest {
 
 	public function handle(): void {
 		if ( ! check_ajax_referer( self::NONCE_ACTION, 'nonce', false ) || ! current_user_can( 'manage_woocommerce' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Acțiune neautorizată.', 'oblio-fgwoo' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'Acțiune neautorizată.', 'fgsync-oblio' ) ), 403 );
 		}
 
 		$email  = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
@@ -46,7 +46,7 @@ final class ConnectionTest {
 		}
 
 		if ( '' === $email || '' === $secret ) {
-			wp_send_json_error( array( 'message' => __( 'Introdu emailul și cheia API.', 'oblio-fgwoo' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Introdu emailul și cheia API.', 'fgsync-oblio' ) ) );
 		}
 
 		try {
@@ -74,7 +74,7 @@ final class ConnectionTest {
 			array(
 				'message'   => sprintf(
 					/* translators: %d: number of companies */
-					_n( 'Conectat. %d firmă găsită.', 'Conectat. %d firme găsite.', count( $map ), 'oblio-fgwoo' ),
+					_n( 'Conectat. %d firmă găsită.', 'Conectat. %d firme găsite.', count( $map ), 'fgsync-oblio' ),
 					count( $map )
 				),
 				'companies' => $map,

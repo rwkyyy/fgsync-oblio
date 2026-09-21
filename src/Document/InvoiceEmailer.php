@@ -2,16 +2,16 @@
 /**
  * Sends the customer a document notification email.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Document;
+namespace FGSyncOblio\Document;
 
-use OblioWoo\Order\OrderMeta;
-use OblioWoo\Support\Logger;
-use OblioWoo\Support\Settings;
+use FGSyncOblio\Order\OrderMeta;
+use FGSyncOblio\Support\Logger;
+use FGSyncOblio\Support\Settings;
 use WC_Order;
 final class InvoiceEmailer {
 
@@ -37,8 +37,8 @@ final class InvoiceEmailer {
 		}
 
 		$type = OrderMeta::TYPE_PROFORMA === $result->doc_type
-			? __( 'Proforma', 'oblio-fgwoo' )
-			: __( 'Factura', 'oblio-fgwoo' );
+			? __( 'Proforma', 'fgsync-oblio' )
+			: __( 'Factura', 'fgsync-oblio' );
 
 		$created  = $order->get_date_created();
 		$issue_ts = $created ? (int) $created->format( 'U' ) : time();

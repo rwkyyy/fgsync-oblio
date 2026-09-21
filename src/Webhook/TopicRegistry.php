@@ -2,12 +2,12 @@
 /**
  * Registry of supported webhook topics and their handlers.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Webhook;
+namespace FGSyncOblio\Webhook;
 
 final class TopicRegistry {
 

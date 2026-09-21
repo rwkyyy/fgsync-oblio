@@ -2,21 +2,21 @@
 /**
  * Action Scheduler job: issue a document for an order.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Queue\Jobs;
+namespace FGSyncOblio\Queue\Jobs;
 
-use OblioWoo\Api\Exception\ApiException;
-use OblioWoo\Compat\OrderStore;
-use OblioWoo\Document\DocumentException;
-use OblioWoo\Document\DocumentIssuer;
-use OblioWoo\Order\OrderMeta;
-use OblioWoo\Queue\Scheduler;
-use OblioWoo\Support\Logger;
-use OblioWoo\Support\RateLimiter;
+use FGSyncOblio\Api\Exception\ApiException;
+use FGSyncOblio\Compat\OrderStore;
+use FGSyncOblio\Document\DocumentException;
+use FGSyncOblio\Document\DocumentIssuer;
+use FGSyncOblio\Order\OrderMeta;
+use FGSyncOblio\Queue\Scheduler;
+use FGSyncOblio\Support\Logger;
+use FGSyncOblio\Support\RateLimiter;
 use Throwable;
 final class GenerateDocument {
 

@@ -2,14 +2,14 @@
 /**
  * "Documente Oblio" filter dropdown on the orders list (HPOS + legacy).
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Admin;
+namespace FGSyncOblio\Admin;
 
-use OblioWoo\Order\OrderMeta;
+use FGSyncOblio\Order\OrderMeta;
 use WP_Query;
 final class OrderListFilter {
 
@@ -34,13 +34,13 @@ final class OrderListFilter {
 
 		$current = $this->requested_filter();
 		$options = array(
-			''         => __( 'Documente Oblio: toate', 'oblio-fgwoo' ),
-			'none'     => __( 'Fără documente', 'oblio-fgwoo' ),
-			'proforma' => __( 'Cu proformă (fără factură)', 'oblio-fgwoo' ),
-			'invoice'  => __( 'Cu factură', 'oblio-fgwoo' ),
-			'notice'   => __( 'Cu aviz', 'oblio-fgwoo' ),
-			'storno'   => __( 'Cu storno', 'oblio-fgwoo' ),
-			'failed'   => __( 'Emitere eșuată', 'oblio-fgwoo' ),
+			''         => __( 'Documente Oblio: toate', 'fgsync-oblio' ),
+			'none'     => __( 'Fără documente', 'fgsync-oblio' ),
+			'proforma' => __( 'Cu proformă (fără factură)', 'fgsync-oblio' ),
+			'invoice'  => __( 'Cu factură', 'fgsync-oblio' ),
+			'notice'   => __( 'Cu aviz', 'fgsync-oblio' ),
+			'storno'   => __( 'Cu storno', 'fgsync-oblio' ),
+			'failed'   => __( 'Emitere eșuată', 'fgsync-oblio' ),
 		);
 
 		echo '<select name="' . esc_attr( self::PARAM ) . '" id="' . esc_attr( self::PARAM ) . '">';

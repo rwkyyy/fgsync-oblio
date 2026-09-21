@@ -2,14 +2,14 @@
 /**
  * Immutable snapshot of settings used while building a document.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Document;
+namespace FGSyncOblio\Document;
 
-use OblioWoo\Support\Settings;
+use FGSyncOblio\Support\Settings;
 final class BuildContext {
 
 	public function __construct(

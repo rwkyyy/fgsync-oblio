@@ -1,6 +1,6 @@
 {
-    "name": "oblio/oblio-fgwoo",
-    "description": "Oblio Invoicing. Native Oblio.eu integration with queues and stock sync.",
+    "name": "rwky/fgsync-oblio",
+    "description": "FGSync for Oblio. Independent WooCommerce integration with the Oblio.eu invoicing API, with queues and stock sync.",
     "type": "wordpress-plugin",
     "license": "GPL-2.0-or-later",
     "require": {
@@ -18,12 +18,12 @@
     },
     "autoload": {
         "psr-4": {
-            "OblioWoo\\": "src/"
+            "FGSyncOblio\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "OblioWoo\\Tests\\": "tests/"
+            "FGSyncOblio\\Tests\\": "tests/"
         }
     },
     "config": {
@@ -36,6 +36,6 @@
         "phpcbf": "phpcbf",
         "phpstan": "phpstan analyse --memory-limit=1G",
         "test": "phpunit",
-        "make-pot": "wp i18n make-pot . languages/oblio-fgwoo.pot --slug=oblio-fgwoo --exclude=tests,vendor,node_modules"
+        "make-pot": "wp i18n make-pot . languages/fgsync-oblio.pot --slug=fgsync-oblio --exclude=tests,vendor,node_modules"
     }
 }

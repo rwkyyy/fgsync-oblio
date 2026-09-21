@@ -1,18 +1,18 @@
 <?php
 /**
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Tests\Unit;
+namespace FGSyncOblio\Tests\Unit;
 
-use OblioWoo\Order\OrderMeta;
+use FGSyncOblio\Order\OrderMeta;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use WC_Order;
 
-#[CoversClass( \OblioWoo\Order\OrderMeta::class )]
+#[CoversClass( \FGSyncOblio\Order\OrderMeta::class )]
 final class OrderMetaTest extends TestCase {
 
 	public function test_fresh_order_is_not_marked_as_stock_discharging(): void {

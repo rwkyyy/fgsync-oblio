@@ -2,17 +2,17 @@
 /**
  * Invoice reconciliation watchdog.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Queue;
+namespace FGSyncOblio\Queue;
 
-use OblioWoo\Compat\OrderStore;
-use OblioWoo\Order\OrderMeta;
-use OblioWoo\Support\Logger;
-use OblioWoo\Support\Settings;
+use FGSyncOblio\Compat\OrderStore;
+use FGSyncOblio\Order\OrderMeta;
+use FGSyncOblio\Support\Logger;
+use FGSyncOblio\Support\Settings;
 final class Reconciler {
 
 	private const LOOKBACK_DAYS = 7;

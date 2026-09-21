@@ -2,12 +2,12 @@
 /**
  * Inspects the WordPress hook system for third-party overrides.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Extensibility;
+namespace FGSyncOblio\Extensibility;
 
 final class HookInspector {
 
@@ -24,7 +24,7 @@ final class HookInspector {
 			return array();
 		}
 
-		$plugin_dir = defined( 'OBLIO_FGWOO_DIR' ) ? OBLIO_FGWOO_DIR : '';
+		$plugin_dir = defined( 'FGSYNC_OBLIO_DIR' ) ? FGSYNC_OBLIO_DIR : '';
 		$overrides  = array();
 
 		foreach ( $wp_filter[ $hook ]->callbacks as $priority => $callbacks ) {

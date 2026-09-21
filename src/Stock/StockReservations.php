@@ -2,14 +2,14 @@
 /**
  * Computes reserved quantities from recent unfinished orders.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Stock;
+namespace FGSyncOblio\Stock;
 
-use OblioWoo\Order\OrderMeta;
+use FGSyncOblio\Order\OrderMeta;
 final class StockReservations {
 
 	private const TRANSIENT     = 'oblio_fgwoo_stock_reservations';

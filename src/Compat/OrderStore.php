@@ -2,15 +2,15 @@
 /**
  * HPOS + legacy order data abstraction.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Compat;
+namespace FGSyncOblio\Compat;
 
 use Automattic\WooCommerce\Utilities\OrderUtil;
-use OblioWoo\Order\OrderMeta;
+use FGSyncOblio\Order\OrderMeta;
 use WC_Order;
 final class OrderStore {
 

@@ -2,12 +2,12 @@
 /**
  * Global pacer for outbound Oblio document requests.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Support;
+namespace FGSyncOblio\Support;
 
 final class RateLimiter {
 

@@ -2,17 +2,17 @@
 /**
  * Oblio REST API client (WordPress HTTP API).
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Api;
+namespace FGSyncOblio\Api;
 
-use OblioWoo\Api\Exception\ApiException;
-use OblioWoo\Api\Exception\AuthException;
-use OblioWoo\Support\Logger;
-use OblioWoo\Support\RateLimiter;
+use FGSyncOblio\Api\Exception\ApiException;
+use FGSyncOblio\Api\Exception\AuthException;
+use FGSyncOblio\Support\Logger;
+use FGSyncOblio\Support\RateLimiter;
 final class OblioClient {
 
 	private const BASE_URL = 'https://www.oblio.eu';
@@ -202,7 +202,7 @@ final class OblioClient {
 
 	private function authenticate(): array {
 		if ( '' === $this->email || '' === $this->secret ) {
-			throw new AuthException( esc_html__( 'Email sau API secret lipsă.', 'oblio-fgwoo' ) );
+			throw new AuthException( esc_html__( 'Email sau API secret lipsă.', 'fgsync-oblio' ) );
 		}
 
 		$response = wp_remote_post(

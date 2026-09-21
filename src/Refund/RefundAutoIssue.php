@@ -2,17 +2,17 @@
 /**
  * Enqueues a storno when a WooCommerce refund is created.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Refund;
+namespace FGSyncOblio\Refund;
 
-use OblioWoo\Compat\OrderStore;
-use OblioWoo\Order\OrderMeta;
-use OblioWoo\Queue\Scheduler;
-use OblioWoo\Support\Settings;
+use FGSyncOblio\Compat\OrderStore;
+use FGSyncOblio\Order\OrderMeta;
+use FGSyncOblio\Queue\Scheduler;
+use FGSyncOblio\Support\Settings;
 final class RefundAutoIssue {
 
 	private Settings $settings;

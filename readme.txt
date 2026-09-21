@@ -1,18 +1,18 @@
-=== Oblio Invoicing ===
-Contributors: rwky, obliosoftware
+=== FGSync for Oblio ===
+Contributors: rwky
 Tags: woocommerce, invoicing, oblio, invoice, romania
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.0.2
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Automatically issue invoices, proformas, delivery notes and credit notes in Oblio, with queued processing and multi-warehouse stock sync.
+Facturare & Gestiune pentru WooCommerce prin Oblio.
 
 == Description ==
 
-A native integration between WooCommerce and Oblio.eu, rebuilt from the ground up for performance and reliability.
+FGSync for Oblio is an independent open-source integration between WooCommerce and the Oblio.eu invoicing service. It is not developed, endorsed, maintained, or supported by Oblio.eu; Oblio is a third-party service, and an active Oblio account is required.
 
 **Documents**
 
@@ -64,9 +64,17 @@ Please review those documents before use. Sending customer and order data to Obl
 
 1. Upload the plugin folder to `/wp-content/plugins/`.
 2. Activate the plugin through the Plugins menu.
-3. Open the Oblio settings, enter your email and API secret, then test the connection.
+3. Open the FGSync settings (top-level "FGSync" menu), enter your Oblio account email and API secret, then test the connection.
 
 == Frequently Asked Questions ==
+
+= Is this plugin made or supported by Oblio? =
+
+No. FGSync for Oblio is an independent, community-built open-source integration. It is not developed, endorsed, maintained, or supported by Oblio.eu. Oblio is a third-party invoicing service accessed through its public API; an active Oblio account is required to use this plugin.
+
+= What support is available? =
+
+Support is community/best-effort, through the WordPress.org support forum or the plugin's public issue tracker. There is no guaranteed response time or SLA.
 
 = Is it compatible with HPOS? =
 
@@ -78,7 +86,7 @@ Through WordPress.org, like any plugin. There is no custom updater.
 
 = How do I migrate from the old plugin? =
 
-The Oblio settings include an "Import settings" button on the connection screen. Documents already issued are shown automatically.
+The settings include an "Import settings" button on the connection screen. Documents already issued are shown automatically.
 
 = When are invoices issued? =
 
@@ -90,6 +98,14 @@ Under Email, pick a mode. "Standalone" sends a separate message from the plugin 
 
 == Changelog ==
 
+= 1.1.0 =
+* Rebrand: renamed the plugin to "FGSync for Oblio" (slug/text domain `fgsync-oblio`, was `oblio-fgwoo`), an independent open-source integration. Oblio no longer appears as author, contributor, or support provider; author is now Eduard Doloc. Plugin URI and Author URI now point to neutral, developer-controlled pages instead of oblio.eu.
+* Added an explicit in-plugin and readme disclosure that this is an independent integration, not developed, endorsed, maintained, or supported by Oblio.eu.
+* Removed the bundled Oblio logo image; the admin menu and settings header now use a generic icon.
+* Internal-only changes (PHP namespace, compile-time constants, script/style handles): renamed to the new brand. All persisted data — settings, order/product meta, scheduled jobs, webhook subscriptions, rate-limit state — keeps its existing `oblio_fgwoo_...` storage keys unchanged, so upgrading in place does not reset your configuration or lose data.
+* Because the plugin slug and main file changed, this version is registered with WordPress as a different plugin from the old `oblio-fgwoo` builds used during the beta. Sites running a pre-1.1.0 beta build must deactivate/remove the old plugin folder and install this one; see the "Upgrading from a pre-1.1.0 beta" note below. Settings and order data are preserved because they are stored under the unchanged `oblio_fgwoo_` option/meta prefix; only the plugin's own active-plugin registration, and any queued/in-flight Action Scheduler jobs that were already running under the old install at the moment of swap, are affected.
+* Minor: moved a handful of directly-printed inline `style=""` attributes into the stylesheet.
+
 = 1.0.2 =
 * Temporarily disabled the stock webhook trigger (real-time sync on Oblio's notification) while its payload is verified against more real-world traffic; the "Webhook" and "Both" sync modes are removed from settings, existing subscriptions on the Oblio side are cleaned up automatically, and the scheduled sync is unaffected. Sites that had "Webhook only" selected fall back to no automatic sync (was never a schedule they chose) and must pick "Programată" if they want stock kept in sync in the meantime; sites that had "Both" keep their schedule.
 
@@ -100,3 +116,12 @@ Under Email, pick a mode. "Standalone" sends a separate message from the plugin 
 
 = 1.0.0 =
 * First stable release. Complete rewrite: WP HTTP API client, Action Scheduler queues, document engine (invoice, proforma, delivery note, credit note), multi-warehouse stock sync, optional webhooks, status panel, import from the old plugin, HPOS and classic compatibility.
+
+== Upgrading from a pre-1.1.0 beta ==
+
+If you installed an earlier `oblio-fgwoo` beta build directly (not through this wp.org listing), note before updating:
+
+* This release ships under a new plugin slug/folder (`fgsync-oblio`) and main file (`fgsync-oblio.php`). WordPress treats it as a different plugin, not an in-place update of the old folder.
+* Deactivate and delete the old `oblio-fgwoo` (or similarly named) plugin folder first, then install this one. Your settings, order metadata, product fields, and issued-document history are preserved: they are all stored under the `oblio_fgwoo_` option/meta prefix, which this release deliberately did not rename.
+* Any Action Scheduler job (document issue, refund/storno, stock sync, reconciliation, webhook processing) still queued or in-flight at the exact moment of the swap may need to be re-triggered manually (e.g. via "Sync now" or by re-saving the order), since the old plugin's runtime is gone when its folder is removed. Nothing already completed (issued invoices, stored settings) is lost.
+* Any custom code hooking the plugin's filters/actions (e.g. `oblio_fgwoo_email_button_issue`) keeps working unchanged, since those hook names were intentionally not renamed.

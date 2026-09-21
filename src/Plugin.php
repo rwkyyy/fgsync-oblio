@@ -2,71 +2,71 @@
 /**
  * Plugin bootstrap and service wiring.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo;
+namespace FGSyncOblio;
 
-use OblioWoo\Admin\BulkActions;
-use OblioWoo\Admin\ConnectionTest;
-use OblioWoo\Admin\ImportAction;
-use OblioWoo\Admin\LegacyNotice;
-use OblioWoo\Admin\LogReader;
-use OblioWoo\Admin\LogTailAction;
-use OblioWoo\Admin\NomenclatureCache;
-use OblioWoo\Admin\OrderActions;
-use OblioWoo\Admin\OrderListColumn;
-use OblioWoo\Admin\OrderListFilter;
-use OblioWoo\Admin\OrderMetaBox;
-use OblioWoo\Admin\Privacy;
-use OblioWoo\Admin\ProductFields;
-use OblioWoo\Admin\QueueStatus;
-use OblioWoo\Admin\SettingsPage;
-use OblioWoo\Admin\SettingsShortcut;
-use OblioWoo\Admin\StatusPanel;
-use OblioWoo\Admin\StockSyncAction;
-use OblioWoo\Admin\UpdateChecker;
-use OblioWoo\Api\ClientFactory;
-use OblioWoo\Compat\OrderStore;
-use OblioWoo\Frontend\AccountInvoices;
-use OblioWoo\Legacy\Importer;
-use OblioWoo\Extensibility\HookInspector;
-use OblioWoo\Extensibility\HookRegistry;
-use OblioWoo\Document\DocumentService;
-use OblioWoo\Document\EmailButton;
-use OblioWoo\Document\InvoiceBuilder;
-use OblioWoo\Document\InvoiceEmailer;
-use OblioWoo\Document\LifecyclePolicy;
-use OblioWoo\Document\Mapper\ClientMapper;
-use OblioWoo\Document\Mapper\CollectMapper;
-use OblioWoo\Document\Mapper\LineItemMapper;
-use OblioWoo\Document\Mapper\ShippingFeeMapper;
-use OblioWoo\Queue\AutoIssue;
-use OblioWoo\Queue\Jobs\GenerateDocument;
-use OblioWoo\Queue\Jobs\GenerateRefund;
-use OblioWoo\Queue\Reconciler;
-use OblioWoo\Queue\Scheduler;
-use OblioWoo\Queue\Jobs\ProcessWebhookEvent;
-use OblioWoo\Queue\Jobs\StockSyncBatch;
-use OblioWoo\Refund\RefundAutoIssue;
-use OblioWoo\Refund\RefundService;
-use OblioWoo\Returns\ReturnsIntegration;
-use OblioWoo\Stock\LocationAggregator;
-use OblioWoo\Stock\ProductUpdater;
-use OblioWoo\Stock\StockReservations;
-use OblioWoo\Stock\StockSyncCoordinator;
-use OblioWoo\Support\Container;
-use OblioWoo\Webhook\Handler\CollectInsertedHandler;
-use OblioWoo\Webhook\Handler\StockHandler;
-use OblioWoo\Webhook\RestController;
-use OblioWoo\Webhook\TopicRegistry;
-use OblioWoo\Webhook\WebhookManager;
-use OblioWoo\Support\Encryption;
-use OblioWoo\Support\Logger;
-use OblioWoo\Support\RateLimiter;
-use OblioWoo\Support\Settings;
+use FGSyncOblio\Admin\BulkActions;
+use FGSyncOblio\Admin\ConnectionTest;
+use FGSyncOblio\Admin\ImportAction;
+use FGSyncOblio\Admin\LegacyNotice;
+use FGSyncOblio\Admin\LogReader;
+use FGSyncOblio\Admin\LogTailAction;
+use FGSyncOblio\Admin\NomenclatureCache;
+use FGSyncOblio\Admin\OrderActions;
+use FGSyncOblio\Admin\OrderListColumn;
+use FGSyncOblio\Admin\OrderListFilter;
+use FGSyncOblio\Admin\OrderMetaBox;
+use FGSyncOblio\Admin\Privacy;
+use FGSyncOblio\Admin\ProductFields;
+use FGSyncOblio\Admin\QueueStatus;
+use FGSyncOblio\Admin\SettingsPage;
+use FGSyncOblio\Admin\SettingsShortcut;
+use FGSyncOblio\Admin\StatusPanel;
+use FGSyncOblio\Admin\StockSyncAction;
+use FGSyncOblio\Admin\UpdateChecker;
+use FGSyncOblio\Api\ClientFactory;
+use FGSyncOblio\Compat\OrderStore;
+use FGSyncOblio\Frontend\AccountInvoices;
+use FGSyncOblio\Legacy\Importer;
+use FGSyncOblio\Extensibility\HookInspector;
+use FGSyncOblio\Extensibility\HookRegistry;
+use FGSyncOblio\Document\DocumentService;
+use FGSyncOblio\Document\EmailButton;
+use FGSyncOblio\Document\InvoiceBuilder;
+use FGSyncOblio\Document\InvoiceEmailer;
+use FGSyncOblio\Document\LifecyclePolicy;
+use FGSyncOblio\Document\Mapper\ClientMapper;
+use FGSyncOblio\Document\Mapper\CollectMapper;
+use FGSyncOblio\Document\Mapper\LineItemMapper;
+use FGSyncOblio\Document\Mapper\ShippingFeeMapper;
+use FGSyncOblio\Queue\AutoIssue;
+use FGSyncOblio\Queue\Jobs\GenerateDocument;
+use FGSyncOblio\Queue\Jobs\GenerateRefund;
+use FGSyncOblio\Queue\Reconciler;
+use FGSyncOblio\Queue\Scheduler;
+use FGSyncOblio\Queue\Jobs\ProcessWebhookEvent;
+use FGSyncOblio\Queue\Jobs\StockSyncBatch;
+use FGSyncOblio\Refund\RefundAutoIssue;
+use FGSyncOblio\Refund\RefundService;
+use FGSyncOblio\Returns\ReturnsIntegration;
+use FGSyncOblio\Stock\LocationAggregator;
+use FGSyncOblio\Stock\ProductUpdater;
+use FGSyncOblio\Stock\StockReservations;
+use FGSyncOblio\Stock\StockSyncCoordinator;
+use FGSyncOblio\Support\Container;
+use FGSyncOblio\Webhook\Handler\CollectInsertedHandler;
+use FGSyncOblio\Webhook\Handler\StockHandler;
+use FGSyncOblio\Webhook\RestController;
+use FGSyncOblio\Webhook\TopicRegistry;
+use FGSyncOblio\Webhook\WebhookManager;
+use FGSyncOblio\Support\Encryption;
+use FGSyncOblio\Support\Logger;
+use FGSyncOblio\Support\RateLimiter;
+use FGSyncOblio\Support\Settings;
 final class Plugin {
 
 	private static ?Plugin $instance = null;
@@ -489,7 +489,7 @@ final class Plugin {
 	}
 
 	public function activate(): void {
-		add_option( 'oblio_fgwoo_version', OBLIO_FGWOO_VERSION );
+		add_option( 'oblio_fgwoo_version', FGSYNC_OBLIO_VERSION );
 		update_option( 'oblio_fgwoo_activated_at', time(), false );
 
 		update_option( 'oblio_fgwoo_flush_rewrite', 1, false );

@@ -2,12 +2,12 @@
 /**
  * Immutable result of an issued Oblio document.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Document;
+namespace FGSyncOblio\Document;
 
 final class DocumentResult {
 

@@ -2,14 +2,14 @@
 /**
  * Access-token storage (encrypted, with expiry).
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Api;
+namespace FGSyncOblio\Api;
 
-use OblioWoo\Support\Encryption;
+use FGSyncOblio\Support\Encryption;
 final class TokenStore {
 
 	private const OPTION        = 'oblio_fgwoo_access_token';

@@ -2,14 +2,14 @@
 /**
  * "Facturi" section in the customer's WooCommerce account.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Frontend;
+namespace FGSyncOblio\Frontend;
 
-use OblioWoo\Order\OrderMeta;
+use FGSyncOblio\Order\OrderMeta;
 use WC_Order;
 final class AccountInvoices {
 
@@ -42,7 +42,7 @@ final class AccountInvoices {
 			$logout = array( 'customer-logout' => $items['customer-logout'] );
 			unset( $items['customer-logout'] );
 		}
-		$items[ self::ENDPOINT ] = __( 'Facturi', 'oblio-fgwoo' );
+		$items[ self::ENDPOINT ] = __( 'Facturi', 'fgsync-oblio' );
 		return $items + $logout;
 	}
 
@@ -85,14 +85,14 @@ final class AccountInvoices {
 
 		$orders = is_object( $result ) ? (array) $result->orders : array();
 		if ( empty( $orders ) ) {
-			echo '<p>' . esc_html__( 'Nu există facturi.', 'oblio-fgwoo' ) . '</p>';
+			echo '<p>' . esc_html__( 'Nu există facturi.', 'fgsync-oblio' ) . '</p>';
 			return;
 		}
 
 		echo '<table class="woocommerce-orders-table shop_table"><thead><tr>';
-		echo '<th>' . esc_html__( 'Comandă', 'oblio-fgwoo' ) . '</th>';
-		echo '<th>' . esc_html__( 'Factură', 'oblio-fgwoo' ) . '</th>';
-		echo '<th>' . esc_html__( 'Storno / Retur', 'oblio-fgwoo' ) . '</th>';
+		echo '<th>' . esc_html__( 'Comandă', 'fgsync-oblio' ) . '</th>';
+		echo '<th>' . esc_html__( 'Factură', 'fgsync-oblio' ) . '</th>';
+		echo '<th>' . esc_html__( 'Storno / Retur', 'fgsync-oblio' ) . '</th>';
 		echo '</tr></thead><tbody>';
 
 		foreach ( $orders as $order ) {
@@ -116,21 +116,21 @@ final class AccountInvoices {
 		$base = wc_get_account_endpoint_url( self::ENDPOINT );
 		echo '<div class="woocommerce-pagination oblio-invoices-pagination">';
 		if ( $current > 1 ) {
-			printf( '<a class="button" href="%s">%s</a> ', esc_url( add_query_arg( 'invoices_page', $current - 1, $base ) ), esc_html__( 'Anterioare', 'oblio-fgwoo' ) );
+			printf( '<a class="button" href="%s">%s</a> ', esc_url( add_query_arg( 'invoices_page', $current - 1, $base ) ), esc_html__( 'Anterioare', 'fgsync-oblio' ) );
 		}
 		printf(
 			'<span class="oblio-invoices-page"> %s </span>',
 			esc_html(
 				sprintf(
 					/* translators: 1: current page, 2: total pages */
-					__( 'Pagina %1$d din %2$d', 'oblio-fgwoo' ),
+					__( 'Pagina %1$d din %2$d', 'fgsync-oblio' ),
 					$current,
 					$max_pages
 				)
 			)
 		);
 		if ( $current < $max_pages ) {
-			printf( '<a class="button" href="%s">%s</a>', esc_url( add_query_arg( 'invoices_page', $current + 1, $base ) ), esc_html__( 'Următoarele', 'oblio-fgwoo' ) );
+			printf( '<a class="button" href="%s">%s</a>', esc_url( add_query_arg( 'invoices_page', $current + 1, $base ) ), esc_html__( 'Următoarele', 'fgsync-oblio' ) );
 		}
 		echo '</div>';
 	}
@@ -155,8 +155,8 @@ final class AccountInvoices {
 				continue;
 			}
 			$tag     = empty( $storno['full'] )
-				? __( 'parțial', 'oblio-fgwoo' )
-				: __( 'total', 'oblio-fgwoo' );
+				? __( 'parțial', 'fgsync-oblio' )
+				: __( 'total', 'fgsync-oblio' );
 			$links[] = sprintf(
 				'<a href="%s" target="_blank" rel="noopener">%s %s (%s)</a>',
 				esc_url( $link ),

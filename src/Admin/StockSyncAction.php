@@ -2,15 +2,15 @@
 /**
  * "Sync stock now" AJAX handlers (start + one step, looped by the browser).
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Admin;
+namespace FGSyncOblio\Admin;
 
-use OblioWoo\Stock\StockSyncCoordinator;
-use OblioWoo\Support\Settings;
+use FGSyncOblio\Stock\StockSyncCoordinator;
+use FGSyncOblio\Support\Settings;
 final class StockSyncAction {
 
 	private StockSyncCoordinator $coordinator;
@@ -30,17 +30,17 @@ final class StockSyncAction {
 
 	public function handle_start(): void {
 		if ( ! check_ajax_referer( ConnectionTest::NONCE_ACTION, 'nonce', false ) || ! current_user_can( 'manage_woocommerce' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Acțiune neautorizată.', 'oblio-fgwoo' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'Acțiune neautorizată.', 'fgsync-oblio' ) ), 403 );
 		}
 
 		if ( ! $this->settings->stock_sync_configured() ) {
-			wp_send_json_error( array( 'message' => __( 'Sincronizarea stocului este dezactivată. Activeaz-o din tabul Stoc.', 'oblio-fgwoo' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Sincronizarea stocului este dezactivată. Activeaz-o din tabul Stoc.', 'fgsync-oblio' ) ) );
 		}
 
 		$result = $this->coordinator->begin_full_sync();
 
 		if ( empty( $result['ok'] ) ) {
-			wp_send_json_error( array( 'message' => (string) ( $result['reason'] ?? __( 'Sincronizarea a eșuat.', 'oblio-fgwoo' ) ) ) );
+			wp_send_json_error( array( 'message' => (string) ( $result['reason'] ?? __( 'Sincronizarea a eșuat.', 'fgsync-oblio' ) ) ) );
 		}
 
 		wp_send_json_success( array( 'token' => (string) $result['token'] ) );
@@ -48,7 +48,7 @@ final class StockSyncAction {
 
 	public function handle_step(): void {
 		if ( ! check_ajax_referer( ConnectionTest::NONCE_ACTION, 'nonce', false ) || ! current_user_can( 'manage_woocommerce' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Acțiune neautorizată.', 'oblio-fgwoo' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'Acțiune neautorizată.', 'fgsync-oblio' ) ), 403 );
 		}
 
 		$token  = isset( $_POST['token'] ) ? sanitize_text_field( wp_unslash( $_POST['token'] ) ) : '';
@@ -57,7 +57,7 @@ final class StockSyncAction {
 		$result = $this->coordinator->step( $offset, $token );
 
 		if ( empty( $result['ok'] ) ) {
-			wp_send_json_error( array( 'message' => (string) ( $result['reason'] ?? __( 'Sincronizarea a eșuat.', 'oblio-fgwoo' ) ) ) );
+			wp_send_json_error( array( 'message' => (string) ( $result['reason'] ?? __( 'Sincronizarea a eșuat.', 'fgsync-oblio' ) ) ) );
 		}
 
 		$scanned = (int) ( $result['scanned'] ?? 0 );
@@ -73,13 +73,13 @@ final class StockSyncAction {
 				'message'    => $done
 					? sprintf(
 						/* translators: 1: updated product count, 2: scanned product count */
-						__( 'Sincronizare completă: %1$d din %2$d produse actualizate.', 'oblio-fgwoo' ),
+						__( 'Sincronizare completă: %1$d din %2$d produse actualizate.', 'fgsync-oblio' ),
 						$updated,
 						$scanned
 					)
 					: sprintf(
 						/* translators: 1: scanned product count so far, 2: updated product count so far */
-						__( '%1$d produse verificate, %2$d actualizate…', 'oblio-fgwoo' ),
+						__( '%1$d produse verificate, %2$d actualizate…', 'fgsync-oblio' ),
 						$scanned,
 						$updated
 					),
@@ -89,11 +89,11 @@ final class StockSyncAction {
 
 	public function handle_unlock(): void {
 		if ( ! check_ajax_referer( ConnectionTest::NONCE_ACTION, 'nonce', false ) || ! current_user_can( 'manage_woocommerce' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Acțiune neautorizată.', 'oblio-fgwoo' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'Acțiune neautorizată.', 'fgsync-oblio' ) ), 403 );
 		}
 
 		$this->coordinator->unlock();
 
-		wp_send_json_success( array( 'message' => __( 'Blocarea a fost eliberată. Poți porni din nou sincronizarea.', 'oblio-fgwoo' ) ) );
+		wp_send_json_success( array( 'message' => __( 'Blocarea a fost eliberată. Poți porni din nou sincronizarea.', 'fgsync-oblio' ) ) );
 	}
 }

@@ -2,16 +2,16 @@
 /**
  * "Facturare Oblio" meta box on the order screen.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Admin;
+namespace FGSyncOblio\Admin;
 
 use Automattic\WooCommerce\Utilities\OrderUtil;
-use OblioWoo\Order\OrderMeta;
-use OblioWoo\Support\Settings;
+use FGSyncOblio\Order\OrderMeta;
+use FGSyncOblio\Support\Settings;
 use WC_Order;
 use WP_Post;
 final class OrderMetaBox {
@@ -34,7 +34,7 @@ final class OrderMetaBox {
 
 		add_meta_box(
 			'oblio_fgwoo_order',
-			__( 'Facturare Oblio', 'oblio-fgwoo' ),
+			__( 'Facturare Oblio', 'fgsync-oblio' ),
 			array( $this, 'render' ),
 			$screen,
 			'side',
@@ -49,19 +49,19 @@ final class OrderMetaBox {
 			return;
 		}
 
-		wp_enqueue_style( 'oblio-fgwoo-admin', OBLIO_FGWOO_URL . 'assets/css/admin.css', array(), OBLIO_FGWOO_VERSION );
-		wp_enqueue_script( 'oblio-fgwoo-order', OBLIO_FGWOO_URL . 'assets/js/order-actions.js', array( 'jquery' ), OBLIO_FGWOO_VERSION, true );
+		wp_enqueue_style( 'fgsync-oblio-admin', FGSYNC_OBLIO_URL . 'assets/css/admin.css', array(), FGSYNC_OBLIO_VERSION );
+		wp_enqueue_script( 'fgsync-oblio-order', FGSYNC_OBLIO_URL . 'assets/js/order-actions.js', array( 'jquery' ), FGSYNC_OBLIO_VERSION, true );
 		wp_localize_script(
-			'oblio-fgwoo-order',
-			'oblioFgwooOrder',
+			'fgsync-oblio-order',
+			'fgsyncOblioOrder',
 			array(
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 				'nonce'   => wp_create_nonce( OrderActions::NONCE_ACTION ),
 				'i18n'    => array(
-					'working'       => __( 'Se procesează…', 'oblio-fgwoo' ),
-					'confirm'       => __( 'Sigur?', 'oblio-fgwoo' ),
-					'error'         => __( 'Eroare', 'oblio-fgwoo' ),
-					'requestFailed' => __( 'Cererea a eșuat', 'oblio-fgwoo' ),
+					'working'       => __( 'Se procesează…', 'fgsync-oblio' ),
+					'confirm'       => __( 'Sigur?', 'fgsync-oblio' ),
+					'error'         => __( 'Eroare', 'fgsync-oblio' ),
+					'requestFailed' => __( 'Cererea a eșuat', 'fgsync-oblio' ),
 				),
 			)
 		);
@@ -77,10 +77,10 @@ final class OrderMetaBox {
 
 		echo '<div class="oblio-orderbox" data-order="' . esc_attr( (string) $order_id ) . '">';
 
-		$this->document_row( $order, OrderMeta::TYPE_INVOICE, __( 'Factură', 'oblio-fgwoo' ), true );
-		$this->document_row( $order, OrderMeta::TYPE_PROFORMA, __( 'Proformă', 'oblio-fgwoo' ), false );
+		$this->document_row( $order, OrderMeta::TYPE_INVOICE, __( 'Factură', 'fgsync-oblio' ), true );
+		$this->document_row( $order, OrderMeta::TYPE_PROFORMA, __( 'Proformă', 'fgsync-oblio' ), false );
 		if ( $this->settings->is_enabled( 'notice_enabled' ) ) {
-			$this->document_row( $order, OrderMeta::TYPE_NOTICE, __( 'Aviz', 'oblio-fgwoo' ), false );
+			$this->document_row( $order, OrderMeta::TYPE_NOTICE, __( 'Aviz', 'fgsync-oblio' ), false );
 		}
 		$this->storno_row( $order );
 
@@ -96,7 +96,7 @@ final class OrderMetaBox {
 			printf(
 				'<a class="button" href="%s" target="_blank">%s %s %s</a> ',
 				esc_url( $document['link'] ),
-				esc_html( sprintf( /* translators: %s: doc label */ __( 'Vezi %s', 'oblio-fgwoo' ), $label ) ),
+				esc_html( sprintf( /* translators: %s: doc label */ __( 'Vezi %s', 'fgsync-oblio' ), $label ) ),
 				esc_html( $document['series'] ),
 				esc_html( $document['number'] )
 			);
@@ -105,12 +105,12 @@ final class OrderMetaBox {
 				printf(
 					'<button type="button" class="button oblio-danger oblio-order-action" data-task="delete" data-doc-type="%1$s" data-confirm="1" data-confirm-msg="%2$s">%3$s</button>',
 					esc_attr( $doc_type ),
-					esc_attr__( 'Ștergi definitiv acest document din Oblio? Acțiunea este ireversibilă.', 'oblio-fgwoo' ),
-					esc_html__( 'Șterge', 'oblio-fgwoo' )
+					esc_attr__( 'Ștergi definitiv acest document din Oblio? Acțiunea este ireversibilă.', 'fgsync-oblio' ),
+					esc_html__( 'Șterge', 'fgsync-oblio' )
 				);
 			} else {
-				echo '<span class="oblio-orderbox-hint" style="color:#6b6577;font-size:12px;">'
-					. esc_html__( 'Nu se poate șterge: nu este ultimul document din serie. Emite un storno.', 'oblio-fgwoo' )
+				echo '<span class="oblio-orderbox-hint">'
+					. esc_html__( 'Nu se poate șterge: nu este ultimul document din serie. Emite un storno.', 'fgsync-oblio' )
 					. '</span>';
 			}
 		} else {
@@ -118,13 +118,13 @@ final class OrderMetaBox {
 				'<button type="button" class="button button-primary oblio-order-action" data-task="issue" data-doc-type="%1$s"%2$s>%3$s</button>',
 				esc_attr( $doc_type ),
 				$with_stock ? ' data-use-stock="1"' : '',
-				esc_html( sprintf( /* translators: %s: doc label */ __( 'Emite %s', 'oblio-fgwoo' ), $label ) )
+				esc_html( sprintf( /* translators: %s: doc label */ __( 'Emite %s', 'fgsync-oblio' ), $label ) )
 			);
 			if ( $with_stock ) {
 				printf(
 					' <button type="button" class="button oblio-order-action" data-task="issue" data-doc-type="%1$s">%2$s</button>',
 					esc_attr( $doc_type ),
-					esc_html__( 'Emite fără descărcare', 'oblio-fgwoo' )
+					esc_html__( 'Emite fără descărcare', 'fgsync-oblio' )
 				);
 			}
 		}
@@ -144,8 +144,8 @@ final class OrderMetaBox {
 					continue;
 				}
 				$label = empty( $storno['full'] )
-					? __( 'Vezi storno parțial', 'oblio-fgwoo' )
-					: __( 'Vezi storno total', 'oblio-fgwoo' );
+					? __( 'Vezi storno parțial', 'fgsync-oblio' )
+					: __( 'Vezi storno total', 'fgsync-oblio' );
 				printf(
 					'<a class="button" href="%s" target="_blank">%s %s %s</a>',
 					esc_url( $link ),
@@ -157,8 +157,8 @@ final class OrderMetaBox {
 		} else {
 			printf(
 				'<button type="button" class="button oblio-order-action oblio-danger" data-task="storno" data-doc-type="invoice" data-confirm="1" data-confirm-msg="%s">%s</button>',
-				esc_attr__( 'Emiți factura storno pentru această comandă? Acțiunea este ireversibilă.', 'oblio-fgwoo' ),
-				esc_html__( 'Stornează factura', 'oblio-fgwoo' )
+				esc_attr__( 'Emiți factura storno pentru această comandă? Acțiunea este ireversibilă.', 'fgsync-oblio' ),
+				esc_html__( 'Stornează factura', 'fgsync-oblio' )
 			);
 		}
 		echo '</p>';

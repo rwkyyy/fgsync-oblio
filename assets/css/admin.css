@@ -48,8 +48,12 @@
 .oblio-page-head .oblio-page-logo {
     width: 24px;
     height: 24px;
+    line-height: 24px;
+    font-size: 18px;
+    text-align: center;
     border-radius: 5px;
     background: #fff;
+    color: #f36e21;
     padding: 3px;
     box-sizing: content-box;
     flex: 0 0 auto;
@@ -73,6 +77,15 @@
     border: 1px solid rgba(255, 255, 255, .22);
     padding: 3px 8px;
     border-radius: 20px;
+}
+
+.oblio-disclosure {
+    margin: 0;
+    padding: 8px 22px;
+    font-size: 12px;
+    color: var(--ink-3);
+    background: var(--panel-2);
+    border-bottom: 1px solid var(--line);
 }
 
 .oblio-tabs {
@@ -657,6 +670,28 @@
 
 .oblio-sync-result {
     font-size: 12px;
+}
+
+.oblio-result {
+    margin-inline-start: 8px;
+}
+
+.oblio-orderbox-hint {
+    color: var(--ink-3);
+    font-size: 12px;
+}
+
+.oblio-list-failed {
+    color: var(--danger);
+}
+
+.oblio-list-storno {
+    display: inline-block;
+    font-size: 11px;
+    color: #8a3f0a;
+    background: #fbeedd;
+    padding: 1px 6px;
+    border-radius: 4px;
 }
 
 .oblio-upd {

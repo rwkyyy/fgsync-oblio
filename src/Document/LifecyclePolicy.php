@@ -2,15 +2,15 @@
 /**
  * Proforma / invoice lifecycle rules.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Document;
+namespace FGSyncOblio\Document;
 
-use OblioWoo\Order\OrderMeta;
-use OblioWoo\Support\Settings;
+use FGSyncOblio\Order\OrderMeta;
+use FGSyncOblio\Support\Settings;
 use WC_Order;
 final class LifecyclePolicy {
 
@@ -26,7 +26,7 @@ final class LifecyclePolicy {
 	public function assert_can_issue( WC_Order $order, string $doc_type ): void {
 		if ( OrderMeta::TYPE_PROFORMA === $doc_type && OrderMeta::has( $order, OrderMeta::TYPE_INVOICE ) ) {
 			throw new DocumentException(
-				esc_html__( 'Nu se poate emite proformă după ce a fost emisă factura.', 'oblio-fgwoo' )
+				esc_html__( 'Nu se poate emite proformă după ce a fost emisă factura.', 'fgsync-oblio' )
 			);
 		}
 	}

@@ -1,17 +1,17 @@
 <?php
 /**
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Tests\Unit;
+namespace FGSyncOblio\Tests\Unit;
 
-use OblioWoo\Stock\LocationAggregator;
+use FGSyncOblio\Stock\LocationAggregator;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
-#[CoversClass( \OblioWoo\Stock\LocationAggregator::class )]
+#[CoversClass( \FGSyncOblio\Stock\LocationAggregator::class )]
 final class LocationAggregatorTest extends TestCase {
 
 	private LocationAggregator $aggregator;

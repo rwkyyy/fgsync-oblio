@@ -2,12 +2,12 @@
 /**
  * Per-product Oblio fields on the WooCommerce product editor.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Admin;
+namespace FGSyncOblio\Admin;
 
 use WC_Product;
 final class ProductFields {
@@ -49,10 +49,10 @@ final class ProductFields {
 		woocommerce_wp_select(
 			array(
 				'id'          => 'custom_product_type',
-				'label'       => __( 'Tip produs Oblio', 'oblio-fgwoo' ),
+				'label'       => __( 'Tip produs Oblio', 'fgsync-oblio' ),
 				'desc_tip'    => true,
-				'description' => __( 'Cum este trecut produsul pe documentele Oblio. Gol = valoarea implicită din setările Oblio.', 'oblio-fgwoo' ),
-				'options'     => array( '' => __( 'Valoare implicită (din setări)', 'oblio-fgwoo' ) ) + $this->type_options(),
+				'description' => __( 'Cum este trecut produsul pe documentele Oblio. Gol = valoarea implicită din setările Oblio.', 'fgsync-oblio' ),
+				'options'     => array( '' => __( 'Valoare implicită (din setări)', 'fgsync-oblio' ) ) + $this->type_options(),
 				'value'       => self::product_type( (int) $post->ID ),
 			)
 		);
@@ -60,9 +60,9 @@ final class ProductFields {
 		woocommerce_wp_text_input(
 			array(
 				'id'                => 'custom_package_number',
-				'label'             => __( 'Bucăți pe pachet', 'oblio-fgwoo' ),
+				'label'             => __( 'Bucăți pe pachet', 'fgsync-oblio' ),
 				'desc_tip'          => true,
-				'description'       => __( 'Câte bucăți conține un pachet. La sincronizarea stocului împarte cantitatea și înmulțește prețul. Gol = 1.', 'oblio-fgwoo' ),
+				'description'       => __( 'Câte bucăți conține un pachet. La sincronizarea stocului împarte cantitatea și înmulțește prețul. Gol = 1.', 'fgsync-oblio' ),
 				'type'              => 'number',
 				'custom_attributes' => array(
 					'min'  => '0',
@@ -104,7 +104,7 @@ final class ProductFields {
 			array(
 				'id'                => 'cfwc_package_number[' . (int) $loop . ']',
 				'name'              => 'cfwc_package_number[' . (int) $loop . ']',
-				'label'             => __( 'Bucăți pe pachet (Oblio)', 'oblio-fgwoo' ),
+				'label'             => __( 'Bucăți pe pachet (Oblio)', 'fgsync-oblio' ),
 				'wrapper_class'     => 'form-row',
 				'type'              => 'number',
 				'custom_attributes' => array(

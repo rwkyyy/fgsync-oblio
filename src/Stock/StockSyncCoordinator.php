@@ -2,18 +2,18 @@
 /**
  * Starts a stock-sync run.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Stock;
+namespace FGSyncOblio\Stock;
 
-use OblioWoo\Queue\Jobs\StockSyncBatch;
-use OblioWoo\Queue\Scheduler;
-use OblioWoo\Support\AtomicLock;
-use OblioWoo\Support\Logger;
-use OblioWoo\Support\Settings;
+use FGSyncOblio\Queue\Jobs\StockSyncBatch;
+use FGSyncOblio\Queue\Scheduler;
+use FGSyncOblio\Support\AtomicLock;
+use FGSyncOblio\Support\Logger;
+use FGSyncOblio\Support\Settings;
 final class StockSyncCoordinator {
 
 	public const PROGRESS_TRANSIENT = 'oblio_fgwoo_stock_progress';
@@ -70,8 +70,8 @@ final class StockSyncCoordinator {
 			return array(
 				'ok'     => false,
 				'reason' => $this->is_configured()
-					? __( 'O sincronizare este deja în curs.', 'oblio-fgwoo' )
-					: __( 'Sincronizarea stocului nu este configurată.', 'oblio-fgwoo' ),
+					? __( 'O sincronizare este deja în curs.', 'fgsync-oblio' )
+					: __( 'Sincronizarea stocului nu este configurată.', 'fgsync-oblio' ),
 			);
 		}
 

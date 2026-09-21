@@ -2,19 +2,19 @@
 /**
  * AJAX handler for manual document actions on the order screen.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Admin;
+namespace FGSyncOblio\Admin;
 
-use OblioWoo\Compat\OrderStore;
-use OblioWoo\Document\DocumentException;
-use OblioWoo\Document\DocumentService;
-use OblioWoo\Order\OrderMeta;
-use OblioWoo\Refund\RefundService;
-use OblioWoo\Support\Logger;
+use FGSyncOblio\Compat\OrderStore;
+use FGSyncOblio\Document\DocumentException;
+use FGSyncOblio\Document\DocumentService;
+use FGSyncOblio\Order\OrderMeta;
+use FGSyncOblio\Refund\RefundService;
+use FGSyncOblio\Support\Logger;
 use Throwable;
 final class OrderActions {
 
@@ -41,7 +41,7 @@ final class OrderActions {
 
 	public function handle(): void {
 		if ( ! check_ajax_referer( self::NONCE_ACTION, 'nonce', false ) || ! current_user_can( 'edit_shop_orders' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Acțiune neautorizată.', 'oblio-fgwoo' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'Acțiune neautorizată.', 'fgsync-oblio' ) ), 403 );
 		}
 
 		$order_id  = isset( $_POST['order_id'] ) ? absint( $_POST['order_id'] ) : 0;
@@ -51,11 +51,11 @@ final class OrderActions {
 
 		$order = $this->orders->get_order( $order_id );
 		if ( null === $order ) {
-			wp_send_json_error( array( 'message' => __( 'Comandă inexistentă.', 'oblio-fgwoo' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Comandă inexistentă.', 'fgsync-oblio' ) ) );
 		}
 
 		if ( ! current_user_can( 'edit_shop_order', $order_id ) ) {
-			wp_send_json_error( array( 'message' => __( 'Acțiune neautorizată pentru această comandă.', 'oblio-fgwoo' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'Acțiune neautorizată pentru această comandă.', 'fgsync-oblio' ) ), 403 );
 		}
 
 		if ( ! in_array( $doc_type, array( OrderMeta::TYPE_INVOICE, OrderMeta::TYPE_PROFORMA, OrderMeta::TYPE_NOTICE ), true ) ) {
@@ -90,7 +90,7 @@ final class OrderActions {
 
 				case 'delete':
 					if ( ! OrderMeta::is_last_document( $order, $doc_type ) ) {
-						wp_send_json_error( array( 'message' => __( 'Se poate șterge doar ultimul document din serie. Emite un storno în schimb.', 'oblio-fgwoo' ) ) );
+						wp_send_json_error( array( 'message' => __( 'Se poate șterge doar ultimul document din serie. Emite un storno în schimb.', 'fgsync-oblio' ) ) );
 					}
 					$this->documents->delete( $order, $doc_type );
 					$this->logger->info( sprintf( 'Manual action: order #%d %s deleted', $order->get_id(), $doc_type ) );
@@ -98,7 +98,7 @@ final class OrderActions {
 					break;
 
 				default:
-					wp_send_json_error( array( 'message' => __( 'Acțiune necunoscută.', 'oblio-fgwoo' ) ) );
+					wp_send_json_error( array( 'message' => __( 'Acțiune necunoscută.', 'fgsync-oblio' ) ) );
 			}
 		} catch ( DocumentException $exception ) {
 			$this->logger->error( sprintf( 'Manual action: order #%d %s %s failed: %s', $order_id, $doc_type, $task, $exception->getMessage() ) );

@@ -5,7 +5,7 @@
  * These tests exercise the plugin's framework-agnostic logic (encryption,
  * mappers, registries, importer) without a full WordPress install.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
@@ -20,10 +20,10 @@ define( 'ABSPATH', sys_get_temp_dir() . '/' );
 if ( ! defined( 'AUTH_KEY' ) ) {
 	define( 'AUTH_KEY', 'phpunit-auth-key-0123456789' );
 }
-define( 'OBLIO_FGWOO_VERSION', '1.0.2' );
-define( 'OBLIO_FGWOO_DIR', dirname( __DIR__ ) . '/' );
-define( 'OBLIO_FGWOO_URL', 'https://example.test/' );
-define( 'OBLIO_FGWOO_BASENAME', 'oblio-fgwoo/oblio-fgwoo.php' );
+define( 'FGSYNC_OBLIO_VERSION', '1.0.2' );
+define( 'FGSYNC_OBLIO_DIR', dirname( __DIR__ ) . '/' );
+define( 'FGSYNC_OBLIO_URL', 'https://example.test/' );
+define( 'FGSYNC_OBLIO_BASENAME', 'fgsync-oblio/fgsync-oblio.php' );
 define( 'HOUR_IN_SECONDS', 3600 );
 define( 'DAY_IN_SECONDS', 86400 );
 
@@ -32,10 +32,10 @@ $GLOBALS['oblio_test_transients'] = array();
 
 spl_autoload_register(
 	static function ( $class ) {
-		if ( 0 !== strpos( $class, 'OblioWoo\\' ) ) {
+		if ( 0 !== strpos( $class, 'FGSyncOblio\\' ) ) {
 			return;
 		}
-		$path = OBLIO_FGWOO_DIR . 'src/' . str_replace( '\\', '/', substr( $class, strlen( 'OblioWoo\\' ) ) ) . '.php';
+		$path = FGSYNC_OBLIO_DIR . 'src/' . str_replace( '\\', '/', substr( $class, strlen( 'FGSyncOblio\\' ) ) ) . '.php';
 		if ( is_readable( $path ) ) {
 			require $path;
 		}

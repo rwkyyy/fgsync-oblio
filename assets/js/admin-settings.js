@@ -19,7 +19,7 @@
 				return;
 			}
 			var current = $cif.val();
-			$cif.empty().append( $( '<option/>' ).val( '' ).text( oblioFgwoo.i18n.select ) );
+			$cif.empty().append( $( '<option/>' ).val( '' ).text( fgsyncOblio.i18n.select ) );
 			$.each( companies, function ( cif, label ) {
 				$cif.append( $( '<option/>' ).val( cif ).text( label ) );
 			} );
@@ -29,12 +29,12 @@
 		}
 
 		$button.on( 'click', function () {
-			setResult( oblioFgwoo.i18n.testing, true );
+			setResult( fgsyncOblio.i18n.testing, true );
 			$button.prop( 'disabled', true );
 
-			$.post( oblioFgwoo.ajaxUrl, {
+			$.post( fgsyncOblio.ajaxUrl, {
 				action: 'oblio_fgwoo_test_connection',
-				nonce: oblioFgwoo.nonce,
+				nonce: fgsyncOblio.nonce,
 				email: $( '#oblio_fgwoo_email' ).val(),
 				secret: $( '#oblio_fgwoo_secret' ).val()
 			} ).done( function ( response ) {
@@ -42,10 +42,10 @@
 					setResult( response.data.message, true );
 					repopulateCif( response.data.companies );
 				} else {
-					setResult( ( response && response.data && response.data.message ) || oblioFgwoo.i18n.error, false );
+					setResult( ( response && response.data && response.data.message ) || fgsyncOblio.i18n.error, false );
 				}
 			} ).fail( function () {
-				setResult( oblioFgwoo.i18n.requestFailed, false );
+				setResult( fgsyncOblio.i18n.requestFailed, false );
 			} ).always( function () {
 				$button.prop( 'disabled', false );
 			} );
@@ -58,14 +58,14 @@
 			var $result = $sync.siblings( '.oblio-sync-result' ).first();
 
 			function fail( message ) {
-				$result.text( message || oblioFgwoo.i18n.error ).css( 'color', '#c62d1c' );
+				$result.text( message || fgsyncOblio.i18n.error ).css( 'color', '#c62d1c' );
 				$sync.prop( 'disabled', false );
 			}
 
 			function step( token, offset ) {
-				$.post( oblioFgwoo.ajaxUrl, {
+				$.post( fgsyncOblio.ajaxUrl, {
 					action: 'oblio_fgwoo_stock_sync_step',
-					nonce: oblioFgwoo.nonce,
+					nonce: fgsyncOblio.nonce,
 					token: token,
 					offset: offset
 				} ).done( function ( response ) {
@@ -81,15 +81,15 @@
 					}
 					step( token, data.nextOffset );
 				} ).fail( function () {
-					fail( oblioFgwoo.i18n.requestFailed );
+					fail( fgsyncOblio.i18n.requestFailed );
 				} );
 			}
 
-			$result.text( oblioFgwoo.i18n.syncing ).css( 'color', '#157347' );
+			$result.text( fgsyncOblio.i18n.syncing ).css( 'color', '#157347' );
 			$sync.prop( 'disabled', true );
-			$.post( oblioFgwoo.ajaxUrl, {
+			$.post( fgsyncOblio.ajaxUrl, {
 				action: 'oblio_fgwoo_stock_sync_now',
-				nonce: oblioFgwoo.nonce
+				nonce: fgsyncOblio.nonce
 			} ).done( function ( response ) {
 				var data = response && response.data;
 				if ( ! response || ! response.success || ! data || ! data.token ) {
@@ -98,7 +98,7 @@
 				}
 				step( data.token, 0 );
 			} ).fail( function () {
-				fail( oblioFgwoo.i18n.requestFailed );
+				fail( fgsyncOblio.i18n.requestFailed );
 			} );
 		} );
 
@@ -114,9 +114,9 @@
 			var $result = $btn.siblings( '.oblio-unlock-result' ).first();
 			$btn.prop( 'disabled', true );
 			$result.text( '…' ).css( 'color', '#157347' );
-			$.post( oblioFgwoo.ajaxUrl, {
+			$.post( fgsyncOblio.ajaxUrl, {
 				action: 'oblio_fgwoo_stock_sync_unlock',
-				nonce: oblioFgwoo.nonce
+				nonce: fgsyncOblio.nonce
 			} ).done( function ( response ) {
 				var data = response && response.data;
 				var ok = response && response.success;
@@ -128,7 +128,7 @@
 					$btn.prop( 'disabled', false );
 				}
 			} ).fail( function () {
-				$result.text( oblioFgwoo.i18n.requestFailed ).css( 'color', '#c62d1c' );
+				$result.text( fgsyncOblio.i18n.requestFailed ).css( 'color', '#c62d1c' );
 				$btn.prop( 'disabled', false );
 			} );
 		} );
@@ -141,13 +141,13 @@
 			return;
 		}
 
-		var STORAGE_KEY = 'oblioFgwooLogAutoupdate';
+		var STORAGE_KEY = 'fgsyncOblioLogAutoupdate';
 		var timer = null;
 
 		function poll() {
-			$.post( oblioFgwoo.ajaxUrl, {
+			$.post( fgsyncOblio.ajaxUrl, {
 				action: 'oblio_fgwoo_log_tail',
-				nonce: oblioFgwoo.nonce
+				nonce: fgsyncOblio.nonce
 			} ).done( function ( response ) {
 				var data = response && response.data;
 				if ( response && response.success && data && 'string' === typeof data.html ) {
@@ -197,24 +197,24 @@
 		$( '.oblio-import-now' ).on( 'click', function () {
 			var $btn = $( this );
 			var $result = $btn.siblings( '.oblio-import-result' ).first();
-			if ( ! window.confirm( oblioFgwoo.i18n.confirmImport ) ) {
+			if ( ! window.confirm( fgsyncOblio.i18n.confirmImport ) ) {
 				return;
 			}
 			$result.text( '…' ).css( 'color', '#157347' );
 			$btn.prop( 'disabled', true );
-			$.post( oblioFgwoo.ajaxUrl, {
+			$.post( fgsyncOblio.ajaxUrl, {
 				action: 'oblio_fgwoo_import_legacy',
-				nonce: oblioFgwoo.nonce
+				nonce: fgsyncOblio.nonce
 			} ).done( function ( response ) {
 				if ( response && response.success ) {
 					$result.text( response.data.message ).css( 'color', '#157347' );
 					setTimeout( function () { window.location.reload(); }, 1200 );
 				} else {
-					$result.text( ( response && response.data && response.data.message ) || oblioFgwoo.i18n.error ).css( 'color', '#c62d1c' );
+					$result.text( ( response && response.data && response.data.message ) || fgsyncOblio.i18n.error ).css( 'color', '#c62d1c' );
 					$btn.prop( 'disabled', false );
 				}
 			} ).fail( function () {
-				$result.text( oblioFgwoo.i18n.requestFailed ).css( 'color', '#c62d1c' );
+				$result.text( fgsyncOblio.i18n.requestFailed ).css( 'color', '#c62d1c' );
 				$btn.prop( 'disabled', false );
 			} );
 		} );

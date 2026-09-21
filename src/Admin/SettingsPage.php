@@ -2,18 +2,18 @@
 /**
  * Dedicated Oblio admin page with tabbed sections.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Admin;
+namespace FGSyncOblio\Admin;
 
-use OblioWoo\Api\ClientFactory;
-use OblioWoo\Extensibility\HookInspector;
-use OblioWoo\Extensibility\HookRegistry;
-use OblioWoo\Support\Logger;
-use OblioWoo\Support\Settings;
+use FGSyncOblio\Api\ClientFactory;
+use FGSyncOblio\Extensibility\HookInspector;
+use FGSyncOblio\Extensibility\HookRegistry;
+use FGSyncOblio\Support\Logger;
+use FGSyncOblio\Support\Settings;
 use WC_Admin_Settings;
 final class SettingsPage {
 
@@ -66,12 +66,12 @@ final class SettingsPage {
 
 	public function add_menu(): void {
 		add_menu_page(
-			__( 'Oblio', 'oblio-fgwoo' ),
-			__( 'Oblio', 'oblio-fgwoo' ),
+			__( 'FGSync', 'fgsync-oblio' ),
+			__( 'FGSync', 'fgsync-oblio' ),
 			'manage_woocommerce',
 			self::PAGE_SLUG,
 			array( $this, 'render' ),
-			OBLIO_FGWOO_URL . 'assets/images/icon.png'
+			'dashicons-media-spreadsheet'
 		);
 	}
 
@@ -94,21 +94,21 @@ final class SettingsPage {
 		wp_enqueue_style( 'woocommerce_admin_styles' );
 		wp_enqueue_script( 'wc-enhanced-select' );
 
-		wp_enqueue_style( 'oblio-fgwoo-admin', OBLIO_FGWOO_URL . 'assets/css/admin.css', array(), OBLIO_FGWOO_VERSION );
-		wp_enqueue_script( 'oblio-fgwoo-settings', OBLIO_FGWOO_URL . 'assets/js/admin-settings.js', array( 'jquery' ), OBLIO_FGWOO_VERSION, true );
+		wp_enqueue_style( 'fgsync-oblio-admin', FGSYNC_OBLIO_URL . 'assets/css/admin.css', array(), FGSYNC_OBLIO_VERSION );
+		wp_enqueue_script( 'fgsync-oblio-settings', FGSYNC_OBLIO_URL . 'assets/js/admin-settings.js', array( 'jquery' ), FGSYNC_OBLIO_VERSION, true );
 		wp_localize_script(
-			'oblio-fgwoo-settings',
-			'oblioFgwoo',
+			'fgsync-oblio-settings',
+			'fgsyncOblio',
 			array(
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 				'nonce'   => wp_create_nonce( ConnectionTest::NONCE_ACTION ),
 				'i18n'    => array(
-					'testing'       => __( 'Se testează…', 'oblio-fgwoo' ),
-					'syncing'       => __( 'Se sincronizează integral, poate dura…', 'oblio-fgwoo' ),
-					'select'        => __( 'Selectează', 'oblio-fgwoo' ),
-					'error'         => __( 'Eroare', 'oblio-fgwoo' ),
-					'requestFailed' => __( 'Cererea a eșuat', 'oblio-fgwoo' ),
-					'confirmImport' => __( 'Import setările din pluginul vechi?', 'oblio-fgwoo' ),
+					'testing'       => __( 'Se testează…', 'fgsync-oblio' ),
+					'syncing'       => __( 'Se sincronizează integral, poate dura…', 'fgsync-oblio' ),
+					'select'        => __( 'Selectează', 'fgsync-oblio' ),
+					'error'         => __( 'Eroare', 'fgsync-oblio' ),
+					'requestFailed' => __( 'Cererea a eșuat', 'fgsync-oblio' ),
+					'confirmImport' => __( 'Import setările din pluginul vechi?', 'fgsync-oblio' ),
 				),
 			)
 		);
@@ -116,13 +116,13 @@ final class SettingsPage {
 
 	private function get_sections(): array {
 		return array(
-			''           => __( 'Conectare', 'oblio-fgwoo' ),
-			'documents'  => __( 'Documente', 'oblio-fgwoo' ),
-			'collection' => __( 'Încasare', 'oblio-fgwoo' ),
-			'stock'      => __( 'Sincronizare', 'oblio-fgwoo' ),
-			'email'      => __( 'Email', 'oblio-fgwoo' ),
-			'advanced'   => __( 'Avansat', 'oblio-fgwoo' ),
-			'status'     => __( 'Stare', 'oblio-fgwoo' ),
+			''           => __( 'Conectare', 'fgsync-oblio' ),
+			'documents'  => __( 'Documente', 'fgsync-oblio' ),
+			'collection' => __( 'Încasare', 'fgsync-oblio' ),
+			'stock'      => __( 'Sincronizare', 'fgsync-oblio' ),
+			'email'      => __( 'Email', 'fgsync-oblio' ),
+			'advanced'   => __( 'Avansat', 'fgsync-oblio' ),
+			'status'     => __( 'Stare', 'fgsync-oblio' ),
 		);
 	}
 
@@ -136,12 +136,20 @@ final class SettingsPage {
 		?>
 		<div class="wrap oblio-page">
 			<div class="oblio-page-head">
-				<img class="oblio-page-logo" src="<?php echo esc_url( OBLIO_FGWOO_URL . 'assets/images/oblio.png' ); ?>"
-					width="24" height="24" alt=""/>
-				<span class="oblio-page-title"><?php esc_html_e( 'Oblio', 'oblio-fgwoo' ); ?></span>
-				<span class="oblio-page-sub"><?php esc_html_e( 'Facturare și Gestiune pentru WooCommerce', 'oblio-fgwoo' ); ?></span>
-				<span class="oblio-page-ver">v<?php echo esc_html( OBLIO_FGWOO_VERSION ); ?></span>
+				<span class="dashicons dashicons-media-spreadsheet oblio-page-logo" aria-hidden="true"></span>
+				<span class="oblio-page-title"><?php esc_html_e( 'FGSync', 'fgsync-oblio' ); ?></span>
+				<span class="oblio-page-sub"><?php esc_html_e( 'Facturare & Gestiune pentru WooCommerce prin Oblio', 'fgsync-oblio' ); ?></span>
+				<span class="oblio-page-ver">v<?php echo esc_html( FGSYNC_OBLIO_VERSION ); ?></span>
 			</div>
+
+			<p class="oblio-disclosure">
+				<?php
+				esc_html_e(
+					'FGSync for Oblio este o integrare open-source independentă. Nu este dezvoltată, aprobată, întreținută sau susținută de Oblio.eu; Oblio este un serviciu terț, fiind necesar un cont Oblio activ.',
+					'fgsync-oblio'
+				);
+				?>
+			</p>
 
 			<nav class="oblio-tabs">
 				<?php
@@ -157,7 +165,7 @@ final class SettingsPage {
 			<div class="oblio-page-body" data-active="<?php echo esc_attr( $active_dom ); ?>">
 				<?php
 				if ( $saved ) {
-					echo '<div class="notice notice-success inline oblio-saved"><p>' . esc_html__( 'Setările au fost salvate.', 'oblio-fgwoo' ) . '</p></div>';
+					echo '<div class="notice notice-success inline oblio-saved"><p>' . esc_html__( 'Setările au fost salvate.', 'fgsync-oblio' ) . '</p></div>';
 				}
 
 				if ( 'status' === $section ) {
@@ -175,7 +183,7 @@ final class SettingsPage {
 					?>
 					<p class="submit">
 						<button type="submit" name="oblio_fgwoo_save" value="1"
-								class="button button-primary"><?php esc_html_e( 'Salvează modificările', 'oblio-fgwoo' ); ?></button>
+								class="button button-primary"><?php esc_html_e( 'Salvează modificările', 'fgsync-oblio' ); ?></button>
 					</p>
 					<?php
 					echo '</form>';
@@ -220,7 +228,7 @@ final class SettingsPage {
 
 		WC_Admin_Settings::save_fields( $fields );
 
-		delete_transient( \OblioWoo\Queue\Scheduler::SCHEDULE_CHECK );
+		delete_transient( \FGSyncOblio\Queue\Scheduler::SCHEDULE_CHECK );
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only, only used for the log message; the save itself was already nonce-checked above.
 		$tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : '';
@@ -253,7 +261,7 @@ final class SettingsPage {
 			if ( '' !== (string) ( $field['desc'] ?? '' ) && empty( $field['desc_tip'] ) ) {
 				$field['desc_tip'] = $field['desc'];
 			}
-			$field['desc'] = __( 'Activare', 'oblio-fgwoo' );
+			$field['desc'] = __( 'Activare', 'fgsync-oblio' );
 		}
 		unset( $field );
 
@@ -272,9 +280,9 @@ final class SettingsPage {
 		}
 		printf(
 			'<div class="notice notice-info inline"><p>%s <code>%s</code>. %s</p></div>',
-			esc_html__( 'Comportament personalizat prin filtre:', 'oblio-fgwoo' ),
+			esc_html__( 'Comportament personalizat prin filtre:', 'fgsync-oblio' ),
 			implode( '</code>, <code>', array_map( 'esc_html', $overridden ) ),
-			esc_html__( 'Vezi tabul „Stare” pentru sursă.', 'oblio-fgwoo' )
+			esc_html__( 'Vezi tabul „Stare” pentru sursă.', 'fgsync-oblio' )
 		);
 	}
 
@@ -302,23 +310,23 @@ final class SettingsPage {
 	private function connection_fields( callable $opt ): array {
 		return array(
 			array(
-				'title' => __( 'Conectare Oblio', 'oblio-fgwoo' ),
+				'title' => __( 'Conectare Oblio', 'fgsync-oblio' ),
 				'type'  => 'title',
 				'desc'  => sprintf(
 					/* translators: %s: link to the Oblio account settings page */
-					__( 'Cheia API se găsește în Oblio → Contul meu → Setări → Date cont. %s', 'oblio-fgwoo' ),
-					'<a href="https://www.oblio.eu/account/settings" target="_blank" rel="noopener noreferrer" class="oblio-link">' . esc_html__( 'Deschide setările Oblio ↗', 'oblio-fgwoo' ) . '</a>'
+					__( 'Cheia API se găsește în Oblio → Contul meu → Setări → Date cont. %s', 'fgsync-oblio' ),
+					'<a href="https://www.oblio.eu/account/settings" target="_blank" rel="noopener noreferrer" class="oblio-link">' . esc_html__( 'Deschide setările Oblio ↗', 'fgsync-oblio' ) . '</a>'
 				),
 				'id'    => 'oblio_fgwoo_connection',
 			),
 			array(
-				'title' => __( 'Email', 'oblio-fgwoo' ),
+				'title' => __( 'Email', 'fgsync-oblio' ),
 				'type'  => 'email',
 				'id'    => $opt( 'email' ),
-				'desc'  => __( 'Emailul contului Oblio.', 'oblio-fgwoo' ),
+				'desc'  => __( 'Emailul contului Oblio.', 'fgsync-oblio' ),
 			),
 			array(
-				'title' => __( 'Cheie API', 'oblio-fgwoo' ),
+				'title' => __( 'Cheie API', 'fgsync-oblio' ),
 				'type'  => 'oblio_secret',
 				'id'    => $opt( 'secret' ),
 			),
@@ -328,11 +336,11 @@ final class SettingsPage {
 			),
 
 			array(
-				'title'   => __( 'Firmă (CIF)', 'oblio-fgwoo' ),
+				'title'   => __( 'Firmă (CIF)', 'fgsync-oblio' ),
 				'type'    => 'select',
 				'id'      => $opt( 'cif' ),
 				'options' => $this->cif_options(),
-				'desc'    => __( 'Firma pentru care se emit documentele. Apasă „Preia ultimele date” ca să o încarci.', 'oblio-fgwoo' ),
+				'desc'    => __( 'Firma pentru care se emit documentele. Apasă „Preia ultimele date” ca să o încarci.', 'fgsync-oblio' ),
 			),
 			array(
 				'type' => 'oblio_import',
@@ -349,62 +357,62 @@ final class SettingsPage {
 		return array(
 
 			array(
-				'title' => __( 'Serii și date document', 'oblio-fgwoo' ),
+				'title' => __( 'Serii și date document', 'fgsync-oblio' ),
 				'type'  => 'title',
-				'desc'  => __( 'Aici poți configura setările comune ale documentelor, dar și opțiuni per document.', 'oblio-fgwoo' ),
+				'desc'  => __( 'Aici poți configura setările comune ale documentelor, dar și opțiuni per document.', 'fgsync-oblio' ),
 				'id'    => 'oblio_fgwoo_documents_series',
 			),
 			array(
-				'title'   => __( 'Serie factură', 'oblio-fgwoo' ),
+				'title'   => __( 'Serie factură', 'fgsync-oblio' ),
 				'type'    => 'select',
 				'id'      => $opt( 'series_invoice' ),
 				'options' => $this->series_options( 'Factura' ),
-				'desc'    => __( 'Seria pe care se emit facturile.', 'oblio-fgwoo' ),
+				'desc'    => __( 'Seria pe care se emit facturile.', 'fgsync-oblio' ),
 			),
 			array(
-				'title'   => __( 'Serie proformă', 'oblio-fgwoo' ),
+				'title'   => __( 'Serie proformă', 'fgsync-oblio' ),
 				'type'    => 'select',
 				'id'      => $opt( 'series_proforma' ),
 				'options' => $this->series_options( 'Proforma' ),
-				'desc'    => __( 'Seria pe care se emit proformele.', 'oblio-fgwoo' ),
+				'desc'    => __( 'Seria pe care se emit proformele.', 'fgsync-oblio' ),
 			),
 			array(
-				'title'   => __( 'Serie aviz', 'oblio-fgwoo' ),
+				'title'   => __( 'Serie aviz', 'fgsync-oblio' ),
 				'type'    => 'select',
 				'id'      => $opt( 'series_notice' ),
 				'options' => $this->series_options( 'Aviz' ),
-				'desc'    => __( 'Seria pe care se emit avizele de însoțire.', 'oblio-fgwoo' ),
+				'desc'    => __( 'Seria pe care se emit avizele de însoțire.', 'fgsync-oblio' ),
 			),
 			array(
-				'title'   => __( 'Data documentului', 'oblio-fgwoo' ),
+				'title'   => __( 'Data documentului', 'fgsync-oblio' ),
 				'type'    => 'select',
 				'id'      => $opt( 'issue_date_basis' ),
 				'options' => array(
-					'issue' => __( 'Data emiterii', 'oblio-fgwoo' ),
-					'order' => __( 'Data comenzii', 'oblio-fgwoo' ),
+					'issue' => __( 'Data emiterii', 'fgsync-oblio' ),
+					'order' => __( 'Data comenzii', 'fgsync-oblio' ),
 				),
-				'desc'    => __( 'Ce dată apare pe document: ziua emiterii sau ziua comenzii.', 'oblio-fgwoo' ),
+				'desc'    => __( 'Ce dată apare pe document: ziua emiterii sau ziua comenzii.', 'fgsync-oblio' ),
 			),
 
 			array(
-				'title'   => __( 'Punct de lucru', 'oblio-fgwoo' ),
+				'title'   => __( 'Punct de lucru', 'fgsync-oblio' ),
 				'type'    => 'select',
 				'id'      => $opt( 'workstation' ),
-				'options' => array( '' => __( 'Implicit', 'oblio-fgwoo' ) ) + $this->nomenclature->workstations(),
-				'desc'    => __( 'Punctul de lucru pe care se emit documentele. „Implicit” folosește setarea din Oblio.', 'oblio-fgwoo' ),
+				'options' => array( '' => __( 'Implicit', 'fgsync-oblio' ) ) + $this->nomenclature->workstations(),
+				'desc'    => __( 'Punctul de lucru pe care se emit documentele. „Implicit” folosește setarea din Oblio.', 'fgsync-oblio' ),
 			),
 			array(
-				'title'   => __( 'Gestiune (emitere)', 'oblio-fgwoo' ),
+				'title'   => __( 'Gestiune (emitere)', 'fgsync-oblio' ),
 				'type'    => 'select',
 				'id'      => $opt( 'management' ),
-				'options' => array( '' => __( 'Implicit', 'oblio-fgwoo' ) ) + $this->nomenclature->managements(),
-				'desc'    => __( 'Gestiunea din care se descarcă stocul la emiterea documentelor.', 'oblio-fgwoo' ),
+				'options' => array( '' => __( 'Implicit', 'fgsync-oblio' ) ) + $this->nomenclature->managements(),
+				'desc'    => __( 'Gestiunea din care se descarcă stocul la emiterea documentelor.', 'fgsync-oblio' ),
 			),
 			array(
-				'title'       => __( 'Unitate de măsură', 'oblio-fgwoo' ),
+				'title'       => __( 'Unitate de măsură', 'fgsync-oblio' ),
 				'type'        => 'text',
 				'id'          => $opt( 'measuring_unit' ),
-				'desc'        => __( 'Unitatea implicită pentru produsele fără una setată.', 'oblio-fgwoo' ),
+				'desc'        => __( 'Unitatea implicită pentru produsele fără una setată.', 'fgsync-oblio' ),
 				'default'     => 'buc',
 				'placeholder' => 'ex: buc',
 			),
@@ -414,41 +422,41 @@ final class SettingsPage {
 			),
 
 			array(
-				'title' => __( 'Proformă', 'oblio-fgwoo' ),
+				'title' => __( 'Proformă', 'fgsync-oblio' ),
 				'type'  => 'title',
 				'id'    => 'oblio_fgwoo_documents_proforma',
 			),
 			array(
-				'title' => __( 'Emite proformă automat', 'oblio-fgwoo' ),
+				'title' => __( 'Emite proformă automat', 'fgsync-oblio' ),
 				'type'  => 'checkbox',
 				'id'    => $opt( 'proforma_autogen' ),
-				'desc'  => __( 'Generează o proformă automat, după regulile de mai jos.', 'oblio-fgwoo' ),
+				'desc'  => __( 'Generează o proformă automat, după regulile de mai jos.', 'fgsync-oblio' ),
 			),
 			array(
-				'title'   => __( 'La primirea comenzii', 'oblio-fgwoo' ),
+				'title'   => __( 'La primirea comenzii', 'fgsync-oblio' ),
 				'type'    => 'checkbox',
 				'id'      => $opt( 'proforma_on_received' ),
 				'default' => 'yes',
-				'desc'    => __( 'Emite proforma la recepționarea comenzii. Debifează pentru a o emite când comanda intră în anumite statusuri (alese mai jos).', 'oblio-fgwoo' ),
+				'desc'    => __( 'Emite proforma la recepționarea comenzii. Debifează pentru a o emite când comanda intră în anumite statusuri (alese mai jos).', 'fgsync-oblio' ),
 			),
 			array(
-				'title'   => __( 'Statusuri pentru proformă', 'oblio-fgwoo' ),
+				'title'   => __( 'Statusuri pentru proformă', 'fgsync-oblio' ),
 				'type'    => 'multiselect',
 				'class'   => 'wc-enhanced-select',
 				'id'      => $opt( 'proforma_autogen_statuses' ),
 				'options' => $this->order_status_options(),
-				'desc'    => __( 'Proforma se emite când comanda intră într-unul dintre aceste statusuri. Folosit doar când „La primirea comenzii” este debifat.', 'oblio-fgwoo' ),
+				'desc'    => __( 'Proforma se emite când comanda intră într-unul dintre aceste statusuri. Folosit doar când „La primirea comenzii” este debifat.', 'fgsync-oblio' ),
 			),
 			array(
-				'title'   => __( 'Când se facturează o comandă cu proformă', 'oblio-fgwoo' ),
+				'title'   => __( 'Când se facturează o comandă cu proformă', 'fgsync-oblio' ),
 				'type'    => 'select',
 				'id'      => $opt( 'proforma_on_invoice' ),
 				'default' => 'transform',
 				'options' => array(
-					'transform' => __( 'Emite factura pe baza proformei', 'oblio-fgwoo' ),
-					'delete'    => __( 'Șterge proforma, apoi emite o factură nouă', 'oblio-fgwoo' ),
+					'transform' => __( 'Emite factura pe baza proformei', 'fgsync-oblio' ),
+					'delete'    => __( 'Șterge proforma, apoi emite o factură nouă', 'fgsync-oblio' ),
 				),
-				'desc'    => __( 'Implicit, factura se generează pe baza proformei, iar proforma rămâne în Oblio, legată de factură (așa funcționează Oblio). „Șterge” elimină proforma din Oblio și emite o factură separată, fără legătură cu proforma.', 'oblio-fgwoo' ),
+				'desc'    => __( 'Implicit, factura se generează pe baza proformei, iar proforma rămâne în Oblio, legată de factură (așa funcționează Oblio). „Șterge” elimină proforma din Oblio și emite o factură separată, fără legătură cu proforma.', 'fgsync-oblio' ),
 			),
 			array(
 				'type' => 'sectionend',
@@ -456,54 +464,54 @@ final class SettingsPage {
 			),
 
 			array(
-				'title' => __( 'Factură', 'oblio-fgwoo' ),
+				'title' => __( 'Factură', 'fgsync-oblio' ),
 				'type'  => 'title',
 				'id'    => 'oblio_fgwoo_documents_invoice',
 			),
 			array(
-				'title' => __( 'Emite factură automat', 'oblio-fgwoo' ),
+				'title' => __( 'Emite factură automat', 'fgsync-oblio' ),
 				'type'  => 'checkbox',
 				'id'    => $opt( 'invoice_autogen' ),
-				'desc'  => __( 'Când comanda ajunge la unul din statusurile alese mai jos.', 'oblio-fgwoo' ),
+				'desc'  => __( 'Când comanda ajunge la unul din statusurile alese mai jos.', 'fgsync-oblio' ),
 			),
 			array(
-				'title'   => __( 'Când se emit facturile', 'oblio-fgwoo' ),
+				'title'   => __( 'Când se emit facturile', 'fgsync-oblio' ),
 				'type'    => 'select',
 				'id'      => $opt( 'invoice_generation' ),
 				'options' => array(
-					'event' => __( 'La schimbarea statusului (imediat)', 'oblio-fgwoo' ),
-					'batch' => __( 'Programat (în loturi, la interval)', 'oblio-fgwoo' ),
+					'event' => __( 'La schimbarea statusului (imediat)', 'fgsync-oblio' ),
+					'batch' => __( 'Programat (în loturi, la interval)', 'fgsync-oblio' ),
 				),
-				'desc'    => __( '„Imediat” emite factura când comanda intră în status. „Programat” emite periodic, util dacă factura se face abia la livrare.', 'oblio-fgwoo' ),
+				'desc'    => __( '„Imediat” emite factura când comanda intră în status. „Programat” emite periodic, util dacă factura se face abia la livrare.', 'fgsync-oblio' ),
 			),
 			array(
-				'title'   => __( 'Interval programare', 'oblio-fgwoo' ),
+				'title'   => __( 'Interval programare', 'fgsync-oblio' ),
 				'type'    => 'select',
 				'id'      => $opt( 'invoice_batch_interval' ),
 				'options' => $this->batch_interval_options(),
-				'desc'    => __( 'Folosit doar în modul „Programat”. Independent de acest interval, factura se emite mai devreme dacă o altă acțiune are nevoie de ea (de exemplu, trimiterea emailului cu factura).', 'oblio-fgwoo' ),
+				'desc'    => __( 'Folosit doar în modul „Programat”. Independent de acest interval, factura se emite mai devreme dacă o altă acțiune are nevoie de ea (de exemplu, trimiterea emailului cu factura).', 'fgsync-oblio' ),
 			),
 			array(
-				'title'   => __( 'Statusuri pentru emitere', 'oblio-fgwoo' ),
+				'title'   => __( 'Statusuri pentru emitere', 'fgsync-oblio' ),
 				'type'    => 'multiselect',
 				'class'   => 'wc-enhanced-select',
 				'id'      => $opt( 'invoice_autogen_statuses' ),
 				'options' => $this->order_status_options(),
 				'default' => $this->settings->default( 'invoice_autogen_statuses' ),
-				'desc'    => __( 'Se poate selecta unul sau mai multe statusuri.', 'oblio-fgwoo' ),
+				'desc'    => __( 'Se poate selecta unul sau mai multe statusuri.', 'fgsync-oblio' ),
 			),
 			array(
-				'title' => __( 'Descarcă din stoc la factura automată', 'oblio-fgwoo' ),
+				'title' => __( 'Descarcă din stoc la factura automată', 'fgsync-oblio' ),
 				'type'  => 'checkbox',
 				'id'    => $opt( 'invoice_autogen_use_stock' ),
-				'desc'  => __( 'Scade cantitățile din gestiunea Oblio când factura se emite automat.', 'oblio-fgwoo' ),
+				'desc'  => __( 'Scade cantitățile din gestiunea Oblio când factura se emite automat.', 'fgsync-oblio' ),
 			),
 			array(
-				'title'             => __( 'Scadență (zile)', 'oblio-fgwoo' ),
+				'title'             => __( 'Scadență (zile)', 'fgsync-oblio' ),
 				'type'              => 'number',
 				'id'                => $opt( 'invoice_due' ),
 				'custom_attributes' => array( 'min' => 0 ),
-				'desc'              => __( 'Numărul de zile până la scadență. 0 = fără termen.', 'oblio-fgwoo' ),
+				'desc'              => __( 'Numărul de zile până la scadență. 0 = fără termen.', 'fgsync-oblio' ),
 			),
 			array(
 				'type' => 'sectionend',
@@ -511,15 +519,15 @@ final class SettingsPage {
 			),
 
 			array(
-				'title' => __( 'Storno (rambursări)', 'oblio-fgwoo' ),
+				'title' => __( 'Storno (rambursări)', 'fgsync-oblio' ),
 				'type'  => 'title',
 				'id'    => 'oblio_fgwoo_documents_storno',
 			),
 			array(
-				'title' => __( 'Emite storno automat la rambursări', 'oblio-fgwoo' ),
+				'title' => __( 'Emite storno automat la rambursări', 'fgsync-oblio' ),
 				'type'  => 'checkbox',
 				'id'    => $opt( 'storno_autogen' ),
-				'desc'  => __( 'La o rambursare WooCommerce (parțială sau totală) se emite un storno în Oblio.', 'oblio-fgwoo' ),
+				'desc'  => __( 'La o rambursare WooCommerce (parțială sau totală) se emite un storno în Oblio.', 'fgsync-oblio' ),
 			),
 			...$this->returns_field( $opt ),
 			array(
@@ -536,10 +544,10 @@ final class SettingsPage {
 
 		return array(
 			array(
-				'title' => __( 'Emite storno la retururi (experimental)', 'oblio-fgwoo' ),
+				'title' => __( 'Emite storno la retururi (experimental)', 'fgsync-oblio' ),
 				'type'  => 'checkbox',
 				'id'    => $opt( 'returns_storno' ),
-				'desc'  => __( 'Experimental: funcția „Returns” din WooCommerce nu are încă un API stabil, așa că integrarea folosește hook-uri presupuse (filtrabile). Necesită funcția „Returns” activă. A nu se folosi în producție fără testare.', 'oblio-fgwoo' ),
+				'desc'  => __( 'Experimental: funcția „Returns” din WooCommerce nu are încă un API stabil, așa că integrarea folosește hook-uri presupuse (filtrabile). Necesită funcția „Returns” activă. A nu se folosi în producție fără testare.', 'fgsync-oblio' ),
 			),
 		);
 	}
@@ -547,37 +555,37 @@ final class SettingsPage {
 	private function collection_fields( callable $opt ): array {
 		return array(
 			array(
-				'title' => __( 'Încasare („marchează ca plătit”)', 'oblio-fgwoo' ),
+				'title' => __( 'Încasare („marchează ca plătit”)', 'fgsync-oblio' ),
 				'type'  => 'title',
-				'desc'  => __( 'Marchează facturile ca încasate în Oblio, în funcție de metoda de plată.', 'oblio-fgwoo' ),
+				'desc'  => __( 'Marchează facturile ca încasate în Oblio, în funcție de metoda de plată.', 'fgsync-oblio' ),
 				'id'    => 'oblio_fgwoo_collection',
 			),
 			array(
-				'title'   => __( 'Mod încasare', 'oblio-fgwoo' ),
+				'title'   => __( 'Mod încasare', 'fgsync-oblio' ),
 				'type'    => 'select',
 				'id'      => $opt( 'collect_mode' ),
 				'options' => array(
-					'off'      => __( 'Dezactivat', 'oblio-fgwoo' ),
-					'card'     => __( 'Doar plăți cu cardul (nu ramburs / transfer)', 'oblio-fgwoo' ),
-					'all'      => __( 'Toate metodele (cu excepții)', 'oblio-fgwoo' ),
-					'selected' => __( 'Doar metodele selectate', 'oblio-fgwoo' ),
+					'off'      => __( 'Dezactivat', 'fgsync-oblio' ),
+					'card'     => __( 'Doar plăți cu cardul (nu ramburs / transfer)', 'fgsync-oblio' ),
+					'all'      => __( 'Toate metodele (cu excepții)', 'fgsync-oblio' ),
+					'selected' => __( 'Doar metodele selectate', 'fgsync-oblio' ),
 				),
 			),
 			array(
-				'title'   => __( 'Metode încasate', 'oblio-fgwoo' ),
+				'title'   => __( 'Metode încasate', 'fgsync-oblio' ),
 				'type'    => 'multiselect',
 				'class'   => 'wc-enhanced-select',
 				'id'      => $opt( 'collect_gateways' ),
 				'options' => $this->gateway_options(),
-				'desc'    => __( 'Folosit când modul este „Doar metodele selectate”.', 'oblio-fgwoo' ),
+				'desc'    => __( 'Folosit când modul este „Doar metodele selectate”.', 'fgsync-oblio' ),
 			),
 			array(
-				'title'   => __( 'Excepții', 'oblio-fgwoo' ),
+				'title'   => __( 'Excepții', 'fgsync-oblio' ),
 				'type'    => 'multiselect',
 				'class'   => 'wc-enhanced-select',
 				'id'      => $opt( 'collect_exceptions' ),
 				'options' => $this->gateway_options(),
-				'desc'    => __( 'Aceste metode NU se marchează ca încasate.', 'oblio-fgwoo' ),
+				'desc'    => __( 'Aceste metode NU se marchează ca încasate.', 'fgsync-oblio' ),
 			),
 			array(
 				'type' => 'sectionend',
@@ -589,51 +597,51 @@ final class SettingsPage {
 	private function stock_fields( callable $opt ): array {
 		return array(
 			array(
-				'title' => __( 'Sincronizare stoc', 'oblio-fgwoo' ),
+				'title' => __( 'Sincronizare stoc', 'fgsync-oblio' ),
 				'type'  => 'title',
-				'desc'  => __( 'Poți să preiei stocul (și prețul) din Oblio în WooCommerce. <u>Codul produsului</u> Oblio trebuie să fie identic cu SKU-ul din WooCommerce. <br>O sincronizare parcurge întotdeauna întregul catalog, în loturi, nu doar produsul modificat, iar durata este proporțională cu numărul de modificări necesare.', 'oblio-fgwoo' ),
+				'desc'  => __( 'Poți să preiei stocul (și prețul) din Oblio în WooCommerce. <u>Codul produsului</u> Oblio trebuie să fie identic cu SKU-ul din WooCommerce. <br>O sincronizare parcurge întotdeauna întregul catalog, în loturi, nu doar produsul modificat, iar durata este proporțională cu numărul de modificări necesare.', 'fgsync-oblio' ),
 				'id'    => 'oblio_fgwoo_stock',
 			),
 			array(
-				'title'   => __( 'Mod sincronizare', 'oblio-fgwoo' ),
+				'title'   => __( 'Mod sincronizare', 'fgsync-oblio' ),
 				'type'    => 'select',
 				'id'      => $opt( 'stock_sync_trigger' ),
 				'default' => $this->settings->stock_sync_trigger(),
 				'options' => array(
-					'off'      => __( 'Dezactivată', 'oblio-fgwoo' ),
-					'schedule' => __( 'Programată', 'oblio-fgwoo' ),
+					'off'      => __( 'Dezactivată', 'fgsync-oblio' ),
+					'schedule' => __( 'Programată', 'fgsync-oblio' ),
 				),
-				'desc'    => __( 'Rulează la un interval fix definit mai jos și preia toate modificările.', 'oblio-fgwoo' ),
+				'desc'    => __( 'Rulează la un interval fix definit mai jos și preia toate modificările.', 'fgsync-oblio' ),
 			),
 			array(
-				'title'   => __( 'Interval', 'oblio-fgwoo' ),
+				'title'   => __( 'Interval', 'fgsync-oblio' ),
 				'type'    => 'select',
 				'id'      => $opt( 'stock_interval' ),
 				'options' => $this->interval_options(),
-				'desc'    => __( 'Cât de des rulează sincronizarea programată.', 'oblio-fgwoo' ),
+				'desc'    => __( 'Cât de des rulează sincronizarea programată.', 'fgsync-oblio' ),
 			),
 			array(
-				'title'   => __( 'Gestiuni (locații)', 'oblio-fgwoo' ),
+				'title'   => __( 'Gestiuni (locații)', 'fgsync-oblio' ),
 				'type'    => 'multiselect',
 				'class'   => 'wc-enhanced-select',
 				'id'      => $opt( 'stock_locations' ),
 				'options' => $this->nomenclature->locations(),
-				'desc'    => __( 'Implicit - stocul se însumează pe locațiile selectate. <br>Lăsați câmpul gol pentru a le prelua pe toate SAU selectați locația de unde doriți actualizarea de stoc', 'oblio-fgwoo' ),
+				'desc'    => __( 'Implicit - stocul se însumează pe locațiile selectate. <br>Lăsați câmpul gol pentru a le prelua pe toate SAU selectați locația de unde doriți actualizarea de stoc', 'fgsync-oblio' ),
 			),
 			array(
-				'title' => __( 'Actualizează prețul la sincronizare', 'oblio-fgwoo' ),
+				'title' => __( 'Actualizează prețul la sincronizare', 'fgsync-oblio' ),
 				'type'  => 'checkbox',
 				'id'    => $opt( 'stock_update_price' ),
-				'desc'  => __( 'Preia prețul produsului din Oblio.', 'oblio-fgwoo' ),
+				'desc'  => __( 'Preia prețul produsului din Oblio.', 'fgsync-oblio' ),
 			),
 			array(
-				'title' => __( 'Rezervă stoc pentru comenzi nefacturate', 'oblio-fgwoo' ),
+				'title' => __( 'Rezervă stoc pentru comenzi nefacturate', 'fgsync-oblio' ),
 				'type'  => 'checkbox',
 				'id'    => $opt( 'stock_reserve_orders' ),
-				'desc'  => __( 'Scade din stoc comenzile în așteptare / în procesare, din intervalul de mai jos.', 'oblio-fgwoo' ),
+				'desc'  => __( 'Scade din stoc comenzile în așteptare / în procesare, din intervalul de mai jos.', 'fgsync-oblio' ),
 			),
 			array(
-				'title'             => __( 'Interval rezervare (zile)', 'oblio-fgwoo' ),
+				'title'             => __( 'Interval rezervare (zile)', 'fgsync-oblio' ),
 				'type'              => 'number',
 				'id'                => $opt( 'stock_reserve_days' ),
 				'default'           => 30,
@@ -641,10 +649,10 @@ final class SettingsPage {
 					'min'  => 1,
 					'step' => 1,
 				),
-				'desc'              => __( 'Câte zile în urmă se caută comenzile nefacturate care rezervă stoc. Implicit 30.', 'oblio-fgwoo' ),
+				'desc'              => __( 'Câte zile în urmă se caută comenzile nefacturate care rezervă stoc. Implicit 30.', 'fgsync-oblio' ),
 			),
 			array(
-				'title'             => __( 'Produse per segment (opțional)', 'oblio-fgwoo' ),
+				'title'             => __( 'Produse per segment (opțional)', 'fgsync-oblio' ),
 				'type'              => 'number',
 				'id'                => $opt( 'stock_manual_batch' ),
 				'default'           => 250,
@@ -652,7 +660,7 @@ final class SettingsPage {
 					'min'  => 0,
 					'step' => 250,
 				),
-				'desc'              => __( 'Folosit de "Sincronizează acum". Oblio răspunde cu maxim 250 de produse per cerere, deci valoarea trebuie să fie multiplu de 250 - alege un număr mai mare pentru mai puține cereri (mai rapid), sau 0 pentru tot catalogul dintr-o singură cerere (poate dura mult și atinge limita de timp a serverului pe cataloage mari).', 'oblio-fgwoo' ),
+				'desc'              => __( 'Folosit de "Sincronizează acum". Oblio răspunde cu maxim 250 de produse per cerere, deci valoarea trebuie să fie multiplu de 250 - alege un număr mai mare pentru mai puține cereri (mai rapid), sau 0 pentru tot catalogul dintr-o singură cerere (poate dura mult și atinge limita de timp a serverului pe cataloage mari).', 'fgsync-oblio' ),
 			),
 			array(
 				'type' => 'oblio_stock_sync',
@@ -670,68 +678,68 @@ final class SettingsPage {
 
 		return array(
 			array(
-				'title' => __( 'Email către clienți', 'oblio-fgwoo' ),
+				'title' => __( 'Email către clienți', 'fgsync-oblio' ),
 				'type'  => 'title',
 				'id'    => 'oblio_fgwoo_email',
 			),
 			array(
-				'title'   => __( 'Mod notificare', 'oblio-fgwoo' ),
+				'title'   => __( 'Mod notificare', 'fgsync-oblio' ),
 				'type'    => 'select',
 				'id'      => $opt( 'email_mode' ),
 				'default' => $this->settings->email_mode(),
 				'options' => array(
-					'off'        => __( 'Dezactivat', 'oblio-fgwoo' ),
-					'button'     => __( 'Nativ în mail-ul WooCommerce', 'oblio-fgwoo' ),
-					'standalone' => __( 'Email separat (la emitere)', 'oblio-fgwoo' ),
+					'off'        => __( 'Dezactivat', 'fgsync-oblio' ),
+					'button'     => __( 'Nativ în mail-ul WooCommerce', 'fgsync-oblio' ),
+					'standalone' => __( 'Email separat (la emitere)', 'fgsync-oblio' ),
 				),
-				'desc'    => __( '<strong>Email separat</strong> - trimite un mesaj propriu la emiterea documentului.<br><strong>Buton</strong> - adaugă un buton către factură în emailul WooCommerce al comenzii.<br><strong>Dacă factura nu există</strong> la trimiterea acelui email, atunci aceasta este emisă pe loc (chiar dacă emiterea automată este oprită)!', 'oblio-fgwoo' ),
+				'desc'    => __( '<strong>Email separat</strong> - trimite un mesaj propriu la emiterea documentului.<br><strong>Buton</strong> - adaugă un buton către factură în emailul WooCommerce al comenzii.<br><strong>Dacă factura nu există</strong> la trimiterea acelui email, atunci aceasta este emisă pe loc (chiar dacă emiterea automată este oprită)!', 'fgsync-oblio' ),
 			),
 
 			array(
-				'title' => __( 'De la (email)', 'oblio-fgwoo' ),
+				'title' => __( 'De la (email)', 'fgsync-oblio' ),
 				'type'  => 'email',
 				'id'    => $opt( 'email_from' ),
-				'desc'  => __( 'Adresa afișată ca expeditor. Gol = adresa site-ului.', 'oblio-fgwoo' ),
+				'desc'  => __( 'Adresa afișată ca expeditor. Gol = adresa site-ului.', 'fgsync-oblio' ),
 			),
 			array(
-				'title' => __( 'CC', 'oblio-fgwoo' ),
+				'title' => __( 'CC', 'fgsync-oblio' ),
 				'type'  => 'text',
 				'id'    => $opt( 'email_cc' ),
-				'desc'  => __( 'Adrese suplimentare în copie, separate prin virgulă.', 'oblio-fgwoo' ),
+				'desc'  => __( 'Adrese suplimentare în copie, separate prin virgulă.', 'fgsync-oblio' ),
 			),
 			array(
-				'title'       => __( 'Subiect', 'oblio-fgwoo' ),
+				'title'       => __( 'Subiect', 'fgsync-oblio' ),
 				'type'        => 'text',
 				'id'          => $opt( 'email_subject' ),
 				'default'     => $this->settings->default( 'email_subject' ),
 				'placeholder' => (string) $this->settings->default( 'email_subject' ),
 			),
 			array(
-				'title'       => __( 'Mesaj', 'oblio-fgwoo' ),
+				'title'       => __( 'Mesaj', 'fgsync-oblio' ),
 				'type'        => 'textarea',
 				'id'          => $opt( 'email_message' ),
 				'default'     => $this->settings->default( 'email_message' ),
 				'placeholder' => (string) $this->settings->default( 'email_message' ),
 				/* translators: %s: list of tokens */
-					'desc'    => sprintf( __( 'Taguri: %s', 'oblio-fgwoo' ), '<code>' . esc_html( $tokens ) . '</code>' ),
+					'desc'    => sprintf( __( 'Taguri: %s', 'fgsync-oblio' ), '<code>' . esc_html( $tokens ) . '</code>' ),
 				'css'         => 'min-width:400px;height:150px;',
 			),
 
 			array(
-				'title'   => __( 'Status de comandă', 'oblio-fgwoo' ),
+				'title'   => __( 'Status de comandă', 'fgsync-oblio' ),
 				'type'    => 'multiselect',
 				'class'   => 'wc-enhanced-select',
 				'id'      => $opt( 'email_button_statuses' ),
 				'options' => $this->order_status_options(),
 				'default' => $this->settings->default( 'email_button_statuses' ),
-				'desc'    => __( 'Butonul apare în emailurile WooCommerce pentru aceste statusuri (ex. „Finalizată / Completed”).', 'oblio-fgwoo' ),
+				'desc'    => __( 'Butonul apare în emailurile WooCommerce pentru aceste statusuri (ex. „Finalizată / Completed”).', 'fgsync-oblio' ),
 			),
 			array(
-				'title'   => __( 'Text buton', 'oblio-fgwoo' ),
+				'title'   => __( 'Text buton', 'fgsync-oblio' ),
 				'type'    => 'text',
 				'id'      => $opt( 'email_button_label' ),
 				'default' => $this->settings->default( 'email_button_label' ),
-				'desc'    => __( 'Textul afișat pe butonul din email.', 'oblio-fgwoo' ),
+				'desc'    => __( 'Textul afișat pe butonul din email.', 'fgsync-oblio' ),
 			),
 			array(
 				'type' => 'sectionend',
@@ -742,77 +750,77 @@ final class SettingsPage {
 
 	private function advanced_fields( callable $opt ): array {
 		$mention_tokens      = '[order_id] [date] [payment] [shipping] [site]';
-		$mention_placeholder = __( "Pentru comanda [order_id], din [date], plătit prin [payment], livrat prin [shipping].\nComandă efectuată pe [site]", 'oblio-fgwoo' );
+		$mention_placeholder = __( "Pentru comanda [order_id], din [date], plătit prin [payment], livrat prin [shipping].\nComandă efectuată pe [site]", 'fgsync-oblio' );
 
 		return array(
 			array(
-				'title' => __( 'Opțiuni avansate', 'oblio-fgwoo' ),
+				'title' => __( 'Opțiuni avansate', 'fgsync-oblio' ),
 				'type'  => 'title',
 				'id'    => 'oblio_fgwoo_advanced',
 			),
 			array(
-				'title'   => __( 'Limbă document', 'oblio-fgwoo' ),
+				'title'   => __( 'Limbă document', 'fgsync-oblio' ),
 				'type'    => 'select',
 				'id'      => $opt( 'language' ),
 				'options' => $this->language_options(),
-				'desc'    => __( 'Limba în care se emit documentele în Oblio.', 'oblio-fgwoo' ),
+				'desc'    => __( 'Limba în care se emit documentele în Oblio.', 'fgsync-oblio' ),
 			),
 			array(
-				'title'   => __( 'Tip produs implicit', 'oblio-fgwoo' ),
+				'title'   => __( 'Tip produs implicit', 'fgsync-oblio' ),
 				'type'    => 'select',
 				'id'      => $opt( 'product_type' ),
 				'options' => $this->product_type_options(),
-				'desc'    => __( 'Tipul cu care se trimit produsele noi către Oblio.', 'oblio-fgwoo' ),
+				'desc'    => __( 'Tipul cu care se trimit produsele noi către Oblio.', 'fgsync-oblio' ),
 			),
 			array(
-				'title'       => __( 'Mențiuni', 'oblio-fgwoo' ),
+				'title'       => __( 'Mențiuni', 'fgsync-oblio' ),
 				'type'        => 'textarea',
 				'id'          => $opt( 'invoice_mentions' ),
 				'placeholder' => $mention_placeholder,
 				/* translators: %s: list of tokens */
-					'desc'    => sprintf( __( 'Taguri: %s', 'oblio-fgwoo' ), '<code>' . esc_html( $mention_tokens ) . '</code>' ),
+					'desc'    => sprintf( __( 'Taguri: %s', 'fgsync-oblio' ), '<code>' . esc_html( $mention_tokens ) . '</code>' ),
 			),
 			array(
-				'title' => __( 'Întocmit de', 'oblio-fgwoo' ),
+				'title' => __( 'Întocmit de', 'fgsync-oblio' ),
 				'type'  => 'text',
 				'id'    => $opt( 'invoice_issuer_name' ),
-				'desc'  => __( 'Numele persoanei care apare ca întocmitor al documentului.', 'oblio-fgwoo' ),
+				'desc'  => __( 'Numele persoanei care apare ca întocmitor al documentului.', 'fgsync-oblio' ),
 			),
 			array(
-				'title' => __( 'Delegat', 'oblio-fgwoo' ),
+				'title' => __( 'Delegat', 'fgsync-oblio' ),
 				'type'  => 'text',
 				'id'    => $opt( 'invoice_deputy_name' ),
-				'desc'  => __( 'Numele delegatului, dacă documentul îl cere.', 'oblio-fgwoo' ),
+				'desc'  => __( 'Numele delegatului, dacă documentul îl cere.', 'fgsync-oblio' ),
 			),
 			array(
-				'title' => __( 'Completează automat datele firmelor după CIF', 'oblio-fgwoo' ),
+				'title' => __( 'Completează automat datele firmelor după CIF', 'fgsync-oblio' ),
 				'type'  => 'checkbox',
 				'id'    => $opt( 'autocomplete_company' ),
-				'desc'  => __( 'La comenzile tip B2B, preia datele firmei din Oblio pe baza CIF-ului pentru a fi folosite în datele de facturare', 'oblio-fgwoo' ),
+				'desc'  => __( 'La comenzile tip B2B, preia datele firmei din Oblio pe baza CIF-ului pentru a fi folosite în datele de facturare', 'fgsync-oblio' ),
 			),
 			array(
-				'title' => __( 'Ascunde detalii produs', 'oblio-fgwoo' ),
+				'title' => __( 'Ascunde detalii produs', 'fgsync-oblio' ),
 				'type'  => 'checkbox',
 				'id'    => $opt( 'hide_description' ),
-				'desc'  => __( 'Trece pe document doar numele produsului, fără descriere.', 'oblio-fgwoo' ),
+				'desc'  => __( 'Trece pe document doar numele produsului, fără descriere.', 'fgsync-oblio' ),
 			),
 			array(
-				'title' => __( 'Include discountul în prețul produsului', 'oblio-fgwoo' ),
+				'title' => __( 'Include discountul în prețul produsului', 'fgsync-oblio' ),
 				'type'  => 'checkbox',
 				'id'    => $opt( 'invoice_discount_in_product' ),
-				'desc'  => __( 'Scade discountul direct din preț, fără o linie separată de reducere.', 'oblio-fgwoo' ),
+				'desc'  => __( 'Scade discountul direct din preț, fără o linie separată de reducere.', 'fgsync-oblio' ),
 			),
 			array(
-				'title' => __( 'NU salva prețul în Oblio la emitere', 'oblio-fgwoo' ),
+				'title' => __( 'NU salva prețul în Oblio la emitere', 'fgsync-oblio' ),
 				'type'  => 'checkbox',
 				'id'    => $opt( 'notsave_price' ),
-				'desc'  => __( 'Emite documentul fără a actualiza prețul produsului în nomenclatorul Oblio.', 'oblio-fgwoo' ),
+				'desc'  => __( 'Emite documentul fără a actualiza prețul produsului în nomenclatorul Oblio.', 'fgsync-oblio' ),
 			),
 			array(
-				'title' => __( 'Jurnalizare / debug', 'oblio-fgwoo' ),
+				'title' => __( 'Jurnalizare / debug', 'fgsync-oblio' ),
 				'type'  => 'checkbox',
 				'id'    => $opt( 'debug_logging' ),
-				'desc'  => __( 'Adaugă intrări detaliate în jurnalul WooCommerce, le poți vedea în secțiunea "Stare".', 'oblio-fgwoo' ),
+				'desc'  => __( 'Adaugă intrări detaliate în jurnalul WooCommerce, le poți vedea în secțiunea "Stare".', 'fgsync-oblio' ),
 			),
 			array(
 				'type' => 'sectionend',
@@ -822,7 +830,7 @@ final class SettingsPage {
 	}
 
 	private function cif_options(): array {
-		$options = array( '' => __( 'Selectează', 'oblio-fgwoo' ) );
+		$options = array( '' => __( 'Selectează', 'fgsync-oblio' ) );
 		foreach ( $this->nomenclature->companies() as $cif => $name ) {
 			$options[ (string) $cif ] = sprintf( '%s (%s)', (string) $name, (string) $cif );
 		}
@@ -835,7 +843,7 @@ final class SettingsPage {
 	}
 
 	private function series_options( string $type ): array {
-		return array( '' => __( 'Selectează', 'oblio-fgwoo' ) ) + $this->nomenclature->series( $type );
+		return array( '' => __( 'Selectează', 'fgsync-oblio' ) ) + $this->nomenclature->series( $type );
 	}
 
 	private function gateway_options(): array {
@@ -852,23 +860,23 @@ final class SettingsPage {
 
 	private function interval_options(): array {
 		return array(
-			'hourly' => __( 'La fiecare oră', 'oblio-fgwoo' ),
-			'6h'     => __( 'La fiecare 6 ore', 'oblio-fgwoo' ),
-			'12h'    => __( 'La fiecare 12 ore', 'oblio-fgwoo' ),
-			'daily'  => __( 'La fiecare 24 ore', 'oblio-fgwoo' ),
+			'hourly' => __( 'La fiecare oră', 'fgsync-oblio' ),
+			'6h'     => __( 'La fiecare 6 ore', 'fgsync-oblio' ),
+			'12h'    => __( 'La fiecare 12 ore', 'fgsync-oblio' ),
+			'daily'  => __( 'La fiecare 24 ore', 'fgsync-oblio' ),
 		);
 	}
 
 	private function batch_interval_options(): array {
 		return array(
-			'1min'   => __( 'La fiecare minut', 'oblio-fgwoo' ),
-			'5min'   => __( 'La fiecare 5 minute', 'oblio-fgwoo' ),
-			'15min'  => __( 'La fiecare 15 minute', 'oblio-fgwoo' ),
-			'30min'  => __( 'La fiecare 30 de minute', 'oblio-fgwoo' ),
-			'hourly' => __( 'La fiecare oră', 'oblio-fgwoo' ),
-			'3h'     => __( 'La fiecare 3 ore', 'oblio-fgwoo' ),
-			'6h'     => __( 'La fiecare 6 ore', 'oblio-fgwoo' ),
-			'12h'    => __( 'La fiecare 12 ore', 'oblio-fgwoo' ),
+			'1min'   => __( 'La fiecare minut', 'fgsync-oblio' ),
+			'5min'   => __( 'La fiecare 5 minute', 'fgsync-oblio' ),
+			'15min'  => __( 'La fiecare 15 minute', 'fgsync-oblio' ),
+			'30min'  => __( 'La fiecare 30 de minute', 'fgsync-oblio' ),
+			'hourly' => __( 'La fiecare oră', 'fgsync-oblio' ),
+			'3h'     => __( 'La fiecare 3 ore', 'fgsync-oblio' ),
+			'6h'     => __( 'La fiecare 6 ore', 'fgsync-oblio' ),
+			'12h'    => __( 'La fiecare 12 ore', 'fgsync-oblio' ),
 		);
 	}
 
@@ -914,12 +922,12 @@ final class SettingsPage {
 	public function render_secret_field( array $field ): void {
 		$id          = (string) ( $field['id'] ?? '' );
 		$placeholder = $this->factory->has_secret()
-				? __( '••••••••(setat, lasă gol pentru a păstra)', 'oblio-fgwoo' )
+				? __( '••••••••(setat, lasă gol pentru a păstra)', 'fgsync-oblio' )
 				: '';
 		?>
 		<tr valign="top">
 			<th scope="row" class="titledesc"><label
-						for="<?php echo esc_attr( $id ); ?>"><?php esc_html_e( 'API secret', 'oblio-fgwoo' ); ?></label>
+						for="<?php echo esc_attr( $id ); ?>"><?php esc_html_e( 'API secret', 'fgsync-oblio' ); ?></label>
 			</th>
 			<td class="forminp">
 				<input type="password" name="<?php echo esc_attr( $id ); ?>" id="<?php echo esc_attr( $id ); ?>"
@@ -937,9 +945,9 @@ final class SettingsPage {
 			<th scope="row" class="titledesc"></th>
 			<td class="forminp">
 				<button type="button" class="button button-primary"
-						id="oblio_fgwoo_test_connection"><?php esc_html_e( 'Preia ultimele date', 'oblio-fgwoo' ); ?></button>
-				<span id="oblio_fgwoo_test_result" style="margin-inline-start:8px;"></span>
-				<p class="description"><?php esc_html_e( 'Verifică datele de conectare și încarcă firma și seriile din Oblio.', 'oblio-fgwoo' ); ?></p>
+						id="oblio_fgwoo_test_connection"><?php esc_html_e( 'Preia ultimele date', 'fgsync-oblio' ); ?></button>
+				<span id="oblio_fgwoo_test_result" class="oblio-result"></span>
+				<p class="description"><?php esc_html_e( 'Verifică datele de conectare și încarcă firma și seriile din Oblio.', 'fgsync-oblio' ); ?></p>
 			</td>
 		</tr>
 		<?php
@@ -953,12 +961,12 @@ final class SettingsPage {
 		?>
 		<tr valign="top">
 			<th scope="row"
-				class="titledesc"><?php esc_html_e( 'Import din pluginul vechi', 'oblio-fgwoo' ); ?></th>
+				class="titledesc"><?php esc_html_e( 'Import din pluginul vechi', 'fgsync-oblio' ); ?></th>
 			<td class="forminp">
 				<button type="button"
-						class="button oblio-import-now"><?php esc_html_e( 'Importă setările', 'oblio-fgwoo' ); ?></button>
-				<span class="oblio-import-result" style="margin-inline-start:8px;"></span>
-				<p class="description"><?php esc_html_e( 'Copiază setările din „WooCommerce Oblio”. Facturile deja emise se afișează automat.', 'oblio-fgwoo' ); ?></p>
+						class="button oblio-import-now"><?php esc_html_e( 'Importă setările', 'fgsync-oblio' ); ?></button>
+				<span class="oblio-import-result oblio-result"></span>
+				<p class="description"><?php esc_html_e( 'Copiază setările din „WooCommerce Oblio”. Facturile deja emise se afișează automat.', 'fgsync-oblio' ); ?></p>
 			</td>
 		</tr>
 		<?php
@@ -966,22 +974,22 @@ final class SettingsPage {
 
 	public function render_stock_sync_field( array $field ): void {
 		unset( $field );
-		$last   = (int) get_option( \OblioWoo\Stock\StockSyncCoordinator::LAST_SYNC_OPTION, 0 );
-		$locked = \OblioWoo\Support\AtomicLock::is_locked( \OblioWoo\Stock\StockSyncCoordinator::RUN_LOCK );
+		$last   = (int) get_option( \FGSyncOblio\Stock\StockSyncCoordinator::LAST_SYNC_OPTION, 0 );
+		$locked = \FGSyncOblio\Support\AtomicLock::is_locked( \FGSyncOblio\Stock\StockSyncCoordinator::RUN_LOCK );
 		?>
 		<tr valign="top">
 			<th scope="row"
-				class="titledesc"><?php esc_html_e( 'Sincronizare manuală', 'oblio-fgwoo' ); ?></th>
+				class="titledesc"><?php esc_html_e( 'Sincronizare manuală', 'fgsync-oblio' ); ?></th>
 			<td class="forminp">
 				<?php if ( $this->settings->stock_sync_configured() ) : ?>
 					<button type="button"
-							class="button oblio-sync-now"><?php esc_html_e( 'Sincronizează acum', 'oblio-fgwoo' ); ?></button>
-					<span class="oblio-sync-result" style="margin-inline-start:8px;"></span>
-					<p class="description"><?php esc_html_e( 'Rulează sincronizare completă imediat. Pentru a accelera procesul, te rugăm să nu pleci din pagină!', 'oblio-fgwoo' ); ?></p>
+							class="button oblio-sync-now"><?php esc_html_e( 'Sincronizează acum', 'fgsync-oblio' ); ?></button>
+					<span class="oblio-sync-result oblio-result"></span>
+					<p class="description"><?php esc_html_e( 'Rulează sincronizare completă imediat. Pentru a accelera procesul, te rugăm să nu pleci din pagină!', 'fgsync-oblio' ); ?></p>
 					<?php if ( $locked ) : ?>
 						<p class="description oblio-lock-warning">
-							<?php esc_html_e( 'O sincronizare pare blocată (probabil întreruptă de server înainte să termine). Dacă nu pornește din nou de la sine, o poți debloca manual:', 'oblio-fgwoo' ); ?>
-							<button type="button" class="button oblio-sync-unlock"><?php esc_html_e( 'Deblochează sincronizarea', 'oblio-fgwoo' ); ?></button>
+							<?php esc_html_e( 'O sincronizare pare blocată (probabil întreruptă de server înainte să termine). Dacă nu pornește din nou de la sine, o poți debloca manual:', 'fgsync-oblio' ); ?>
+							<button type="button" class="button oblio-sync-unlock"><?php esc_html_e( 'Deblochează sincronizarea', 'fgsync-oblio' ); ?></button>
 							<span class="oblio-unlock-result"></span>
 						</p>
 					<?php endif; ?>
@@ -989,12 +997,12 @@ final class SettingsPage {
 						<p class="description">
 							<?php
 							/* translators: %s: human time diff */
-							printf( esc_html__( '<strong>Ultima sincronizare:</strong> %s în urmă.', 'oblio-fgwoo' ), esc_html( human_time_diff( $last ) ) );
+							printf( esc_html__( '<strong>Ultima sincronizare:</strong> %s în urmă.', 'fgsync-oblio' ), esc_html( human_time_diff( $last ) ) );
 							?>
 						</p>
 					<?php endif; ?>
 				<?php else : ?>
-					<p class="description"><?php esc_html_e( 'Alege un mod de declanșare mai sus (altul decât „Dezactivată”) pentru a putea sincroniza manual.', 'oblio-fgwoo' ); ?></p>
+					<p class="description"><?php esc_html_e( 'Alege un mod de declanșare mai sus (altul decât „Dezactivată”) pentru a putea sincroniza manual.', 'fgsync-oblio' ); ?></p>
 				<?php endif; ?>
 			</td>
 		</tr>

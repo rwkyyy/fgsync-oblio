@@ -2,14 +2,14 @@
 /**
  * Decides whether/how to mark an invoice as collected (paid).
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Document\Mapper;
+namespace FGSyncOblio\Document\Mapper;
 
-use OblioWoo\Support\Settings;
+use FGSyncOblio\Support\Settings;
 use WC_Order;
 final class CollectMapper {
 

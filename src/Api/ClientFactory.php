@@ -2,17 +2,17 @@
 /**
  * Builds configured OblioClient instances from stored settings.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Api;
+namespace FGSyncOblio\Api;
 
-use OblioWoo\Support\Encryption;
-use OblioWoo\Support\Logger;
-use OblioWoo\Support\RateLimiter;
-use OblioWoo\Support\Settings;
+use FGSyncOblio\Support\Encryption;
+use FGSyncOblio\Support\Logger;
+use FGSyncOblio\Support\RateLimiter;
+use FGSyncOblio\Support\Settings;
 final class ClientFactory {
 
 	private Settings $settings;

@@ -1,17 +1,17 @@
 <?php
 /**
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Tests\Unit;
+namespace FGSyncOblio\Tests\Unit;
 
-use OblioWoo\Admin\OrderListFilter;
+use FGSyncOblio\Admin\OrderListFilter;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
-#[CoversClass( \OblioWoo\Admin\OrderListFilter::class )]
+#[CoversClass( \FGSyncOblio\Admin\OrderListFilter::class )]
 final class OrderListFilterTest extends TestCase {
 
 	public function test_invoice_filter_requires_invoice_link(): void {

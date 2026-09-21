@@ -1,14 +1,14 @@
 <?php
 /**
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Tests\Unit;
+namespace FGSyncOblio\Tests\Unit;
 
-use OblioWoo\Support\RateLimiter;
-use OblioWoo\Support\SlotStore;
+use FGSyncOblio\Support\RateLimiter;
+use FGSyncOblio\Support\SlotStore;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 final class InMemorySlotStore implements SlotStore {
@@ -55,7 +55,7 @@ final class InMemorySlotStore implements SlotStore {
 	}
 }
 
-#[CoversClass( \OblioWoo\Support\RateLimiter::class )]
+#[CoversClass( \FGSyncOblio\Support\RateLimiter::class )]
 final class RateLimiterTest extends TestCase {
 
 	public function test_plan_clamps_stale_past_slot_to_now(): void {

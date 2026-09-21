@@ -2,18 +2,18 @@
 /**
  * Renders parsed log entries as HTML rows (initial page load + AJAX tail).
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Admin;
+namespace FGSyncOblio\Admin;
 
 final class LogRenderer {
 
 	public static function rows( array $entries ): string {
 		if ( empty( $entries ) ) {
-			return '<p class="oblio-empty">' . esc_html__( 'Fără intrări.', 'oblio-fgwoo' ) . '</p>';
+			return '<p class="oblio-empty">' . esc_html__( 'Fără intrări.', 'fgsync-oblio' ) . '</p>';
 		}
 
 		$html = '';

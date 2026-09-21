@@ -1,17 +1,17 @@
 <?php
 /**
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Tests\Unit;
+namespace FGSyncOblio\Tests\Unit;
 
-use OblioWoo\Refund\RefundService;
+use FGSyncOblio\Refund\RefundService;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
-#[CoversClass( \OblioWoo\Refund\RefundService::class )]
+#[CoversClass( \FGSyncOblio\Refund\RefundService::class )]
 final class RefundServiceTest extends TestCase {
 
 	public function test_no_adjustment_when_lines_match_the_refund(): void {

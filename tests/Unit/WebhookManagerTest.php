@@ -1,17 +1,17 @@
 <?php
 /**
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Tests\Unit;
+namespace FGSyncOblio\Tests\Unit;
 
-use OblioWoo\Webhook\WebhookManager;
+use FGSyncOblio\Webhook\WebhookManager;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
-#[CoversClass( \OblioWoo\Webhook\WebhookManager::class )]
+#[CoversClass( \FGSyncOblio\Webhook\WebhookManager::class )]
 final class WebhookManagerTest extends TestCase {
 
 	private const DESIRED = array( 'stock', 'Collect/Inserted' );

@@ -2,12 +2,12 @@
 /**
  * Action Scheduler wrapper for the plugin's background jobs.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Queue;
+namespace FGSyncOblio\Queue;
 
 final class Scheduler {
 

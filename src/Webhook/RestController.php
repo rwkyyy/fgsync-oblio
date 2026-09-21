@@ -2,16 +2,16 @@
 /**
  * REST controller for incoming Oblio webhooks.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Webhook;
+namespace FGSyncOblio\Webhook;
 
-use OblioWoo\Queue\Scheduler;
-use OblioWoo\Support\Logger;
-use OblioWoo\Support\Settings;
+use FGSyncOblio\Queue\Scheduler;
+use FGSyncOblio\Support\Logger;
+use FGSyncOblio\Support\Settings;
 use WP_REST_Request;
 use WP_REST_Server;
 final class RestController {

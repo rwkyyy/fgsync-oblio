@@ -2,23 +2,23 @@
 /**
  * Action Scheduler job: sync one page of Oblio products into WooCommerce.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Queue\Jobs;
+namespace FGSyncOblio\Queue\Jobs;
 
-use OblioWoo\Api\ClientFactory;
-use OblioWoo\Api\Exception\ApiException;
-use OblioWoo\Queue\Scheduler;
-use OblioWoo\Stock\LocationAggregator;
-use OblioWoo\Stock\ProductUpdater;
-use OblioWoo\Stock\StockReservations;
-use OblioWoo\Stock\StockSyncCoordinator;
-use OblioWoo\Support\AtomicLock;
-use OblioWoo\Support\Logger;
-use OblioWoo\Support\Settings;
+use FGSyncOblio\Api\ClientFactory;
+use FGSyncOblio\Api\Exception\ApiException;
+use FGSyncOblio\Queue\Scheduler;
+use FGSyncOblio\Stock\LocationAggregator;
+use FGSyncOblio\Stock\ProductUpdater;
+use FGSyncOblio\Stock\StockReservations;
+use FGSyncOblio\Stock\StockSyncCoordinator;
+use FGSyncOblio\Support\AtomicLock;
+use FGSyncOblio\Support\Logger;
+use FGSyncOblio\Support\Settings;
 use Throwable;
 final class StockSyncBatch {
 
@@ -101,7 +101,7 @@ final class StockSyncBatch {
 		if ( ! $this->settings->has_credentials() || '' === (string) $this->settings->get( 'cif' ) ) {
 			return array(
 				'ok'     => false,
-				'reason' => __( 'Verifică emailul, secretul și firma.', 'oblio-fgwoo' ),
+				'reason' => __( 'Verifică emailul, secretul și firma.', 'fgsync-oblio' ),
 			);
 		}
 
@@ -129,7 +129,7 @@ final class StockSyncBatch {
 				$completed = true;
 				return array(
 					'ok'     => false,
-					'reason' => __( 'Sincronizarea a fost înlocuită de o rulare mai nouă.', 'oblio-fgwoo' ),
+					'reason' => __( 'Sincronizarea a fost înlocuită de o rulare mai nouă.', 'fgsync-oblio' ),
 				);
 			}
 

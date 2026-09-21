@@ -2,15 +2,15 @@
 /**
  * Maps order line items to Oblio product lines (with VAT + discounts).
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Document\Mapper;
+namespace FGSyncOblio\Document\Mapper;
 
-use OblioWoo\Admin\ProductFields;
-use OblioWoo\Document\BuildContext;
+use FGSyncOblio\Admin\ProductFields;
+use FGSyncOblio\Document\BuildContext;
 use WC_Order;
 use WC_Order_Item_Product;
 final class LineItemMapper {

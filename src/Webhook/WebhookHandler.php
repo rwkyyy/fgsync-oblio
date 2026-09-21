@@ -2,12 +2,12 @@
 /**
  * Contract for a webhook topic handler.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Webhook;
+namespace FGSyncOblio\Webhook;
 
 interface WebhookHandler {
 

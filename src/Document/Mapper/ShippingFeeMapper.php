@@ -2,14 +2,14 @@
 /**
  * Maps order shipping and fees to Oblio service lines.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Document\Mapper;
+namespace FGSyncOblio\Document\Mapper;
 
-use OblioWoo\Document\BuildContext;
+use FGSyncOblio\Document\BuildContext;
 use WC_Order;
 final class ShippingFeeMapper {
 
@@ -22,7 +22,7 @@ final class ShippingFeeMapper {
 			$shipping_tax = (float) $order->get_shipping_tax();
 			$value        = $shipping_total + $shipping_tax;
 			$products[]   = $this->service_line(
-				__( 'Transport', 'oblio-fgwoo' ),
+				__( 'Transport', 'fgsync-oblio' ),
 				$value,
 				$shipping_total,
 				$shipping_tax,

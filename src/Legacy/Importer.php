@@ -2,16 +2,16 @@
 /**
  * One-way importer from the legacy OblioSoftware plugin.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Legacy;
+namespace FGSyncOblio\Legacy;
 
-use OblioWoo\Api\ClientFactory;
-use OblioWoo\Support\Logger;
-use OblioWoo\Support\Settings;
+use FGSyncOblio\Api\ClientFactory;
+use FGSyncOblio\Support\Logger;
+use FGSyncOblio\Support\Settings;
 final class Importer {
 
 	private Settings $settings;

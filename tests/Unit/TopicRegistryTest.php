@@ -1,17 +1,17 @@
 <?php
 /**
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Tests\Unit;
+namespace FGSyncOblio\Tests\Unit;
 
-use OblioWoo\Webhook\TopicRegistry;
+use FGSyncOblio\Webhook\TopicRegistry;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
-#[CoversClass( \OblioWoo\Webhook\TopicRegistry::class )]
+#[CoversClass( \FGSyncOblio\Webhook\TopicRegistry::class )]
 final class TopicRegistryTest extends TestCase {
 
 	public function test_slug_for_topic(): void {
@@ -30,7 +30,7 @@ final class TopicRegistryTest extends TestCase {
 	}
 
 	public function test_dispatch_calls_registered_handler(): void {
-		$handler = new class() implements \OblioWoo\Webhook\WebhookHandler {
+		$handler = new class() implements \FGSyncOblio\Webhook\WebhookHandler {
 			public array $received = array();
 			public function handle( array $data ): void {
 				$this->received = $data;

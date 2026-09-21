@@ -2,15 +2,15 @@
 /**
  * Updates a WooCommerce product's stock/price from aggregated Oblio data.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Stock;
+namespace FGSyncOblio\Stock;
 
-use OblioWoo\Admin\ProductFields;
-use OblioWoo\Support\Logger;
+use FGSyncOblio\Admin\ProductFields;
+use FGSyncOblio\Support\Logger;
 use WC_Product;
 final class ProductUpdater {
 

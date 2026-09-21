@@ -6,7 +6,7 @@ parameters:
     level: 6
     paths:
         - src
-        - oblio-fgwoo.php
+        - fgsync-oblio.php
         - uninstall.php
     bootstrapFiles:
         - vendor/php-stubs/woocommerce-stubs/woocommerce-stubs.php

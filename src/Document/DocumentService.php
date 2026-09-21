@@ -2,17 +2,17 @@
 /**
  * Issues, deletes and cancels Oblio documents for orders.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Document;
+namespace FGSyncOblio\Document;
 
-use OblioWoo\Api\ClientFactory;
-use OblioWoo\Order\OrderMeta;
-use OblioWoo\Support\Logger;
-use OblioWoo\Support\Settings;
+use FGSyncOblio\Api\ClientFactory;
+use FGSyncOblio\Order\OrderMeta;
+use FGSyncOblio\Support\Logger;
+use FGSyncOblio\Support\Settings;
 use WC_Order;
 final class DocumentService implements DocumentIssuer {
 
@@ -58,7 +58,7 @@ final class DocumentService implements DocumentIssuer {
 		$result  = DocumentResult::from_api( $doc_type, $data );
 
 		if ( '' === $result->series_name && '' === $result->number ) {
-			throw new DocumentException( esc_html__( 'Răspuns invalid de la Oblio la emiterea documentului.', 'oblio-fgwoo' ) );
+			throw new DocumentException( esc_html__( 'Răspuns invalid de la Oblio la emiterea documentului.', 'fgsync-oblio' ) );
 		}
 
 		if ( OrderMeta::TYPE_INVOICE === $doc_type ) {

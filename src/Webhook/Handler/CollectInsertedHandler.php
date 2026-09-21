@@ -2,18 +2,18 @@
 /**
  * Webhook handler: a collection was recorded in Oblio → mark the order paid.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Webhook\Handler;
+namespace FGSyncOblio\Webhook\Handler;
 
-use OblioWoo\Compat\OrderStore;
-use OblioWoo\Document\DocumentResult;
-use OblioWoo\Order\OrderMeta;
-use OblioWoo\Support\Logger;
-use OblioWoo\Webhook\WebhookHandler;
+use FGSyncOblio\Compat\OrderStore;
+use FGSyncOblio\Document\DocumentResult;
+use FGSyncOblio\Order\OrderMeta;
+use FGSyncOblio\Support\Logger;
+use FGSyncOblio\Webhook\WebhookHandler;
 final class CollectInsertedHandler implements WebhookHandler {
 
 	private OrderStore $orders;
@@ -55,7 +55,7 @@ final class CollectInsertedHandler implements WebhookHandler {
 
 		if ( $complete ) {
 			if ( 'completed' !== $order->get_status() ) {
-				$order->update_status( 'completed', __( 'Oblio: încasare confirmată.', 'oblio-fgwoo' ) );
+				$order->update_status( 'completed', __( 'Oblio: încasare confirmată.', 'fgsync-oblio' ) );
 			} else {
 				$order->save();
 			}

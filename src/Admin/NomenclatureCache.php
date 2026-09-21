@@ -2,17 +2,17 @@
 /**
  * Caches Oblio nomenclature (companies, series, warehouses) for the settings UI.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Admin;
+namespace FGSyncOblio\Admin;
 
-use OblioWoo\Api\ClientFactory;
-use OblioWoo\Api\Exception\ApiException;
-use OblioWoo\Support\Logger;
-use OblioWoo\Support\Settings;
+use FGSyncOblio\Api\ClientFactory;
+use FGSyncOblio\Api\Exception\ApiException;
+use FGSyncOblio\Support\Logger;
+use FGSyncOblio\Support\Settings;
 final class NomenclatureCache {
 
 	private const SERIES_TRANSIENT     = 'oblio_fgwoo_series';

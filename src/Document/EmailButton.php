@@ -2,17 +2,17 @@
 /**
  * Injects an "open invoice" button into WooCommerce order emails.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Document;
+namespace FGSyncOblio\Document;
 
-use OblioWoo\Order\OrderMeta;
-use OblioWoo\Support\Logger;
-use OblioWoo\Support\RateLimiter;
-use OblioWoo\Support\Settings;
+use FGSyncOblio\Order\OrderMeta;
+use FGSyncOblio\Support\Logger;
+use FGSyncOblio\Support\RateLimiter;
+use FGSyncOblio\Support\Settings;
 use WC_Email;
 use WC_Order;
 final class EmailButton {
@@ -62,7 +62,7 @@ final class EmailButton {
 
 		$label = (string) $this->settings->get( 'email_button_label', '' );
 		if ( '' === $label ) {
-			$label = __( 'Vezi factura', 'oblio-fgwoo' );
+			$label = __( 'Vezi factura', 'fgsync-oblio' );
 		}
 
 		$label = (string) apply_filters( 'oblio_fgwoo_email_button_label', $label, $order );

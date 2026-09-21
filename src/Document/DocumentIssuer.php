@@ -2,12 +2,12 @@
 /**
  * Contract for issuing a document for an order.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Document;
+namespace FGSyncOblio\Document;
 
 use WC_Order;
 interface DocumentIssuer {

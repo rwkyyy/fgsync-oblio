@@ -2,16 +2,16 @@
 /**
  * Action Scheduler job: process a received webhook event.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Queue\Jobs;
+namespace FGSyncOblio\Queue\Jobs;
 
-use OblioWoo\Queue\Scheduler;
-use OblioWoo\Support\Logger;
-use OblioWoo\Webhook\TopicRegistry;
+use FGSyncOblio\Queue\Scheduler;
+use FGSyncOblio\Support\Logger;
+use FGSyncOblio\Webhook\TopicRegistry;
 use Throwable;
 final class ProcessWebhookEvent {
 

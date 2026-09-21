@@ -2,12 +2,12 @@
 /**
  * Storage contract for the document rate limiter's shared slot.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Support;
+namespace FGSyncOblio\Support;
 
 interface SlotStore {
 

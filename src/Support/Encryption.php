@@ -2,12 +2,12 @@
 /**
  * At-rest encryption for secrets, keyed off WordPress salts.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Support;
+namespace FGSyncOblio\Support;
 
 final class Encryption {
 

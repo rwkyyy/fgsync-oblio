@@ -1,17 +1,17 @@
 <?php
 /**
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Tests\Unit;
+namespace FGSyncOblio\Tests\Unit;
 
-use OblioWoo\Support\Encryption;
+use FGSyncOblio\Support\Encryption;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
-#[CoversClass( \OblioWoo\Support\Encryption::class )]
+#[CoversClass( \FGSyncOblio\Support\Encryption::class )]
 final class EncryptionTest extends TestCase {
 
 	private Encryption $encryption;

@@ -2,14 +2,14 @@
 /**
  * Contract for issuing a storno (refund) document.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Refund;
+namespace FGSyncOblio\Refund;
 
-use OblioWoo\Document\DocumentResult;
+use FGSyncOblio\Document\DocumentResult;
 use WC_Order;
 interface RefundIssuer {
 

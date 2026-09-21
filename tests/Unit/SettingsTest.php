@@ -1,17 +1,17 @@
 <?php
 /**
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Tests\Unit;
+namespace FGSyncOblio\Tests\Unit;
 
-use OblioWoo\Support\Settings;
+use FGSyncOblio\Support\Settings;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
-#[CoversClass( \OblioWoo\Support\Settings::class )]
+#[CoversClass( \FGSyncOblio\Support\Settings::class )]
 final class SettingsTest extends TestCase {
 
 	private Settings $settings;

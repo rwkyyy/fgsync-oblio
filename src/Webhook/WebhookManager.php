@@ -2,18 +2,18 @@
 /**
  * Reconciles webhook subscriptions with Oblio.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Webhook;
+namespace FGSyncOblio\Webhook;
 
-use OblioWoo\Api\ClientFactory;
-use OblioWoo\Api\Exception\ApiException;
-use OblioWoo\Queue\Scheduler;
-use OblioWoo\Support\Logger;
-use OblioWoo\Support\Settings;
+use FGSyncOblio\Api\ClientFactory;
+use FGSyncOblio\Api\Exception\ApiException;
+use FGSyncOblio\Queue\Scheduler;
+use FGSyncOblio\Support\Logger;
+use FGSyncOblio\Support\Settings;
 final class WebhookManager {
 
 	private const IDS_OPTION = 'oblio_fgwoo_webhook_ids';

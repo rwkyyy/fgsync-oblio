@@ -5,7 +5,7 @@
  * Removes plugin options and scheduled jobs. Order/product meta (issued invoice
  * numbers, links, etc.) is intentionally preserved, that is business data.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 defined( 'WP_UNINSTALL_PLUGIN' ) || exit;

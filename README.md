@@ -1,7 +1,10 @@
-# Oblio - Facturare și Gestiune pentru WooCommerce
+# FGSync for Oblio
 
-Integrare nativă WooCommerce cu [Oblio.eu](https://www.oblio.eu): emitere automată de facturi,
+Integrare independentă WooCommerce cu [Oblio.eu](https://www.oblio.eu): emitere automată de facturi,
 proforme, avize și storno, procesare pe coadă, sincronizare stoc pe mai multe gestiuni și webhooks.
+
+Plugin open-source independent, nedezvoltat, neaprobat și nesusținut de Oblio.eu. Oblio este un
+serviciu terț, este necesar un cont Oblio activ.
 
 Acesta este repository-ul de dezvoltare. Descrierea pluginului și changelog-ul publicate pe
 WordPress.org se află în [`readme.txt`](readme.txt).

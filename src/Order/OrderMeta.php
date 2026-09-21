@@ -2,14 +2,14 @@
 /**
  * Canonical order-meta keys for issued documents + read/write helpers.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Order;
+namespace FGSyncOblio\Order;
 
-use OblioWoo\Document\DocumentResult;
+use FGSyncOblio\Document\DocumentResult;
 use WC_Order;
 final class OrderMeta {
 

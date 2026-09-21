@@ -2,15 +2,15 @@
 /**
  * Webhook handler: Oblio stock changed → trigger a (debounced) sync.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Webhook\Handler;
+namespace FGSyncOblio\Webhook\Handler;
 
-use OblioWoo\Stock\StockSyncCoordinator;
-use OblioWoo\Webhook\WebhookHandler;
+use FGSyncOblio\Stock\StockSyncCoordinator;
+use FGSyncOblio\Webhook\WebhookHandler;
 final class StockHandler implements WebhookHandler {
 
 	private StockSyncCoordinator $coordinator;

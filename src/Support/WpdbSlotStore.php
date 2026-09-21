@@ -2,12 +2,12 @@
 /**
  * Slot store backed by a single wp_options row with atomic compare-and-swap.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Support;
+namespace FGSyncOblio\Support;
 
 final class WpdbSlotStore implements SlotStore {
 

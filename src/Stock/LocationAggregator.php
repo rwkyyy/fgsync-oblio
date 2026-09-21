@@ -2,12 +2,12 @@
 /**
  * Aggregates an Oblio product's stock across selected locations.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Stock;
+namespace FGSyncOblio\Stock;
 
 final class LocationAggregator {
 

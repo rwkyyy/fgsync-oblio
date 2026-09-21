@@ -2,12 +2,12 @@
 /**
  * Typed settings accessor over wp_options.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Support;
+namespace FGSyncOblio\Support;
 
 final class Settings {
 

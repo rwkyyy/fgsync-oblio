@@ -2,20 +2,20 @@
 /**
  * Action Scheduler job: issue a storno for a refund.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Queue\Jobs;
+namespace FGSyncOblio\Queue\Jobs;
 
-use OblioWoo\Api\Exception\ApiException;
-use OblioWoo\Compat\OrderStore;
-use OblioWoo\Document\DocumentException;
-use OblioWoo\Queue\Scheduler;
-use OblioWoo\Refund\RefundIssuer;
-use OblioWoo\Support\Logger;
-use OblioWoo\Support\RateLimiter;
+use FGSyncOblio\Api\Exception\ApiException;
+use FGSyncOblio\Compat\OrderStore;
+use FGSyncOblio\Document\DocumentException;
+use FGSyncOblio\Queue\Scheduler;
+use FGSyncOblio\Refund\RefundIssuer;
+use FGSyncOblio\Support\Logger;
+use FGSyncOblio\Support\RateLimiter;
 use Throwable;
 use WC_Order;
 final class GenerateRefund {

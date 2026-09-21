@@ -2,12 +2,12 @@
 /**
  * Reads today's Oblio entries from the WooCommerce file logs.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Admin;
+namespace FGSyncOblio\Admin;
 
 final class LogReader {
 

@@ -2,19 +2,19 @@
 /**
  * Builds an Oblio document payload from a WooCommerce order.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Document;
+namespace FGSyncOblio\Document;
 
-use OblioWoo\Document\Mapper\ClientMapper;
-use OblioWoo\Document\Mapper\CollectMapper;
-use OblioWoo\Document\Mapper\LineItemMapper;
-use OblioWoo\Document\Mapper\ShippingFeeMapper;
-use OblioWoo\Order\OrderMeta;
-use OblioWoo\Support\Settings;
+use FGSyncOblio\Document\Mapper\ClientMapper;
+use FGSyncOblio\Document\Mapper\CollectMapper;
+use FGSyncOblio\Document\Mapper\LineItemMapper;
+use FGSyncOblio\Document\Mapper\ShippingFeeMapper;
+use FGSyncOblio\Order\OrderMeta;
+use FGSyncOblio\Support\Settings;
 use WC_Order;
 final class InvoiceBuilder {
 
@@ -47,7 +47,7 @@ final class InvoiceBuilder {
 		$series = $this->series_name( $doc_type );
 
 		if ( '' === $cif || '' === $series ) {
-			throw new DocumentException( esc_html__( 'Configurare incompletă: verifică Oblio → Setări.', 'oblio-fgwoo' ) );
+			throw new DocumentException( esc_html__( 'Configurare incompletă: verifică Oblio → Setări.', 'fgsync-oblio' ) );
 		}
 
 		$currency  = $this->currency( $order );
@@ -111,8 +111,8 @@ final class InvoiceBuilder {
 			$difference = $order_total - $total;
 			$products[] = array(
 				'name'                     => $difference > 0
-					? __( 'Alte taxe', 'oblio-fgwoo' )
-					: __( 'Discount', 'oblio-fgwoo' ),
+					? __( 'Alte taxe', 'fgsync-oblio' )
+					: __( 'Discount', 'fgsync-oblio' ),
 				'code'                     => '',
 				'description'              => '',
 				'price'                    => (float) number_format( $difference, 2, '.', '' ),
@@ -128,7 +128,7 @@ final class InvoiceBuilder {
 		}
 
 		if ( '0.00' === number_format( $total, 2, '.', '' ) ) {
-			throw new DocumentException( esc_html__( 'Comanda are valoare 0.00.', 'oblio-fgwoo' ) );
+			throw new DocumentException( esc_html__( 'Comanda are valoare 0.00.', 'fgsync-oblio' ) );
 		}
 
 		return $products;

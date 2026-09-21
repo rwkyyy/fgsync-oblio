@@ -2,12 +2,12 @@
 /**
  * A shortcut to the Oblio settings page from the WooCommerce settings screen.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Admin;
+namespace FGSyncOblio\Admin;
 
 final class SettingsShortcut {
 
@@ -19,16 +19,16 @@ final class SettingsShortcut {
 	}
 
 	public function add_tab( array $tabs ): array {
-		$tabs[ self::TAB_ID ] = __( 'Oblio', 'oblio-fgwoo' );
+		$tabs[ self::TAB_ID ] = __( 'Oblio', 'fgsync-oblio' );
 		return $tabs;
 	}
 
 	public function render(): void {
-		echo '<p>' . esc_html__( 'Setările Oblio se află pe pagina dedicată, cu design propriu.', 'oblio-fgwoo' ) . '</p>';
+		echo '<p>' . esc_html__( 'Setările Oblio se află pe pagina dedicată, cu design propriu.', 'fgsync-oblio' ) . '</p>';
 		printf(
 			'<p><a href="%s" class="button button-primary">%s</a></p>',
 			esc_url( SettingsPage::url() ),
-			esc_html__( 'Deschide setările Oblio', 'oblio-fgwoo' )
+			esc_html__( 'Deschide setările Oblio', 'fgsync-oblio' )
 		);
 	}
 }

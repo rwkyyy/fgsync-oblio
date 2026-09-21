@@ -2,18 +2,18 @@
 /**
  * Bridge to the WooCommerce 11 Returns feature.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Returns;
+namespace FGSyncOblio\Returns;
 
 use Automattic\WooCommerce\Utilities\FeaturesUtil;
-use OblioWoo\Compat\OrderStore;
-use OblioWoo\Refund\RefundIssuer;
-use OblioWoo\Support\Logger;
-use OblioWoo\Support\Settings;
+use FGSyncOblio\Compat\OrderStore;
+use FGSyncOblio\Refund\RefundIssuer;
+use FGSyncOblio\Support\Logger;
+use FGSyncOblio\Support\Settings;
 use Throwable;
 use WC_Order;
 use WC_Order_Refund;

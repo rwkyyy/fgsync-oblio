@@ -12,18 +12,18 @@
 		$box.on( 'click', '.oblio-order-action', function () {
 			var $btn = $( this );
 			if ( $btn.data( 'confirm' ) ) {
-				var message = $btn.data( 'confirm-msg' ) || oblioFgwooOrder.i18n.confirm;
+				var message = $btn.data( 'confirm-msg' ) || fgsyncOblioOrder.i18n.confirm;
 				if ( ! window.confirm( message ) ) {
 					return;
 				}
 			}
 
 			$box.find( '.oblio-order-action' ).prop( 'disabled', true );
-			$result.text( oblioFgwooOrder.i18n.working ).css( 'color', '#157347' );
+			$result.text( fgsyncOblioOrder.i18n.working ).css( 'color', '#157347' );
 
-			$.post( oblioFgwooOrder.ajaxUrl, {
+			$.post( fgsyncOblioOrder.ajaxUrl, {
 				action: 'oblio_fgwoo_order_action',
-				nonce: oblioFgwooOrder.nonce,
+				nonce: fgsyncOblioOrder.nonce,
 				order_id: orderId,
 				task: $btn.data( 'task' ),
 				doc_type: $btn.data( 'doc-type' ),
@@ -33,12 +33,12 @@
 					window.location.reload();
 				} else {
 					$result
-						.text( ( response && response.data && response.data.message ) || oblioFgwooOrder.i18n.error )
+						.text( ( response && response.data && response.data.message ) || fgsyncOblioOrder.i18n.error )
 						.css( 'color', '#c62d1c' );
 					$box.find( '.oblio-order-action' ).prop( 'disabled', false );
 				}
 			} ).fail( function () {
-				$result.text( oblioFgwooOrder.i18n.requestFailed ).css( 'color', '#c62d1c' );
+				$result.text( fgsyncOblioOrder.i18n.requestFailed ).css( 'color', '#c62d1c' );
 				$box.find( '.oblio-order-action' ).prop( 'disabled', false );
 			} );
 		} );

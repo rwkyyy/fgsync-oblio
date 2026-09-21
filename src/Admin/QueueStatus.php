@@ -2,14 +2,14 @@
 /**
  * Summarises the plugin's Action Scheduler queue for the Status panel.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Admin;
+namespace FGSyncOblio\Admin;
 
-use OblioWoo\Queue\Scheduler;
+use FGSyncOblio\Queue\Scheduler;
 final class QueueStatus {
 
 	private const CACHE     = 'oblio_fgwoo_queue_counts';

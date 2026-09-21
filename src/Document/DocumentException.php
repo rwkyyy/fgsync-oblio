@@ -2,12 +2,12 @@
 /**
  * Business-rule error while building/issuing a document.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Document;
+namespace FGSyncOblio\Document;
 
 use RuntimeException;
 final class DocumentException extends RuntimeException {

@@ -2,12 +2,12 @@
 /**
  * WooCommerce logger wrapper.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Support;
+namespace FGSyncOblio\Support;
 
 final class Logger {
 

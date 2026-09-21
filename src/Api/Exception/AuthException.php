@@ -2,12 +2,12 @@
 /**
  * Authentication/authorization failure.
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Api\Exception;
+namespace FGSyncOblio\Api\Exception;
 
 final class AuthException extends ApiException {
 }

@@ -2,22 +2,22 @@
 /**
  * Reads WordPress' own update state for this plugin (no custom updater).
  *
- * @package OblioWoo
+ * @package FGSyncOblio
  */
 
 declare( strict_types=1 );
 
-namespace OblioWoo\Admin;
+namespace FGSyncOblio\Admin;
 
 final class UpdateChecker {
 
 	public function installed(): string {
-		return defined( 'OBLIO_FGWOO_VERSION' ) ? OBLIO_FGWOO_VERSION : '';
+		return defined( 'FGSYNC_OBLIO_VERSION' ) ? FGSYNC_OBLIO_VERSION : '';
 	}
 
 	public function latest(): string {
 		$transient = get_site_transient( 'update_plugins' );
-		$basename  = defined( 'OBLIO_FGWOO_BASENAME' ) ? OBLIO_FGWOO_BASENAME : '';
+		$basename  = defined( 'FGSYNC_OBLIO_BASENAME' ) ? FGSYNC_OBLIO_BASENAME : '';
 
 		if ( is_object( $transient ) && isset( $transient->response[ $basename ]->new_version ) ) {
 			return (string) $transient->response[ $basename ]->new_version;
