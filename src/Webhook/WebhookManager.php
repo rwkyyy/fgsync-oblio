@@ -163,7 +163,7 @@ final class WebhookManager {
 	}
 
 	public function endpoint_for( string $topic ): string {
-		$url = rest_url( 'oblio/v1/webhook/' . TopicRegistry::slug_for( $topic ) );
+		$url = rest_url( 'fgsync-oblio/v1/webhook/' . TopicRegistry::slug_for( $topic ) );
 		return add_query_arg( 'secret', (string) $this->settings->get( 'webhook_secret' ), $url );
 	}
 
@@ -174,7 +174,7 @@ final class WebhookManager {
 	}
 
 	private function belongs_to_us( string $endpoint ): bool {
-		$base = rest_url( 'oblio/v1/webhook/' );
+		$base = rest_url( 'fgsync-oblio/v1/webhook/' );
 		return '' !== $endpoint && 0 === strpos( $endpoint, $base );
 	}
 

@@ -17,7 +17,7 @@ use FGSyncOblio\Support\Settings;
 use WC_Admin_Settings;
 final class SettingsPage {
 
-	private const PAGE_SLUG = 'oblio';
+	private const PAGE_SLUG = 'fgsync-oblio';
 
 	private Settings $settings;
 
@@ -56,10 +56,10 @@ final class SettingsPage {
 	public function register(): void {
 		add_action( 'admin_menu', array( $this, 'add_menu' ) );
 
-		add_action( 'woocommerce_admin_field_oblio_secret', array( $this, 'render_secret_field' ) );
-		add_action( 'woocommerce_admin_field_oblio_test', array( $this, 'render_test_field' ) );
-		add_action( 'woocommerce_admin_field_oblio_stock_sync', array( $this, 'render_stock_sync_field' ) );
-		add_action( 'woocommerce_admin_field_oblio_import', array( $this, 'render_import_field' ) );
+		add_action( 'woocommerce_admin_field_oblio_fgwoo_secret', array( $this, 'render_secret_field' ) );
+		add_action( 'woocommerce_admin_field_oblio_fgwoo_test', array( $this, 'render_test_field' ) );
+		add_action( 'woocommerce_admin_field_oblio_fgwoo_stock_sync', array( $this, 'render_stock_sync_field' ) );
+		add_action( 'woocommerce_admin_field_oblio_fgwoo_import', array( $this, 'render_import_field' ) );
 
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ), 20 );
 	}
@@ -134,15 +134,15 @@ final class SettingsPage {
 		$saved      = $this->handle_save();
 		$active_dom = '' === $section ? 'connection' : $section;
 		?>
-		<div class="wrap oblio-page">
-			<div class="oblio-page-head">
-				<span class="dashicons dashicons-media-spreadsheet oblio-page-logo" aria-hidden="true"></span>
-				<span class="oblio-page-title"><?php esc_html_e( 'FGSync', 'fgsync-oblio' ); ?></span>
-				<span class="oblio-page-sub"><?php esc_html_e( 'Facturare & Gestiune pentru WooCommerce prin Oblio', 'fgsync-oblio' ); ?></span>
-				<span class="oblio-page-ver">v<?php echo esc_html( FGSYNC_OBLIO_VERSION ); ?></span>
+		<div class="wrap oblio-fgwoo-page">
+			<div class="oblio-fgwoo-page-head">
+				<span class="dashicons dashicons-media-spreadsheet oblio-fgwoo-page-logo" aria-hidden="true"></span>
+				<span class="oblio-fgwoo-page-title"><?php esc_html_e( 'FGSync', 'fgsync-oblio' ); ?></span>
+				<span class="oblio-fgwoo-page-sub"><?php esc_html_e( 'Facturare & Gestiune pentru WooCommerce prin Oblio', 'fgsync-oblio' ); ?></span>
+				<span class="oblio-fgwoo-page-ver">v<?php echo esc_html( FGSYNC_OBLIO_VERSION ); ?></span>
 			</div>
 
-			<p class="oblio-disclosure">
+			<p class="oblio-fgwoo-disclosure">
 				<?php
 				esc_html_e(
 					'FGSync for Oblio este o integrare open-source independentă. Nu este dezvoltată, aprobată, întreținută sau susținută de Oblio.eu; Oblio este un serviciu terț, fiind necesar un cont Oblio activ.',
@@ -151,31 +151,31 @@ final class SettingsPage {
 				?>
 			</p>
 
-			<nav class="oblio-tabs">
+			<nav class="oblio-fgwoo-tabs">
 				<?php
 				foreach ( $this->get_sections() as $id => $label ) :
 					$dom = '' === $id ? 'connection' : $id;
 					?>
 					<a href="<?php echo esc_url( self::url( $id ) ); ?>"
-						class="oblio-tab<?php echo esc_attr( $section === $id ? ' active' : '' ); ?>"
+						class="oblio-fgwoo-tab<?php echo esc_attr( $section === $id ? ' active' : '' ); ?>"
 						data-section="<?php echo esc_attr( $dom ); ?>"><?php echo esc_html( $label ); ?></a>
 				<?php endforeach; ?>
 			</nav>
 
-			<div class="oblio-page-body" data-active="<?php echo esc_attr( $active_dom ); ?>">
+			<div class="oblio-fgwoo-page-body" data-active="<?php echo esc_attr( $active_dom ); ?>">
 				<?php
 				if ( $saved ) {
-					echo '<div class="notice notice-success inline oblio-saved"><p>' . esc_html__( 'Setările au fost salvate.', 'fgsync-oblio' ) . '</p></div>';
+					echo '<div class="notice notice-success inline oblio-fgwoo-saved"><p>' . esc_html__( 'Setările au fost salvate.', 'fgsync-oblio' ) . '</p></div>';
 				}
 
 				if ( 'status' === $section ) {
 					$this->status_panel->render();
 				} else {
-					echo '<form method="post" action="" class="oblio-settings-form">';
+					echo '<form method="post" action="" class="oblio-fgwoo-settings-form">';
 					wp_nonce_field( 'oblio_fgwoo_save_settings' );
 					foreach ( $this->settings_sections() as $id => $fields ) {
 						$dom = '' === $id ? 'connection' : $id;
-						printf( '<div class="oblio-section" data-section="%s">', esc_attr( $dom ) );
+						printf( '<div class="oblio-fgwoo-section" data-section="%s">', esc_attr( $dom ) );
 						$this->override_notice( $id );
 						WC_Admin_Settings::output_fields( $fields );
 						echo '</div>';
@@ -211,7 +211,7 @@ final class SettingsPage {
 
 		$secret_id = $this->settings->option_name( 'secret' );
 
-		$display = array( 'oblio_secret', 'oblio_test', 'oblio_import', 'oblio_stock_sync', 'title', 'sectionend' );
+		$display = array( 'oblio_fgwoo_secret', 'oblio_fgwoo_test', 'oblio_fgwoo_import', 'oblio_fgwoo_stock_sync', 'title', 'sectionend' );
 
 		$fields = array();
 		foreach ( $this->settings_sections() as $section_fields ) {
@@ -315,7 +315,7 @@ final class SettingsPage {
 				'desc'  => sprintf(
 					/* translators: %s: link to the Oblio account settings page */
 					__( 'Cheia API se găsește în Oblio → Contul meu → Setări → Date cont. %s', 'fgsync-oblio' ),
-					'<a href="https://www.oblio.eu/account/settings" target="_blank" rel="noopener noreferrer" class="oblio-link">' . esc_html__( 'Deschide setările Oblio ↗', 'fgsync-oblio' ) . '</a>'
+					'<a href="https://www.oblio.eu/account/settings" target="_blank" rel="noopener noreferrer" class="oblio-fgwoo-link">' . esc_html__( 'Deschide setările Oblio ↗', 'fgsync-oblio' ) . '</a>'
 				),
 				'id'    => 'oblio_fgwoo_connection',
 			),
@@ -327,11 +327,11 @@ final class SettingsPage {
 			),
 			array(
 				'title' => __( 'Cheie API', 'fgsync-oblio' ),
-				'type'  => 'oblio_secret',
+				'type'  => 'oblio_fgwoo_secret',
 				'id'    => $opt( 'secret' ),
 			),
 			array(
-				'type' => 'oblio_test',
+				'type' => 'oblio_fgwoo_test',
 				'id'   => 'oblio_fgwoo_test',
 			),
 
@@ -343,7 +343,7 @@ final class SettingsPage {
 				'desc'    => __( 'Firma pentru care se emit documentele. Apasă „Preia ultimele date” ca să o încarci.', 'fgsync-oblio' ),
 			),
 			array(
-				'type' => 'oblio_import',
+				'type' => 'oblio_fgwoo_import',
 				'id'   => 'oblio_fgwoo_import',
 			),
 			array(
@@ -663,7 +663,7 @@ final class SettingsPage {
 				'desc'              => __( 'Folosit de "Sincronizează acum". Oblio răspunde cu maxim 250 de produse per cerere, deci valoarea trebuie să fie multiplu de 250 - alege un număr mai mare pentru mai puține cereri (mai rapid), sau 0 pentru tot catalogul dintr-o singură cerere (poate dura mult și atinge limita de timp a serverului pe cataloage mari).', 'fgsync-oblio' ),
 			),
 			array(
-				'type' => 'oblio_stock_sync',
+				'type' => 'oblio_fgwoo_stock_sync',
 				'id'   => 'oblio_fgwoo_stock_sync_now',
 			),
 			array(
@@ -946,7 +946,7 @@ final class SettingsPage {
 			<td class="forminp">
 				<button type="button" class="button button-primary"
 						id="oblio_fgwoo_test_connection"><?php esc_html_e( 'Preia ultimele date', 'fgsync-oblio' ); ?></button>
-				<span id="oblio_fgwoo_test_result" class="oblio-result"></span>
+				<span id="oblio_fgwoo_test_result" class="oblio-fgwoo-result"></span>
 				<p class="description"><?php esc_html_e( 'Verifică datele de conectare și încarcă firma și seriile din Oblio.', 'fgsync-oblio' ); ?></p>
 			</td>
 		</tr>
@@ -964,8 +964,8 @@ final class SettingsPage {
 				class="titledesc"><?php esc_html_e( 'Import din pluginul vechi', 'fgsync-oblio' ); ?></th>
 			<td class="forminp">
 				<button type="button"
-						class="button oblio-import-now"><?php esc_html_e( 'Importă setările', 'fgsync-oblio' ); ?></button>
-				<span class="oblio-import-result oblio-result"></span>
+						class="button oblio-fgwoo-import-now"><?php esc_html_e( 'Importă setările', 'fgsync-oblio' ); ?></button>
+				<span class="oblio-fgwoo-import-result oblio-fgwoo-result"></span>
 				<p class="description"><?php esc_html_e( 'Copiază setările din „WooCommerce Oblio”. Facturile deja emise se afișează automat.', 'fgsync-oblio' ); ?></p>
 			</td>
 		</tr>
@@ -983,14 +983,14 @@ final class SettingsPage {
 			<td class="forminp">
 				<?php if ( $this->settings->stock_sync_configured() ) : ?>
 					<button type="button"
-							class="button oblio-sync-now"><?php esc_html_e( 'Sincronizează acum', 'fgsync-oblio' ); ?></button>
-					<span class="oblio-sync-result oblio-result"></span>
+							class="button oblio-fgwoo-sync-now"><?php esc_html_e( 'Sincronizează acum', 'fgsync-oblio' ); ?></button>
+					<span class="oblio-fgwoo-sync-result oblio-fgwoo-result"></span>
 					<p class="description"><?php esc_html_e( 'Rulează sincronizare completă imediat. Pentru a accelera procesul, te rugăm să nu pleci din pagină!', 'fgsync-oblio' ); ?></p>
 					<?php if ( $locked ) : ?>
-						<p class="description oblio-lock-warning">
+						<p class="description oblio-fgwoo-lock-warning">
 							<?php esc_html_e( 'O sincronizare pare blocată (probabil întreruptă de server înainte să termine). Dacă nu pornește din nou de la sine, o poți debloca manual:', 'fgsync-oblio' ); ?>
-							<button type="button" class="button oblio-sync-unlock"><?php esc_html_e( 'Deblochează sincronizarea', 'fgsync-oblio' ); ?></button>
-							<span class="oblio-unlock-result"></span>
+							<button type="button" class="button oblio-fgwoo-sync-unlock"><?php esc_html_e( 'Deblochează sincronizarea', 'fgsync-oblio' ); ?></button>
+							<span class="oblio-fgwoo-unlock-result"></span>
 						</p>
 					<?php endif; ?>
 					<?php if ( $last ) : ?>

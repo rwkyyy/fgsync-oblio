@@ -11,7 +11,7 @@ namespace FGSyncOblio\Support;
 
 final class Logger {
 
-	private const SOURCE = 'oblio';
+	private const SOURCE = 'oblio-fgwoo';
 
 	private $logger = null;
 

@@ -34,13 +34,13 @@ final class OrderListFilter {
 
 		$current = $this->requested_filter();
 		$options = array(
-			''         => __( 'Documente Oblio: toate', 'fgsync-oblio' ),
+			''         => __( 'Toate documentele', 'fgsync-oblio' ),
 			'none'     => __( 'Fără documente', 'fgsync-oblio' ),
-			'proforma' => __( 'Cu proformă (fără factură)', 'fgsync-oblio' ),
+			'proforma' => __( 'Cu proformă', 'fgsync-oblio' ),
 			'invoice'  => __( 'Cu factură', 'fgsync-oblio' ),
 			'notice'   => __( 'Cu aviz', 'fgsync-oblio' ),
 			'storno'   => __( 'Cu storno', 'fgsync-oblio' ),
-			'failed'   => __( 'Emitere eșuată', 'fgsync-oblio' ),
+			'failed'   => __( 'Eșuată', 'fgsync-oblio' ),
 		);
 
 		echo '<select name="' . esc_attr( self::PARAM ) . '" id="' . esc_attr( self::PARAM ) . '">';
@@ -131,8 +131,15 @@ final class OrderListFilter {
 				);
 			case 'failed':
 				return array(
-					'key'     => OrderMeta::key( OrderMeta::TYPE_INVOICE, 'failed' ),
-					'compare' => 'EXISTS',
+					'relation' => 'AND',
+					array(
+						'key'     => OrderMeta::key( OrderMeta::TYPE_INVOICE, 'failed' ),
+						'compare' => 'EXISTS',
+					),
+					array(
+						'key'     => $invoice,
+						'compare' => 'NOT EXISTS',
+					),
 				);
 			default:
 				return array();

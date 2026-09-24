@@ -34,7 +34,7 @@ final class RestController {
 
 	public function register_routes(): void {
 		register_rest_route(
-			'oblio/v1',
+			'fgsync-oblio/v1',
 			'/webhook/(?P<topic>[a-zA-Z0-9-]+)',
 			array(
 				'methods'             => WP_REST_Server::CREATABLE,

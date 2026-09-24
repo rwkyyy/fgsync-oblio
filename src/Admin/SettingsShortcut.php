@@ -11,7 +11,7 @@ namespace FGSyncOblio\Admin;
 
 final class SettingsShortcut {
 
-	private const TAB_ID = 'oblio';
+	private const TAB_ID = 'oblio-fgwoo';
 
 	public function register(): void {
 		add_filter( 'woocommerce_settings_tabs_array', array( $this, 'add_tab' ), 60 );

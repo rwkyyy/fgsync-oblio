@@ -130,7 +130,6 @@ final class Settings {
 	public function stock_sync_trigger(): string {
 		$stored = (string) get_option( self::PREFIX . 'stock_sync_trigger', '' );
 
-		// Webhook trigger temporarily disabled (payload under verification); keep any existing schedule state.
 		if ( 'both' === $stored ) {
 			return 'schedule';
 		}

@@ -10,6 +10,7 @@ declare( strict_types=1 );
 namespace FGSyncOblio\Admin;
 
 use FGSyncOblio\Extensibility\HookInspector;
+use FGSyncOblio\Queue\Scheduler;
 use FGSyncOblio\Stock\StockSyncCoordinator;
 use FGSyncOblio\Support\Settings;
 final class StatusPanel {
@@ -39,12 +40,12 @@ final class StatusPanel {
 		$overrides  = $this->hooks->all_overrides();
 		$docs_today = $this->count_issued( $entries );
 
-		echo '<div class="oblio-status">';
+		echo '<div class="oblio-fgwoo-status">';
 		$this->summary( $totals, $docs_today );
-		echo '<div class="oblio-grid">';
-		echo '<div class="oblio-col-main">';
+		echo '<div class="oblio-fgwoo-grid">';
+		echo '<div class="oblio-fgwoo-col-main">';
 		$this->log_card( $entries );
-		echo '</div><div class="oblio-col-side">';
+		echo '</div><div class="oblio-fgwoo-col-side">';
 		$this->queue_card( $totals, $by_hook );
 		$this->update_card();
 		$this->hooks_card( $overrides );
@@ -55,7 +56,7 @@ final class StatusPanel {
 		$connected = $this->settings->has_credentials() && '' !== (string) $this->settings->get( 'cif' );
 		$last_sync = (int) get_option( StockSyncCoordinator::LAST_SYNC_OPTION, 0 );
 
-		echo '<div class="oblio-summary">';
+		echo '<div class="oblio-fgwoo-summary">';
 
 		$this->tile(
 			__( 'Conexiune', 'fgsync-oblio' ),
@@ -87,7 +88,7 @@ final class StatusPanel {
 
 	private function tile( string $label, string $value, string $sub, string $tone = 'ink' ): void {
 		printf(
-			'<div class="oblio-tile"><div class="lab">%s</div><div class="val v-%s">%s</div><div class="sub">%s</div></div>',
+			'<div class="oblio-fgwoo-tile"><div class="lab">%s</div><div class="val v-%s">%s</div><div class="sub">%s</div></div>',
 			esc_html( $label ),
 			esc_attr( $tone ),
 			esc_html( $value ),
@@ -98,22 +99,22 @@ final class StatusPanel {
 	private function log_card( array $entries ): void {
 		$logs_url = admin_url( 'admin.php?page=wc-status&tab=logs' );
 
-		echo '<div class="oblio-card"><div class="oblio-card-h"><h2>' . esc_html__( 'Jurnal activitate · azi', 'fgsync-oblio' ) . '</h2>';
-		echo '<span class="oblio-spacer"></span>';
-		echo '<label class="oblio-autoupdate"><input type="checkbox" id="oblio-log-autoupdate"> ' . esc_html__( 'Actualizare automată', 'fgsync-oblio' ) . '</label>';
-		echo '<a class="oblio-link" href="' . esc_url( $logs_url ) . '" target="_blank">' . esc_html__( 'Jurnal complet ↗', 'fgsync-oblio' ) . '</a></div>';
+		echo '<div class="oblio-fgwoo-card"><div class="oblio-fgwoo-card-h"><h2>' . esc_html__( 'Jurnal activitate · azi', 'fgsync-oblio' ) . '</h2>';
+		echo '<span class="oblio-fgwoo-spacer"></span>';
+		echo '<label class="oblio-fgwoo-autoupdate"><input type="checkbox" id="oblio-fgwoo-log-autoupdate"> ' . esc_html__( 'Actualizare automată', 'fgsync-oblio' ) . '</label>';
+		echo '<a class="oblio-fgwoo-link" href="' . esc_url( $logs_url ) . '" target="_blank">' . esc_html__( 'Jurnal complet ↗', 'fgsync-oblio' ) . '</a></div>';
 
-		echo '<div class="oblio-logbody" id="oblio-logbody">' . LogRenderer::rows( $entries ) . '</div></div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- rows already escaped per-field in LogRenderer.
+		echo '<div class="oblio-fgwoo-logbody" id="oblio-fgwoo-logbody">' . LogRenderer::rows( $entries ) . '</div></div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- rows already escaped per-field in LogRenderer.
 	}
 
 	private function queue_card( array $totals, array $by_hook ): void {
 		$as_url = admin_url( 'admin.php?page=wc-status&tab=action-scheduler' );
 
-		echo '<div class="oblio-card"><div class="oblio-card-h"><h2>' . esc_html__( 'Coadă procesare', 'fgsync-oblio' ) . '</h2>';
-		echo '<span class="oblio-spacer"></span><span class="oblio-grp">grup <code>oblio</code></span></div>';
+		echo '<div class="oblio-fgwoo-card"><div class="oblio-fgwoo-card-h"><h2>' . esc_html__( 'Coadă procesare', 'fgsync-oblio' ) . '</h2>';
+		echo '<span class="oblio-fgwoo-spacer"></span><span class="oblio-fgwoo-grp">grup <code>' . esc_html( Scheduler::GROUP ) . '</code></span></div>';
 
 		foreach ( $by_hook as $label => $counts ) {
-			echo '<div class="oblio-qrow"><span class="qname">' . esc_html( $label ) . '</span><span class="oblio-spacer"></span>';
+			echo '<div class="oblio-fgwoo-qrow"><span class="qname">' . esc_html( $label ) . '</span><span class="oblio-fgwoo-spacer"></span>';
 			printf( '<span class="count">%d</span>', (int) $counts['pending'] );
 			if ( $counts['failed'] > 0 ) {
 				printf( '<span class="count fail">%d</span>', (int) $counts['failed'] );
@@ -121,14 +122,14 @@ final class StatusPanel {
 			echo '</div>';
 		}
 
-		echo '<div class="oblio-qactions">';
+		echo '<div class="oblio-fgwoo-qactions">';
 
 		if ( $this->settings->stock_sync_configured() ) {
-			echo '<button type="button" class="button button-primary oblio-sync-now" title="' . esc_attr__( 'Rulează întregul catalog acum, prin pași succesivi; poate dura câteva minute pe cataloage mari.', 'fgsync-oblio' ) . '">' . esc_html__( 'Sincronizează stoc', 'fgsync-oblio' ) . '</button>';
-			echo '<span class="oblio-sync-result"></span>';
+			echo '<button type="button" class="button button-primary oblio-fgwoo-sync-now" title="' . esc_attr__( 'Rulează întregul catalog acum, prin pași succesivi; poate dura câteva minute pe cataloage mari.', 'fgsync-oblio' ) . '">' . esc_html__( 'Sincronizează stoc', 'fgsync-oblio' ) . '</button>';
+			echo '<span class="oblio-fgwoo-sync-result"></span>';
 			if ( \FGSyncOblio\Support\AtomicLock::is_locked( StockSyncCoordinator::RUN_LOCK ) ) {
-				echo '<button type="button" class="button oblio-sync-unlock" title="' . esc_attr__( 'O sincronizare pare blocată (probabil întreruptă de server înainte să termine).', 'fgsync-oblio' ) . '">' . esc_html__( 'Deblochează sincronizarea', 'fgsync-oblio' ) . '</button>';
-				echo '<span class="oblio-unlock-result"></span>';
+				echo '<button type="button" class="button oblio-fgwoo-sync-unlock" title="' . esc_attr__( 'O sincronizare pare blocată (probabil întreruptă de server înainte să termine).', 'fgsync-oblio' ) . '">' . esc_html__( 'Deblochează sincronizarea', 'fgsync-oblio' ) . '</button>';
+				echo '<span class="oblio-fgwoo-unlock-result"></span>';
 			}
 		}
 		echo '<a class="button" href="' . esc_url( $as_url ) . '">' . esc_html__( 'Vezi coada', 'fgsync-oblio' ) . '</a>';
@@ -141,41 +142,41 @@ final class StatusPanel {
 		$available = $this->update->update_available();
 		$checked   = $this->update->last_checked();
 
-		echo '<div class="oblio-card"><div class="oblio-card-h"><h2>' . esc_html__( 'Actualizare', 'fgsync-oblio' ) . '</h2>';
-		echo '<span class="oblio-spacer"></span>';
+		echo '<div class="oblio-fgwoo-card"><div class="oblio-fgwoo-card-h"><h2>' . esc_html__( 'Actualizare', 'fgsync-oblio' ) . '</h2>';
+		echo '<span class="oblio-fgwoo-spacer"></span>';
 		if ( $available ) {
-			echo '<span class="oblio-badge-upd">' . esc_html__( 'disponibilă', 'fgsync-oblio' ) . '</span>';
+			echo '<span class="oblio-fgwoo-badge-upd">' . esc_html__( 'disponibilă', 'fgsync-oblio' ) . '</span>';
 		}
-		echo '</div><div class="oblio-upd">';
+		echo '</div><div class="oblio-fgwoo-upd">';
 		if ( $available ) {
 			printf( '<div class="verline"><span class="cur">%s</span><span class="arrow">→</span><span class="new">%s</span></div>', esc_html( $installed ), esc_html( $latest ) );
 			echo '<a class="button button-primary" href="' . esc_url( admin_url( 'plugins.php' ) ) . '">' . esc_html__( 'Actualizează', 'fgsync-oblio' ) . '</a>';
 		} else {
-			printf( '<div class="verline"><span class="cur">%s</span> <span class="oblio-ok">%s</span></div>', esc_html( $installed ), esc_html__( 'la zi', 'fgsync-oblio' ) );
+			printf( '<div class="verline"><span class="cur">%s</span> <span class="oblio-fgwoo-ok">%s</span></div>', esc_html( $installed ), esc_html__( 'la zi', 'fgsync-oblio' ) );
 		}
 		echo '<div class="meta">';
 		if ( $checked ) {
 			/* translators: %s: human-readable time difference (e.g. "2 hours") */
 			printf( esc_html__( 'Verificat %s în urmă.', 'fgsync-oblio' ), esc_html( human_time_diff( $checked ) ) );
 		}
-		echo ' <a class="oblio-link" href="' . esc_url( $this->update->check_now_url() ) . '">' . esc_html__( 'Verifică acum', 'fgsync-oblio' ) . '</a></div>';
+		echo ' <a class="oblio-fgwoo-link" href="' . esc_url( $this->update->check_now_url() ) . '">' . esc_html__( 'Verifică acum', 'fgsync-oblio' ) . '</a></div>';
 		echo '<div class="note">' . esc_html__( 'Livrată prin WordPress.org, fără updater propriu.', 'fgsync-oblio' ) . '</div>';
 		echo '</div></div>';
 	}
 
 	private function hooks_card( array $overrides ): void {
-		echo '<div class="oblio-card"><div class="oblio-card-h"><h2>' . esc_html__( 'Suprascrieri acțiuni', 'fgsync-oblio' ) . '</h2>';
-		echo '<span class="oblio-spacer"></span><span class="oblio-count-warn">' . (int) count( $overrides ) . '</span></div>';
+		echo '<div class="oblio-fgwoo-card"><div class="oblio-fgwoo-card-h"><h2>' . esc_html__( 'Suprascrieri acțiuni', 'fgsync-oblio' ) . '</h2>';
+		echo '<span class="oblio-fgwoo-spacer"></span><span class="oblio-fgwoo-count-warn">' . (int) count( $overrides ) . '</span></div>';
 
 		if ( empty( $overrides ) ) {
-			echo '<p class="oblio-empty">' . esc_html__( 'Niciun hook suprascris, comportament implicit.', 'fgsync-oblio' ) . '</p></div>';
+			echo '<p class="oblio-fgwoo-empty">' . esc_html__( 'Niciun hook suprascris, comportament implicit.', 'fgsync-oblio' ) . '</p></div>';
 			return;
 		}
 
 		foreach ( $overrides as $hook => $callbacks ) {
 			foreach ( $callbacks as $callback ) {
-				echo '<div class="oblio-hookrow"><span class="hookname">' . esc_html( $hook ) . '</span>';
-				echo '<span class="oblio-tag over">' . esc_html__( 'suprascris', 'fgsync-oblio' ) . '</span>';
+				echo '<div class="oblio-fgwoo-hookrow"><span class="hookname">' . esc_html( $hook ) . '</span>';
+				echo '<span class="oblio-fgwoo-tag over">' . esc_html__( 'suprascris', 'fgsync-oblio' ) . '</span>';
 				printf(
 					'<span class="hooksrc">%s:%d · prioritate %d</span></div>',
 					esc_html( $this->short_path( $callback['file'] ) ),
@@ -185,7 +186,7 @@ final class StatusPanel {
 			}
 		}
 
-		echo '<div class="oblio-hooknote">' . esc_html__( 'Suprascrierile sunt permise, listate aici ca să nu fie niciodată tăcute.', 'fgsync-oblio' ) . '</div></div>';
+		echo '<div class="oblio-fgwoo-hooknote">' . esc_html__( 'Suprascrierile sunt permise, listate aici ca să nu fie niciodată tăcute.', 'fgsync-oblio' ) . '</div></div>';
 	}
 
 	private function short_path( string $file ): string {

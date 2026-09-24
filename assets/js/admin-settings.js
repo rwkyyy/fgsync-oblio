@@ -53,9 +53,9 @@
 	} );
 
 	$( function () {
-		$( '.oblio-sync-now' ).on( 'click', function () {
+		$( '.oblio-fgwoo-sync-now' ).on( 'click', function () {
 			var $sync = $( this );
-			var $result = $sync.siblings( '.oblio-sync-result' ).first();
+			var $result = $sync.siblings( '.oblio-fgwoo-sync-result' ).first();
 
 			function fail( message ) {
 				$result.text( message || fgsyncOblio.i18n.error ).css( 'color', '#c62d1c' );
@@ -102,16 +102,16 @@
 			} );
 		} );
 
-		var logBody = document.getElementById( 'oblio-logbody' );
+		var logBody = document.getElementById( 'oblio-fgwoo-logbody' );
 		if ( logBody ) {
 			logBody.scrollTop = logBody.scrollHeight;
 		}
 	} );
 
 	$( function () {
-		$( '.oblio-sync-unlock' ).on( 'click', function () {
+		$( '.oblio-fgwoo-sync-unlock' ).on( 'click', function () {
 			var $btn = $( this );
-			var $result = $btn.siblings( '.oblio-unlock-result' ).first();
+			var $result = $btn.siblings( '.oblio-fgwoo-unlock-result' ).first();
 			$btn.prop( 'disabled', true );
 			$result.text( '…' ).css( 'color', '#157347' );
 			$.post( fgsyncOblio.ajaxUrl, {
@@ -122,7 +122,7 @@
 				var ok = response && response.success;
 				$result.text( ( data && data.message ) || '' ).css( 'color', ok ? '#157347' : '#c62d1c' );
 				if ( ok ) {
-					var $wrap = $btn.closest( '.oblio-lock-warning' );
+					var $wrap = $btn.closest( '.oblio-fgwoo-lock-warning' );
 					( $wrap.length ? $wrap : $btn ).fadeOut( 400 );
 				} else {
 					$btn.prop( 'disabled', false );
@@ -135,8 +135,8 @@
 	} );
 
 	$( function () {
-		var $toggle = $( '#oblio-log-autoupdate' );
-		var $logBody = $( '#oblio-logbody' );
+		var $toggle = $( '#oblio-fgwoo-log-autoupdate' );
+		var $logBody = $( '#oblio-fgwoo-logbody' );
 		if ( ! $toggle.length || ! $logBody.length ) {
 			return;
 		}
@@ -194,9 +194,9 @@
 	} );
 
 	$( function () {
-		$( '.oblio-import-now' ).on( 'click', function () {
+		$( '.oblio-fgwoo-import-now' ).on( 'click', function () {
 			var $btn = $( this );
-			var $result = $btn.siblings( '.oblio-import-result' ).first();
+			var $result = $btn.siblings( '.oblio-fgwoo-import-result' ).first();
 			if ( ! window.confirm( fgsyncOblio.i18n.confirmImport ) ) {
 				return;
 			}
@@ -221,24 +221,24 @@
 	} );
 
 	$( function () {
-		var $page = $( '.oblio-page' );
-		var $body = $( '.oblio-page-body' );
-		if ( ! $page.length || ! $body.find( '.oblio-section' ).length ) {
+		var $page = $( '.oblio-fgwoo-page' );
+		var $body = $( '.oblio-fgwoo-page-body' );
+		if ( ! $page.length || ! $body.find( '.oblio-fgwoo-section' ).length ) {
 			return;
 		}
 
-		var $form = $body.find( '.oblio-settings-form' );
-		var $tabs = $page.find( '.oblio-tab' );
-		var $nav  = $page.find( '.oblio-tabs' );
+		var $form = $body.find( '.oblio-fgwoo-settings-form' );
+		var $tabs = $page.find( '.oblio-fgwoo-tab' );
+		var $nav  = $page.find( '.oblio-fgwoo-tabs' );
 
 		$nav.attr( 'role', 'tablist' );
 		$tabs.each( function () {
 			var $tab   = $( this );
 			var name   = $tab.data( 'section' );
-			var $panel = $body.find( '.oblio-section[data-section="' + name + '"]' );
-			$tab.attr( { role: 'tab', id: 'oblio-tab-' + name, 'aria-controls': 'oblio-panel-' + name } );
+			var $panel = $body.find( '.oblio-fgwoo-section[data-section="' + name + '"]' );
+			$tab.attr( { role: 'tab', id: 'oblio-fgwoo-tab-' + name, 'aria-controls': 'oblio-fgwoo-panel-' + name } );
 			if ( $panel.length ) {
-				$panel.attr( { role: 'tabpanel', id: 'oblio-panel-' + name, 'aria-labelledby': 'oblio-tab-' + name, tabindex: '0' } );
+				$panel.attr( { role: 'tabpanel', id: 'oblio-fgwoo-panel-' + name, 'aria-labelledby': 'oblio-fgwoo-tab-' + name, tabindex: '0' } );
 			}
 		} );
 
@@ -295,7 +295,7 @@
 		}
 
 		function showSection( name ) {
-			var $sections = $body.find( '.oblio-section' );
+			var $sections = $body.find( '.oblio-fgwoo-section' );
 			var $target   = $sections.filter( '[data-section="' + name + '"]' );
 			if ( ! $target.length ) {
 				return false;
@@ -308,7 +308,7 @@
 			return true;
 		}
 
-		$page.addClass( 'oblio-has-tabs' );
+		$page.addClass( 'oblio-fgwoo-has-tabs' );
 
 		function activate( $tab, pushHistory ) {
 			if ( ! showSection( $tab.data( 'section' ) ) ) {
@@ -326,7 +326,7 @@
 			}
 		} );
 
-		$nav.on( 'keydown', '.oblio-tab', function ( e ) {
+		$nav.on( 'keydown', '.oblio-fgwoo-tab', function ( e ) {
 			var idx  = $tabs.index( this );
 			var next = null;
 			if ( 37 === e.which ) {
@@ -356,17 +356,17 @@
 
 		$( '#oblio_fgwoo_email_mode' ).on( 'change', function () {
 			applyConditionals();
-			enhance( $body.find( '.oblio-section[data-section="email"]' ) );
+			enhance( $body.find( '.oblio-fgwoo-section[data-section="email"]' ) );
 		} );
 		$( '#oblio_fgwoo_invoice_generation' ).on( 'change', applyConditionals );
 		$( '#oblio_fgwoo_stock_sync_trigger' ).on( 'change', applyConditionals );
 		$( '#oblio_fgwoo_collect_mode' ).on( 'change', function () {
 			applyConditionals();
-			enhance( $body.find( '.oblio-section[data-section="collection"]' ) );
+			enhance( $body.find( '.oblio-fgwoo-section[data-section="collection"]' ) );
 		} );
 		$( '#oblio_fgwoo_proforma_autogen, #oblio_fgwoo_proforma_on_received' ).on( 'change', function () {
 			applyConditionals();
-			enhance( $body.find( '.oblio-section[data-section="documents"]' ) );
+			enhance( $body.find( '.oblio-fgwoo-section[data-section="documents"]' ) );
 		} );
 
 		var initial = $body.data( 'active' ) || 'connection';
@@ -395,7 +395,7 @@
 	} );
 
 	$( function () {
-		$( '#oblio_fgwoo_test_result, .oblio-sync-result, .oblio-import-result' )
+		$( '#oblio_fgwoo_test_result, .oblio-fgwoo-sync-result, .oblio-fgwoo-import-result' )
 			.attr( { role: 'status', 'aria-live': 'polite' } );
 	} );
 }( jQuery ) );

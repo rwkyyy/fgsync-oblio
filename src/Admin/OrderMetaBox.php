@@ -75,22 +75,35 @@ final class OrderMetaBox {
 
 		$order_id = $order->get_id();
 
-		echo '<div class="oblio-orderbox" data-order="' . esc_attr( (string) $order_id ) . '">';
+		echo '<div class="oblio-fgwoo-orderbox" data-order="' . esc_attr( (string) $order_id ) . '">';
 
-		$this->document_row( $order, OrderMeta::TYPE_INVOICE, __( 'Factură', 'fgsync-oblio' ), true );
-		$this->document_row( $order, OrderMeta::TYPE_PROFORMA, __( 'Proformă', 'fgsync-oblio' ), false );
+		$errors   = array();
+		$invoiced = null !== OrderMeta::get( $order, OrderMeta::TYPE_INVOICE );
+
+		$errors[] = $this->document_row( $order, OrderMeta::TYPE_INVOICE, __( 'Factură', 'fgsync-oblio' ), true );
+		if ( ! $invoiced || null !== OrderMeta::get( $order, OrderMeta::TYPE_PROFORMA ) ) {
+			$errors[] = $this->document_row( $order, OrderMeta::TYPE_PROFORMA, __( 'Proformă', 'fgsync-oblio' ), false );
+		}
 		if ( $this->settings->is_enabled( 'notice_enabled' ) ) {
-			$this->document_row( $order, OrderMeta::TYPE_NOTICE, __( 'Aviz', 'fgsync-oblio' ), false );
+			$errors[] = $this->document_row( $order, OrderMeta::TYPE_NOTICE, __( 'Aviz', 'fgsync-oblio' ), false );
 		}
 		$this->storno_row( $order );
 
-		echo '<div class="oblio-orderbox-result"></div>';
+		foreach ( array_filter( $errors ) as $reason ) {
+			printf(
+				'<p class="oblio-fgwoo-orderbox-row"><span class="oblio-fgwoo-orderbox-error">%s</span></p>',
+				esc_html( $reason )
+			);
+		}
+
+		echo '<div class="oblio-fgwoo-orderbox-result"></div>';
 		echo '</div>';
 	}
 
-	private function document_row( WC_Order $order, string $doc_type, string $label, bool $with_stock ): void {
+	private function document_row( WC_Order $order, string $doc_type, string $label, bool $with_stock ): string {
 		$document = OrderMeta::get( $order, $doc_type );
-		echo '<p class="oblio-orderbox-row">';
+		$reason   = '';
+		echo '<p class="oblio-fgwoo-orderbox-row">';
 
 		if ( null !== $document ) {
 			printf(
@@ -103,32 +116,32 @@ final class OrderMetaBox {
 
 			if ( OrderMeta::is_last_document( $order, $doc_type ) ) {
 				printf(
-					'<button type="button" class="button oblio-danger oblio-order-action" data-task="delete" data-doc-type="%1$s" data-confirm="1" data-confirm-msg="%2$s">%3$s</button>',
+					'<button type="button" class="button oblio-fgwoo-danger oblio-fgwoo-order-action" data-task="delete" data-doc-type="%1$s" data-confirm="1" data-confirm-msg="%2$s">%3$s</button>',
 					esc_attr( $doc_type ),
 					esc_attr__( 'Ștergi definitiv acest document din Oblio? Acțiunea este ireversibilă.', 'fgsync-oblio' ),
 					esc_html__( 'Șterge', 'fgsync-oblio' )
 				);
-			} else {
-				echo '<span class="oblio-orderbox-hint">'
-					. esc_html__( 'Nu se poate șterge: nu este ultimul document din serie. Emite un storno.', 'fgsync-oblio' )
-					. '</span>';
 			}
 		} else {
 			printf(
-				'<button type="button" class="button button-primary oblio-order-action" data-task="issue" data-doc-type="%1$s"%2$s>%3$s</button>',
+				'<button type="button" class="button button-primary oblio-fgwoo-order-action" data-task="issue" data-doc-type="%1$s"%2$s>%3$s</button>',
 				esc_attr( $doc_type ),
 				$with_stock ? ' data-use-stock="1"' : '',
 				esc_html( sprintf( /* translators: %s: doc label */ __( 'Emite %s', 'fgsync-oblio' ), $label ) )
 			);
 			if ( $with_stock ) {
 				printf(
-					' <button type="button" class="button oblio-order-action" data-task="issue" data-doc-type="%1$s">%2$s</button>',
+					' <button type="button" class="button oblio-fgwoo-order-action" data-task="issue" data-doc-type="%1$s">%2$s</button>',
 					esc_attr( $doc_type ),
 					esc_html__( 'Emite fără descărcare', 'fgsync-oblio' )
 				);
 			}
+
+			$reason = (string) $order->get_meta( OrderMeta::key( $doc_type, 'failed' ) );
 		}
 		echo '</p>';
+
+		return $reason;
 	}
 
 	private function storno_row( WC_Order $order ): void {
@@ -136,7 +149,7 @@ final class OrderMetaBox {
 			return;
 		}
 		$storni = OrderMeta::storno_list( $order );
-		echo '<p class="oblio-orderbox-row">';
+		echo '<p class="oblio-fgwoo-orderbox-row">';
 		if ( ! empty( $storni ) ) {
 			foreach ( $storni as $storno ) {
 				$link = (string) ( $storno['link'] ?? '' );
@@ -156,7 +169,7 @@ final class OrderMetaBox {
 			}
 		} else {
 			printf(
-				'<button type="button" class="button oblio-order-action oblio-danger" data-task="storno" data-doc-type="invoice" data-confirm="1" data-confirm-msg="%s">%s</button>',
+				'<button type="button" class="button oblio-fgwoo-order-action oblio-fgwoo-danger" data-task="storno" data-doc-type="invoice" data-confirm="1" data-confirm-msg="%s">%s</button>',
 				esc_attr__( 'Emiți factura storno pentru această comandă? Acțiunea este ireversibilă.', 'fgsync-oblio' ),
 				esc_html__( 'Stornează factura', 'fgsync-oblio' )
 			);

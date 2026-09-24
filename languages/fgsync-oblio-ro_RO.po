@@ -4,8 +4,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: FGSync for Oblio 1.1.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/fgsync-oblio\n"
-"POT-Creation-Date: 2026-09-21T09:30:53+00:00\n"
-"PO-Revision-Date: 2026-09-14T11:01:17+00:00\n"
+"POT-Creation-Date: 2026-09-24T11:12:03+00:00\n"
+"PO-Revision-Date: 2026-09-24T00:00:00+00:00\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: ro\n"
@@ -124,7 +124,7 @@ msgid "nu aveau factură sau aveau deja storno"
 msgstr "nu aveau factură sau aveau deja storno"
 
 #: src/Admin/ConnectionTest.php:38 src/Admin/ImportAction.php:27
-#: src/Admin/LogTailAction.php:26 src/Admin/OrderActions.php:44
+#: src/Admin/LogTailAction.php:26 src/Admin/OrderActions.php:45
 #: src/Admin/StockSyncAction.php:33 src/Admin/StockSyncAction.php:51
 #: src/Admin/StockSyncAction.php:92
 msgid "Acțiune neautorizată."
@@ -168,21 +168,21 @@ msgstr ""
 msgid "Fără intrări."
 msgstr "Fără intrări."
 
-#: src/Admin/OrderActions.php:54
+#: src/Admin/OrderActions.php:55
 msgid "Comandă inexistentă."
 msgstr "Comandă inexistentă."
 
-#: src/Admin/OrderActions.php:58
+#: src/Admin/OrderActions.php:59
 msgid "Acțiune neautorizată pentru această comandă."
 msgstr "Acțiune neautorizată pentru această comandă."
 
-#: src/Admin/OrderActions.php:93
+#: src/Admin/OrderActions.php:96
 msgid ""
 "Se poate șterge doar ultimul document din serie. Emite un storno în schimb."
 msgstr ""
 "Se poate șterge doar ultimul document din serie. Emite un storno în schimb."
 
-#: src/Admin/OrderActions.php:101
+#: src/Admin/OrderActions.php:104
 msgid "Acțiune necunoscută."
 msgstr "Acțiune necunoscută."
 
@@ -190,30 +190,30 @@ msgstr "Acțiune necunoscută."
 msgid "Oblio"
 msgstr "Oblio"
 
-#: src/Admin/OrderListColumn.php:62 src/Admin/OrderMetaBox.php:81
+#: src/Admin/OrderListColumn.php:62 src/Admin/OrderMetaBox.php:85
 #: src/Admin/SettingsPage.php:425
 msgid "Proformă"
 msgstr "Proformă"
 
-#: src/Admin/OrderListColumn.php:68
-msgid "eșec"
-msgstr "eșec"
+#: src/Admin/OrderListColumn.php:73
+msgid "Emiterea facturii a eșuat"
+msgstr "Emiterea facturii a eșuat"
 
-#: src/Admin/OrderListColumn.php:77
+#: src/Admin/OrderListColumn.php:84
 msgid "storno"
 msgstr "storno"
 
 #: src/Admin/OrderListFilter.php:37
-msgid "Documente Oblio: toate"
-msgstr "Documente Oblio: toate"
+msgid "Toate documentele"
+msgstr "Toate documentele"
 
 #: src/Admin/OrderListFilter.php:38
 msgid "Fără documente"
 msgstr "Fără documente"
 
 #: src/Admin/OrderListFilter.php:39
-msgid "Cu proformă (fără factură)"
-msgstr "Cu proformă (fără factură)"
+msgid "Cu proformă"
+msgstr "Cu proformă"
 
 #: src/Admin/OrderListFilter.php:40
 msgid "Cu factură"
@@ -228,8 +228,8 @@ msgid "Cu storno"
 msgstr "Cu storno"
 
 #: src/Admin/OrderListFilter.php:43
-msgid "Emitere eșuată"
-msgstr "Emitere eșuată"
+msgid "Eșuată"
+msgstr "Eșuată"
 
 #: src/Admin/OrderMetaBox.php:37
 msgid "Facturare Oblio"
@@ -251,60 +251,54 @@ msgstr "Eroare"
 msgid "Cererea a eșuat"
 msgstr "Cererea a eșuat"
 
-#: src/Admin/OrderMetaBox.php:80 src/Admin/SettingsPage.php:467
+#: src/Admin/OrderMetaBox.php:83 src/Admin/SettingsPage.php:467
 #: src/Frontend/AccountInvoices.php:94
 msgid "Factură"
 msgstr "Factură"
 
-#: src/Admin/OrderMetaBox.php:83
+#: src/Admin/OrderMetaBox.php:88
 msgid "Aviz"
 msgstr "Aviz"
 
 #. translators: %s: doc label
-#: src/Admin/OrderMetaBox.php:99
+#: src/Admin/OrderMetaBox.php:112
 #, php-format
 msgid "Vezi %s"
 msgstr "Vezi %s"
 
-#: src/Admin/OrderMetaBox.php:108
+#: src/Admin/OrderMetaBox.php:121
 msgid "Ștergi definitiv acest document din Oblio? Acțiunea este ireversibilă."
 msgstr "Ștergi definitiv acest document din Oblio? Acțiunea este ireversibilă."
 
-#: src/Admin/OrderMetaBox.php:109
+#: src/Admin/OrderMetaBox.php:122
 msgid "Șterge"
 msgstr "Șterge"
 
-#: src/Admin/OrderMetaBox.php:113
-msgid ""
-"Nu se poate șterge: nu este ultimul document din serie. Emite un storno."
-msgstr ""
-"Nu se poate șterge: nu este ultimul document din serie. Emite un storno."
-
 #. translators: %s: doc label
-#: src/Admin/OrderMetaBox.php:121
+#: src/Admin/OrderMetaBox.php:130
 #, php-format
 msgid "Emite %s"
 msgstr "Emite %s"
 
-#: src/Admin/OrderMetaBox.php:127
+#: src/Admin/OrderMetaBox.php:136
 msgid "Emite fără descărcare"
 msgstr "Emite fără descărcare"
 
-#: src/Admin/OrderMetaBox.php:147
+#: src/Admin/OrderMetaBox.php:160
 msgid "Vezi storno parțial"
 msgstr "Vezi storno parțial"
 
-#: src/Admin/OrderMetaBox.php:148
+#: src/Admin/OrderMetaBox.php:161
 msgid "Vezi storno total"
 msgstr "Vezi storno total"
 
-#: src/Admin/OrderMetaBox.php:160
+#: src/Admin/OrderMetaBox.php:173
 msgid ""
 "Emiți factura storno pentru această comandă? Acțiunea este ireversibilă."
 msgstr ""
 "Emiți factura storno pentru această comandă? Acțiunea este ireversibilă."
 
-#: src/Admin/OrderMetaBox.php:161
+#: src/Admin/OrderMetaBox.php:174
 msgid "Stornează factura"
 msgstr "Stornează factura"
 
@@ -762,7 +756,7 @@ msgstr "Excepții"
 msgid "Aceste metode NU se marchează ca încasate."
 msgstr "Aceste metode NU se marchează ca încasate."
 
-#: src/Admin/SettingsPage.php:600 src/Admin/StatusPanel.php:80
+#: src/Admin/SettingsPage.php:600 src/Admin/StatusPanel.php:81
 msgid "Sincronizare stoc"
 msgstr "Sincronizare stoc"
 
@@ -794,7 +788,8 @@ msgstr "Programată"
 
 #: src/Admin/SettingsPage.php:614
 msgid "Rulează la un interval fix definit mai jos și preia toate modificările."
-msgstr "Rulează la un interval fix definit mai jos și preia toate modificările."
+msgstr ""
+"Rulează la un interval fix definit mai jos și preia toate modificările."
 
 #: src/Admin/SettingsPage.php:617
 msgid "Interval"
@@ -1140,7 +1135,7 @@ msgstr ""
 "O sincronizare pare blocată (probabil întreruptă de server înainte să "
 "termine). Dacă nu pornește din nou de la sine, o poți debloca manual:"
 
-#: src/Admin/SettingsPage.php:992 src/Admin/StatusPanel.php:130
+#: src/Admin/SettingsPage.php:992 src/Admin/StatusPanel.php:131
 msgid "Deblochează sincronizarea"
 msgstr "Deblochează sincronizarea"
 
@@ -1166,69 +1161,69 @@ msgstr "Setările Oblio se află pe pagina dedicată, cu design propriu."
 msgid "Deschide setările Oblio"
 msgstr "Deschide setările Oblio"
 
-#: src/Admin/StatusPanel.php:61
+#: src/Admin/StatusPanel.php:62
 msgid "Conexiune"
 msgstr "Conexiune"
 
-#: src/Admin/StatusPanel.php:62
+#: src/Admin/StatusPanel.php:63
 msgid "Configurată"
 msgstr "Configurată"
 
-#: src/Admin/StatusPanel.php:62
+#: src/Admin/StatusPanel.php:63
 msgid "Neconfigurată"
 msgstr "Neconfigurată"
 
-#: src/Admin/StatusPanel.php:63
+#: src/Admin/StatusPanel.php:64
 msgid "Introdu datele în secțiunea \"Conectare\""
 msgstr "Introdu datele în secțiunea \"Conectare\""
 
-#: src/Admin/StatusPanel.php:67
+#: src/Admin/StatusPanel.php:68
 msgid "Documente azi"
 msgstr "Documente azi"
 
-#: src/Admin/StatusPanel.php:69
+#: src/Admin/StatusPanel.php:70
 msgid "aprox. · din jurnalul fișier"
 msgstr "aprox. · din jurnalul fișier"
 
 #. translators: %d: number of pending queue jobs
-#: src/Admin/StatusPanel.php:73
+#: src/Admin/StatusPanel.php:74
 #, php-format
 msgid "%d în așteptare"
 msgstr "%d în așteptare"
 
-#: src/Admin/StatusPanel.php:75
+#: src/Admin/StatusPanel.php:76
 msgid "Coadă"
 msgstr "Coadă"
 
-#: src/Admin/StatusPanel.php:77
+#: src/Admin/StatusPanel.php:78
 msgid "active / eșuate"
 msgstr "active / eșuate"
 
-#: src/Admin/StatusPanel.php:81
+#: src/Admin/StatusPanel.php:82
 msgid "niciodată"
 msgstr "niciodată"
 
-#: src/Admin/StatusPanel.php:82
+#: src/Admin/StatusPanel.php:83
 msgid "în urmă"
 msgstr "în urmă"
 
-#: src/Admin/StatusPanel.php:101
+#: src/Admin/StatusPanel.php:102
 msgid "Jurnal activitate · azi"
 msgstr "Jurnal activitate · azi"
 
-#: src/Admin/StatusPanel.php:103
+#: src/Admin/StatusPanel.php:104
 msgid "Actualizare automată"
 msgstr "Actualizare automată"
 
-#: src/Admin/StatusPanel.php:104
+#: src/Admin/StatusPanel.php:105
 msgid "Jurnal complet ↗"
 msgstr "Jurnal complet ↗"
 
-#: src/Admin/StatusPanel.php:112
+#: src/Admin/StatusPanel.php:113
 msgid "Coadă procesare"
 msgstr "Coadă procesare"
 
-#: src/Admin/StatusPanel.php:127
+#: src/Admin/StatusPanel.php:128
 msgid ""
 "Rulează întregul catalog acum, prin pași succesivi; poate dura câteva minute "
 "pe cataloage mari."
@@ -1236,11 +1231,11 @@ msgstr ""
 "Rulează întregul catalog acum, prin pași succesivi; poate dura câteva minute "
 "pe cataloage mari."
 
-#: src/Admin/StatusPanel.php:127
+#: src/Admin/StatusPanel.php:128
 msgid "Sincronizează stoc"
 msgstr "Sincronizează stoc"
 
-#: src/Admin/StatusPanel.php:130
+#: src/Admin/StatusPanel.php:131
 msgid ""
 "O sincronizare pare blocată (probabil întreruptă de server înainte să "
 "termine)."
@@ -1248,53 +1243,53 @@ msgstr ""
 "O sincronizare pare blocată (probabil întreruptă de server înainte să "
 "termine)."
 
-#: src/Admin/StatusPanel.php:134
+#: src/Admin/StatusPanel.php:135
 msgid "Vezi coada"
 msgstr "Vezi coada"
 
-#: src/Admin/StatusPanel.php:144
+#: src/Admin/StatusPanel.php:145
 msgid "Actualizare"
 msgstr "Actualizare"
 
-#: src/Admin/StatusPanel.php:147
+#: src/Admin/StatusPanel.php:148
 msgid "disponibilă"
 msgstr "disponibilă"
 
-#: src/Admin/StatusPanel.php:152
+#: src/Admin/StatusPanel.php:153
 msgid "Actualizează"
 msgstr "Actualizează"
 
-#: src/Admin/StatusPanel.php:154
+#: src/Admin/StatusPanel.php:155
 msgid "la zi"
 msgstr "la zi"
 
 #. translators: %s: human-readable time difference (e.g. "2 hours")
-#: src/Admin/StatusPanel.php:159
+#: src/Admin/StatusPanel.php:160
 #, php-format
 msgid "Verificat %s în urmă."
 msgstr "Verificat %s în urmă."
 
-#: src/Admin/StatusPanel.php:161
+#: src/Admin/StatusPanel.php:162
 msgid "Verifică acum"
 msgstr "Verifică acum"
 
-#: src/Admin/StatusPanel.php:162
+#: src/Admin/StatusPanel.php:163
 msgid "Livrată prin WordPress.org, fără updater propriu."
 msgstr "Livrată prin WordPress.org, fără updater propriu."
 
-#: src/Admin/StatusPanel.php:167
+#: src/Admin/StatusPanel.php:168
 msgid "Suprascrieri acțiuni"
 msgstr "Suprascrieri acțiuni"
 
-#: src/Admin/StatusPanel.php:171
+#: src/Admin/StatusPanel.php:172
 msgid "Niciun hook suprascris, comportament implicit."
 msgstr "Niciun hook suprascris, comportament implicit."
 
-#: src/Admin/StatusPanel.php:178
+#: src/Admin/StatusPanel.php:179
 msgid "suprascris"
 msgstr "suprascris"
 
-#: src/Admin/StatusPanel.php:188
+#: src/Admin/StatusPanel.php:189
 msgid ""
 "Suprascrierile sunt permise, listate aici ca să nu fie niciodată tăcute."
 msgstr ""
@@ -1329,6 +1324,14 @@ msgid "Email sau API secret lipsă."
 msgstr "Email sau API secret lipsă."
 
 #: src/Document/DocumentService.php:61
+msgid ""
+"Un alt proces emite deja acest document pentru comandă; se va reîncerca "
+"automat."
+msgstr ""
+"Un alt proces emite deja acest document pentru comandă; se va reîncerca "
+"automat."
+
+#: src/Document/DocumentService.php:84
 msgid "Răspuns invalid de la Oblio la emiterea documentului."
 msgstr "Răspuns invalid de la Oblio la emiterea documentului."
 
@@ -1550,6 +1553,23 @@ msgstr "Sincronizarea stocului nu este configurată."
 #: src/Webhook/Handler/CollectInsertedHandler.php:58
 msgid "Oblio: încasare confirmată."
 msgstr "Oblio: încasare confirmată."
+
+#~ msgid "eșec"
+#~ msgstr "eșec"
+
+#~ msgid "Documente Oblio: toate"
+#~ msgstr "Documente Oblio: toate"
+
+#~ msgid "Cu proformă (fără factură)"
+#~ msgstr "Cu proformă (fără factură)"
+
+#~ msgid "Emitere eșuată"
+#~ msgstr "Emitere eșuată"
+
+#~ msgid ""
+#~ "Nu se poate șterge: nu este ultimul document din serie. Emite un storno."
+#~ msgstr ""
+#~ "Nu se poate șterge: nu este ultimul document din serie. Emite un storno."
 
 #~ msgid "Oblio Invoicing"
 #~ msgstr "Oblio Facturare"

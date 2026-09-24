@@ -8,7 +8,7 @@ Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Facturare & Gestiune pentru WooCommerce prin Oblio.
+Invoicing and stock management for WooCommerce through Oblio.
 
 == Description ==
 
@@ -105,6 +105,11 @@ Under Email, pick a mode. "Standalone" sends a separate message from the plugin 
 * Internal-only changes (PHP namespace, compile-time constants, script/style handles): renamed to the new brand. All persisted data — settings, order/product meta, scheduled jobs, webhook subscriptions, rate-limit state — keeps its existing `oblio_fgwoo_...` storage keys unchanged, so upgrading in place does not reset your configuration or lose data.
 * Because the plugin slug and main file changed, this version is registered with WordPress as a different plugin from the old `oblio-fgwoo` builds used during the beta. Sites running a pre-1.1.0 beta build must deactivate/remove the old plugin folder and install this one; see the "Upgrading from a pre-1.1.0 beta" note below. Settings and order data are preserved because they are stored under the unchanged `oblio_fgwoo_` option/meta prefix; only the plugin's own active-plugin registration, and any queued/in-flight Action Scheduler jobs that were already running under the old install at the moment of swap, are affected.
 * Minor: moved a handful of directly-printed inline `style=""` attributes into the stylesheet.
+* Fixed a race condition that could issue two invoices for the same order (e.g. a manual "Issue invoice" click overlapping with an already-queued automatic issue) by serializing document issuance per order with a short-lived lock.
+* The orders list now flags a failed invoice with a red "!" badge (hover for the reason) instead of plain text, and the order screen's Oblio box shows the last failure reason under the issue button so you can see why a document isn't out without checking the log.
+* The order screen's Oblio box no longer offers "Issue proforma" once the invoice is already issued, and no longer shows the "can't delete, not last in series" note on every older document — deleting stays available only where it's actually allowed.
+* A couple of status colors (error/success) now match WooCommerce's own admin color scheme where it's loaded, falling back to the plugin's own colors elsewhere.
+* Fixed the orders list "Emitere eșuată" filter showing orders that had already been invoiced (and even stornoed) since — it now only lists orders that failed and still have no invoice.
 
 = 1.0.2 =
 * Temporarily disabled the stock webhook trigger (real-time sync on Oblio's notification) while its payload is verified against more real-world traffic; the "Webhook" and "Both" sync modes are removed from settings, existing subscriptions on the Oblio side are cleaned up automatically, and the scheduled sync is unaffected. Sites that had "Webhook only" selected fall back to no automatic sync (was never a schedule they chose) and must pick "Programată" if they want stock kept in sync in the meantime; sites that had "Both" keep their schedule.

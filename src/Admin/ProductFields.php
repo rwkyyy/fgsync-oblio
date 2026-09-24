@@ -27,7 +27,6 @@ final class ProductFields {
 	private const META_PACKAGE_NUMBER           = 'oblio_fgwoo_package_number';
 	private const META_VARIATION_PACKAGE_NUMBER = 'oblio_fgwoo_variation_package_number';
 
-	// Unprefixed keys the predecessor plugin wrote; read-only, kept for products set up before this plugin.
 	private const LEGACY_META_PRODUCT_TYPE             = 'custom_product_type';
 	private const LEGACY_META_PACKAGE_NUMBER           = 'custom_package_number';
 	private const LEGACY_META_VARIATION_PACKAGE_NUMBER = 'cfwc_package_number';
@@ -40,7 +39,7 @@ final class ProductFields {
 	}
 
 	public function render_product_fields(): void {
-		echo '<div class="options_group oblio-product-fields">';
+		echo '<div class="options_group oblio-fgwoo-product-fields">';
 
 		global $post;
 

@@ -13,7 +13,7 @@ use FGSyncOblio\Order\OrderMeta;
 use WC_Order;
 final class AccountInvoices {
 
-	private const ENDPOINT = 'oblio-facturi';
+	private const ENDPOINT = 'oblio-fgwoo-facturi';
 
 	public function register(): void {
 		add_action( 'init', array( $this, 'add_endpoint' ) );
@@ -114,12 +114,12 @@ final class AccountInvoices {
 			return;
 		}
 		$base = wc_get_account_endpoint_url( self::ENDPOINT );
-		echo '<div class="woocommerce-pagination oblio-invoices-pagination">';
+		echo '<div class="woocommerce-pagination oblio-fgwoo-invoices-pagination">';
 		if ( $current > 1 ) {
 			printf( '<a class="button" href="%s">%s</a> ', esc_url( add_query_arg( 'invoices_page', $current - 1, $base ) ), esc_html__( 'Anterioare', 'fgsync-oblio' ) );
 		}
 		printf(
-			'<span class="oblio-invoices-page"> %s </span>',
+			'<span class="oblio-fgwoo-invoices-page"> %s </span>',
 			esc_html(
 				sprintf(
 					/* translators: 1: current page, 2: total pages */

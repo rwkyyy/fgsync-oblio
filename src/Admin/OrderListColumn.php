@@ -64,9 +64,16 @@ final class OrderListColumn {
 					esc_html( $proforma['number'] )
 				);
 				$has_output = true;
-			} elseif ( '' !== (string) $order->get_meta( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'failed' ) ) ) {
-				echo '<span class="oblio-list-failed">' . esc_html__( 'eșec', 'fgsync-oblio' ) . '</span>';
-				$has_output = true;
+			} else {
+				$reason = (string) $order->get_meta( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'failed' ) );
+				if ( '' !== $reason ) {
+					printf(
+						'<span class="oblio-fgwoo-list-failed" title="%1$s">!<span class="screen-reader-text">%2$s</span></span>',
+						esc_attr( $reason ),
+						esc_html__( 'Emiterea facturii a eșuat', 'fgsync-oblio' )
+					);
+					$has_output = true;
+				}
 			}
 		}
 
@@ -74,7 +81,7 @@ final class OrderListColumn {
 			if ( $has_output ) {
 				echo '<br>';
 			}
-			echo '<span class="oblio-list-storno">' . esc_html__( 'storno', 'fgsync-oblio' ) . '</span>';
+			echo '<span class="oblio-fgwoo-list-storno">' . esc_html__( 'storno', 'fgsync-oblio' ) . '</span>';
 		}
 	}
 }

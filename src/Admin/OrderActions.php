@@ -16,6 +16,7 @@ use FGSyncOblio\Order\OrderMeta;
 use FGSyncOblio\Refund\RefundService;
 use FGSyncOblio\Support\Logger;
 use Throwable;
+use WC_Order;
 final class OrderActions {
 
 	public const NONCE_ACTION = 'oblio_fgwoo_order';
@@ -66,6 +67,8 @@ final class OrderActions {
 			switch ( $task ) {
 				case 'issue':
 					$result = $this->documents->issue( $order, $doc_type, array( 'use_stock' => $use_stock ) );
+					$order->delete_meta_data( OrderMeta::key( $doc_type, 'failed' ) );
+					$order->save();
 					$this->logger->info( sprintf( 'Manual action: order #%d %s %s %s issued', $order->get_id(), $doc_type, $result->series_name, $result->number ) );
 					wp_send_json_success(
 						array(
@@ -102,10 +105,20 @@ final class OrderActions {
 			}
 		} catch ( DocumentException $exception ) {
 			$this->logger->error( sprintf( 'Manual action: order #%d %s %s failed: %s', $order_id, $doc_type, $task, $exception->getMessage() ) );
+			$this->record_issue_failure( $order, $doc_type, $task, $exception->getMessage() );
 			wp_send_json_error( array( 'message' => $exception->getMessage() ) );
 		} catch ( Throwable $exception ) {
 			$this->logger->error( sprintf( 'Manual action: order #%d %s %s failed: %s', $order_id, $doc_type, $task, $exception->getMessage() ) );
+			$this->record_issue_failure( $order, $doc_type, $task, $exception->getMessage() );
 			wp_send_json_error( array( 'message' => $exception->getMessage() ) );
 		}
+	}
+
+	private function record_issue_failure( WC_Order $order, string $doc_type, string $task, string $reason ): void {
+		if ( 'issue' !== $task ) {
+			return;
+		}
+		$order->update_meta_data( OrderMeta::key( $doc_type, 'failed' ), $reason );
+		$order->save();
 	}
 }

@@ -68,7 +68,7 @@ final class LogReader {
 	}
 
 	private function files_for_today(): array {
-		$pattern = $this->log_dir() . 'oblio-' . gmdate( 'Y-m-d' ) . '-*.log';
+		$pattern = $this->log_dir() . 'oblio-fgwoo-' . gmdate( 'Y-m-d' ) . '-*.log';
 		$files   = glob( $pattern );
 		return is_array( $files ) ? $files : array();
 	}

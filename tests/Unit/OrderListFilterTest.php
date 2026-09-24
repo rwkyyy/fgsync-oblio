@@ -40,10 +40,18 @@ final class OrderListFilterTest extends TestCase {
 		$this->assertSame( 'NOT EXISTS', $by_key['oblio_fgwoo_invoice_link'] );
 	}
 
-	public function test_storno_and_failed_keys(): void {
+	public function test_storno_and_notice_keys(): void {
 		$this->assertSame( 'oblio_fgwoo_storno_link', OrderListFilter::meta_query_for( 'storno' )['key'] );
 		$this->assertSame( 'oblio_fgwoo_notice_link', OrderListFilter::meta_query_for( 'notice' )['key'] );
-		$this->assertSame( 'oblio_fgwoo_invoice_failed', OrderListFilter::meta_query_for( 'failed' )['key'] );
+	}
+
+	public function test_failed_excludes_already_invoiced(): void {
+		$clause = OrderListFilter::meta_query_for( 'failed' );
+		$this->assertSame( 'AND', $clause['relation'] );
+
+		$by_key = array( $clause[0]['key'] => $clause[0]['compare'], $clause[1]['key'] => $clause[1]['compare'] );
+		$this->assertSame( 'EXISTS', $by_key['oblio_fgwoo_invoice_failed'] );
+		$this->assertSame( 'NOT EXISTS', $by_key['oblio_fgwoo_invoice_link'] );
 	}
 
 	public function test_unknown_filter_is_empty(): void {

@@ -11,7 +11,7 @@ namespace FGSyncOblio\Queue;
 
 final class Scheduler {
 
-	public const GROUP             = 'oblio';
+	public const GROUP             = 'oblio_fgwoo';
 	public const HOOK_GENERATE     = 'oblio_fgwoo_generate_document';
 	public const HOOK_REFUND       = 'oblio_fgwoo_generate_refund';
 	public const HOOK_RECONCILE    = 'oblio_fgwoo_reconcile';
