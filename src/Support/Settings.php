@@ -46,6 +46,8 @@ final class Settings {
 		'invoice_discount_in_product'  => 'no',
 		'hide_description'             => 'no',
 		'notsave_price'                => 'no',
+		'oss_eur_currency'             => 'no',
+		'bundle_line_mode'             => 'skip',
 		'autocomplete_company'         => 0,
 		'invoice_mentions'             => '',
 		'invoice_issuer_name'          => '',
@@ -65,8 +67,6 @@ final class Settings {
 		'stock_update_price'           => 'no',
 		'stock_reserve_orders'         => 'no',
 		'stock_reserve_days'           => 30,
-		'webhook_stock_delay'          => 15,
-		'stock_manual_batch'           => 250,
 
 		'email_mode'                   => 'off',
 		'email_on_issue'               => 'no',
@@ -78,12 +78,8 @@ final class Settings {
 		'email_button_statuses'        => array( 'completed' ),
 		'email_button_label'           => 'Vezi factura',
 
-		'webhooks_enabled'             => 'no',
-		'webhook_secret'               => '',
-		'webhook_stock'                => 'no',
-		'webhook_topics'               => array(),
-
 		'debug_logging'                => 'no',
+		'admin_bar_status'             => 'yes',
 	);
 
 	public function get( string $key, $default = null ) {
@@ -148,26 +144,8 @@ final class Settings {
 		return 'schedule' === $this->stock_sync_trigger();
 	}
 
-	public function stock_webhook_enabled(): bool {
-		return false;
-	}
-
 	public function stock_sync_configured(): bool {
 		return 'off' !== $this->stock_sync_trigger();
-	}
-
-	public function webhook_stock_delay(): int {
-		return max( MINUTE_IN_SECONDS, (int) $this->get( 'webhook_stock_delay', 15 ) * MINUTE_IN_SECONDS );
-	}
-
-	public function stock_manual_batch(): int {
-		$oblio_page = 250;
-		$raw        = (int) $this->get( 'stock_manual_batch', $oblio_page );
-		if ( $raw <= 0 ) {
-			return 0;
-		}
-		$snapped = (int) ( round( $raw / $oblio_page ) * $oblio_page );
-		return max( $oblio_page, min( 10000, $snapped ) );
 	}
 
 	public function has_credentials(): bool {

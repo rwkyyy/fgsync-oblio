@@ -10,6 +10,7 @@ declare( strict_types=1 );
 namespace FGSyncOblio\Document;
 
 use FGSyncOblio\Order\OrderMeta;
+use FGSyncOblio\Queue\Scheduler;
 use FGSyncOblio\Support\Logger;
 use FGSyncOblio\Support\RateLimiter;
 use FGSyncOblio\Support\Settings;
@@ -29,11 +30,14 @@ final class EmailButton {
 
 	private RateLimiter $rate_limiter;
 
-	public function __construct( Settings $settings, DocumentIssuer $documents, Logger $logger, RateLimiter $rate_limiter ) {
+	private Scheduler $scheduler;
+
+	public function __construct( Settings $settings, DocumentIssuer $documents, Logger $logger, RateLimiter $rate_limiter, Scheduler $scheduler ) {
 		$this->settings     = $settings;
 		$this->documents    = $documents;
 		$this->logger       = $logger;
 		$this->rate_limiter = $rate_limiter;
+		$this->scheduler    = $scheduler;
 	}
 
 	public function register(): void {
@@ -101,7 +105,10 @@ final class EmailButton {
 			return $document;
 		}
 
+		$options = array( 'use_stock' => $this->settings->is_enabled( 'invoice_autogen_use_stock' ) );
+
 		if ( $this->rate_limiter->peek() > self::MAX_INLINE_WAIT ) {
+			$this->scheduler->enqueue_document( $order->get_id(), OrderMeta::TYPE_INVOICE, $options );
 			return $document;
 		}
 
@@ -112,11 +119,7 @@ final class EmailButton {
 		set_transient( $lock, 1, 30 );
 
 		try {
-			$result = $this->documents->issue(
-				$order,
-				OrderMeta::TYPE_INVOICE,
-				array( 'use_stock' => $this->settings->is_enabled( 'invoice_autogen_use_stock' ) )
-			);
+			$result = $this->documents->issue( $order, OrderMeta::TYPE_INVOICE, $options );
 			return array(
 				'series' => $result->series_name,
 				'number' => $result->number,
@@ -125,6 +128,7 @@ final class EmailButton {
 			);
 		} catch ( \Throwable $exception ) {
 			$this->logger->warning( sprintf( 'Email button: could not ensure the invoice for order #%d: %s', $order->get_id(), $exception->getMessage() ) );
+			$this->scheduler->enqueue_document( $order->get_id(), OrderMeta::TYPE_INVOICE, $options );
 			return OrderMeta::get( $order, OrderMeta::TYPE_INVOICE );
 		} finally {
 			delete_transient( $lock );

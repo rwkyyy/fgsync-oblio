@@ -131,7 +131,8 @@ final class SettingsPage {
 		if ( ! array_key_exists( $section, $this->get_sections() ) ) {
 			$section = '';
 		}
-		$saved      = $this->handle_save();
+		$saved = $this->handle_save();
+		$this->nomenclature->ensure_fresh();
 		$active_dom = '' === $section ? 'connection' : $section;
 		?>
 		<div class="wrap oblio-fgwoo-page">
@@ -366,21 +367,21 @@ final class SettingsPage {
 				'title'   => __( 'Serie factură', 'fgsync-oblio' ),
 				'type'    => 'select',
 				'id'      => $opt( 'series_invoice' ),
-				'options' => $this->series_options( 'Factura' ),
+				'options' => $this->series_options( 'Factura', 'series_invoice' ),
 				'desc'    => __( 'Seria pe care se emit facturile.', 'fgsync-oblio' ),
 			),
 			array(
 				'title'   => __( 'Serie proformă', 'fgsync-oblio' ),
 				'type'    => 'select',
 				'id'      => $opt( 'series_proforma' ),
-				'options' => $this->series_options( 'Proforma' ),
+				'options' => $this->series_options( 'Proforma', 'series_proforma' ),
 				'desc'    => __( 'Seria pe care se emit proformele.', 'fgsync-oblio' ),
 			),
 			array(
 				'title'   => __( 'Serie aviz', 'fgsync-oblio' ),
 				'type'    => 'select',
 				'id'      => $opt( 'series_notice' ),
-				'options' => $this->series_options( 'Aviz' ),
+				'options' => $this->series_options( 'Aviz', 'series_notice' ),
 				'desc'    => __( 'Seria pe care se emit avizele de însoțire.', 'fgsync-oblio' ),
 			),
 			array(
@@ -398,14 +399,14 @@ final class SettingsPage {
 				'title'   => __( 'Punct de lucru', 'fgsync-oblio' ),
 				'type'    => 'select',
 				'id'      => $opt( 'workstation' ),
-				'options' => array( '' => __( 'Implicit', 'fgsync-oblio' ) ) + $this->nomenclature->workstations(),
+				'options' => $this->with_saved_value( array( '' => __( 'Implicit', 'fgsync-oblio' ) ) + $this->nomenclature->workstations(), 'workstation' ),
 				'desc'    => __( 'Punctul de lucru pe care se emit documentele. „Implicit” folosește setarea din Oblio.', 'fgsync-oblio' ),
 			),
 			array(
 				'title'   => __( 'Gestiune (emitere)', 'fgsync-oblio' ),
 				'type'    => 'select',
 				'id'      => $opt( 'management' ),
-				'options' => array( '' => __( 'Implicit', 'fgsync-oblio' ) ) + $this->nomenclature->managements(),
+				'options' => $this->with_saved_value( array( '' => __( 'Implicit', 'fgsync-oblio' ) ) + $this->nomenclature->managements(), 'management' ),
 				'desc'    => __( 'Gestiunea din care se descarcă stocul la emiterea documentelor.', 'fgsync-oblio' ),
 			),
 			array(
@@ -479,10 +480,11 @@ final class SettingsPage {
 				'type'    => 'select',
 				'id'      => $opt( 'invoice_generation' ),
 				'options' => array(
-					'event' => __( 'La schimbarea statusului (imediat)', 'fgsync-oblio' ),
-					'batch' => __( 'Programat (în loturi, la interval)', 'fgsync-oblio' ),
+					'event'   => __( 'La schimbarea statusului, prin coadă (recomandat)', 'fgsync-oblio' ),
+					'instant' => __( 'Instant, fără coadă', 'fgsync-oblio' ),
+					'batch'   => __( 'Programat (în loturi, la interval)', 'fgsync-oblio' ),
 				),
-				'desc'    => __( '„Imediat” emite factura când comanda intră în status. „Programat” emite periodic, util dacă factura se face abia la livrare.', 'fgsync-oblio' ),
+				'desc'    => __( '„Prin coadă” emite factura la câteva secunde după ce comanda intră în status, fără să încetinească pagina. <br>„Instant” emite pe loc, în cadrul aceleiași cereri (checkout, schimbare status); poate încetini acel moment cu câteva secunde, dar dacă eșuează trece automat pe coadă, nu se pierde. <br>„Programat” emite periodic, util dacă factura se face abia la livrare.', 'fgsync-oblio' ),
 			),
 			array(
 				'title'   => __( 'Interval programare', 'fgsync-oblio' ),
@@ -625,7 +627,7 @@ final class SettingsPage {
 				'type'    => 'multiselect',
 				'class'   => 'wc-enhanced-select',
 				'id'      => $opt( 'stock_locations' ),
-				'options' => $this->nomenclature->locations(),
+				'options' => $this->with_saved_values( $this->nomenclature->locations(), 'stock_locations' ),
 				'desc'    => __( 'Implicit - stocul se însumează pe locațiile selectate. <br>Lăsați câmpul gol pentru a le prelua pe toate SAU selectați locația de unde doriți actualizarea de stoc', 'fgsync-oblio' ),
 			),
 			array(
@@ -650,17 +652,6 @@ final class SettingsPage {
 					'step' => 1,
 				),
 				'desc'              => __( 'Câte zile în urmă se caută comenzile nefacturate care rezervă stoc. Implicit 30.', 'fgsync-oblio' ),
-			),
-			array(
-				'title'             => __( 'Produse per segment (opțional)', 'fgsync-oblio' ),
-				'type'              => 'number',
-				'id'                => $opt( 'stock_manual_batch' ),
-				'default'           => 250,
-				'custom_attributes' => array(
-					'min'  => 0,
-					'step' => 250,
-				),
-				'desc'              => __( 'Folosit de "Sincronizează acum". Oblio răspunde cu maxim 250 de produse per cerere, deci valoarea trebuie să fie multiplu de 250 - alege un număr mai mare pentru mai puține cereri (mai rapid), sau 0 pentru tot catalogul dintr-o singură cerere (poate dura mult și atinge limita de timp a serverului pe cataloage mari).', 'fgsync-oblio' ),
 			),
 			array(
 				'type' => 'oblio_fgwoo_stock_sync',
@@ -817,6 +808,27 @@ final class SettingsPage {
 				'desc'  => __( 'Emite documentul fără a actualiza prețul produsului în nomenclatorul Oblio.', 'fgsync-oblio' ),
 			),
 			array(
+				'title' => __( 'Facturare OSS: EUR pentru clienți din afara României', 'fgsync-oblio' ),
+				'type'  => 'checkbox',
+				'id'    => $opt( 'oss_eur_currency' ),
+				'desc'  => sprintf(
+					/* translators: %s: link to the WooCommerce tax settings */
+					__( 'Emite documentul în moneda EUR când adresa de facturare nu este din România, indiferent de moneda comenzii (regim UE - One Stop Shop - OSS). <br>Valabil pentru vânzări B2C (clienți casnici) de sub 10.000 € pe an către alte state membre UE; peste acest prag, TVA-ul trebuie aplicat pe cota țării clientului, configurabilă în %s. <br>Lasă debifat dacă magazinul nu aplică OSS / nu facturează și/sau livrează în afara României.', 'fgsync-oblio' ),
+					'<a href="' . esc_url( admin_url( 'admin.php?page=wc-settings&tab=tax' ) ) . '" class="oblio-fgwoo-link">' . esc_html__( 'Setările de taxe WooCommerce', 'fgsync-oblio' ) . '</a>'
+				),
+			),
+			array(
+				'title'   => __( 'Linia produsului tip pachet (Bundles)', 'fgsync-oblio' ),
+				'type'    => 'select',
+				'id'      => $opt( 'bundle_line_mode' ),
+				'default' => 'skip',
+				'options' => array(
+					'skip'    => __( 'Sări peste linia pachetului (recomandat)', 'fgsync-oblio' ),
+					'include' => __( 'Include linia pachetului', 'fgsync-oblio' ),
+				),
+				'desc'    => __( 'Doar componentele sunt facturate și scad din stoc; linia pachetului nu are cod propriu în Oblio. Dacă nu descarci stoc prin Oblio, „Include” poate fi mai clar pe factură.', 'fgsync-oblio' ),
+			),
+			array(
 				'title' => __( 'Jurnalizare / debug', 'fgsync-oblio' ),
 				'type'  => 'checkbox',
 				'id'    => $opt( 'debug_logging' ),
@@ -842,8 +854,28 @@ final class SettingsPage {
 		return $options;
 	}
 
-	private function series_options( string $type ): array {
-		return array( '' => __( 'Selectează', 'fgsync-oblio' ) ) + $this->nomenclature->series( $type );
+	private function series_options( string $type, string $setting_id ): array {
+		$options = array( '' => __( 'Selectează', 'fgsync-oblio' ) ) + $this->nomenclature->series( $type );
+		return $this->with_saved_value( $options, $setting_id );
+	}
+
+	private function with_saved_value( array $options, string $setting_id ): array {
+		$current = (string) $this->settings->get( $setting_id );
+		if ( '' !== $current && ! isset( $options[ $current ] ) ) {
+			$options[ $current ] = $current;
+		}
+		return $options;
+	}
+
+	private function with_saved_values( array $options, string $setting_id ): array {
+		$current = (array) $this->settings->get( $setting_id );
+		foreach ( $current as $value ) {
+			$value = (string) $value;
+			if ( '' !== $value && ! isset( $options[ $value ] ) ) {
+				$options[ $value ] = $value;
+			}
+		}
+		return $options;
 	}
 
 	private function gateway_options(): array {

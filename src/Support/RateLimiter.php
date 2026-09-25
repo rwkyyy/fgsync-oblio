@@ -9,6 +9,7 @@ declare( strict_types=1 );
 
 namespace FGSyncOblio\Support;
 
+use RuntimeException;
 final class RateLimiter {
 
 	public const DOC_OPTION = 'oblio_fgwoo_doc_slot';
@@ -60,9 +61,11 @@ final class RateLimiter {
 			if ( $reserved ) {
 				return $fire_at - $now;
 			}
+
+			usleep( function_exists( 'wp_rand' ) ? wp_rand( 1000, 5000 ) : 1000 );
 		}
 
-		return max( $this->spacing, $fire_at - $now );
+		throw new RuntimeException( esc_html__( 'Nu s-a putut rezerva un interval de emitere; se reîncearcă automat.', 'fgsync-oblio' ) );
 	}
 
 	public function peek(): int {

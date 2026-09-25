@@ -44,7 +44,6 @@ final class Importer {
 			'oblio_proforma_autogen'                   => array( 'proforma_autogen', 'bool' ),
 			'oblio_gen_date'                           => array( 'issue_date_basis', 'gen_date' ),
 			'oblio_auto_collect'                       => array( 'collect_mode', 'collect' ),
-			'oblio_webhook_card_complete'              => array( 'webhooks_enabled', 'bool' ),
 			'oblio_invoice_gen_send_email'             => array( 'email_on_issue', 'bool' ),
 			'oblio_invoice_send_email_from'            => array( 'email_from', 'copy' ),
 			'oblio_invoice_send_email_subject'         => array( 'email_subject', 'copy' ),

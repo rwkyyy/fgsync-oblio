@@ -22,8 +22,9 @@ use FGSyncOblio\Support\Settings;
 use Throwable;
 final class StockSyncBatch {
 
-	private const PAGE_SIZE    = 250;
-	private const MAX_ATTEMPTS = 5;
+	private const PAGE_SIZE              = 250;
+	private const MAX_ATTEMPTS           = 5;
+	private const TOKEN_RECHECK_INTERVAL = 25;
 
 	private Settings $settings;
 
@@ -67,8 +68,7 @@ final class StockSyncBatch {
 		$attempt = (int) ( $payload['attempt'] ?? 1 );
 		$token   = (string) ( $payload['token'] ?? '' );
 
-		$current = (string) get_option( StockSyncCoordinator::RUN_TOKEN_OPTION, '' );
-		if ( '' !== $token && $token !== $current ) {
+		if ( ! $this->token_current( $token ) ) {
 			return;
 		}
 
@@ -86,109 +86,22 @@ final class StockSyncBatch {
 			return;
 		}
 
-		$updated = $this->process_page( $products );
-		$totals  = $this->record_progress( count( $products ), $updated );
+		if ( ! $this->token_current( $token ) ) {
+			return;
+		}
+
+		$updated = $this->process_page( $products, $token );
+		$totals  = $this->record_progress( count( $products ), $updated, $token );
 		$this->log_page( $offset, count( $products ), $updated, $totals );
+
+		if ( ! $this->token_current( $token ) ) {
+			return;
+		}
 
 		if ( count( $products ) >= self::PAGE_SIZE ) {
 			$this->scheduler->enqueue_stock_batch( $offset + self::PAGE_SIZE, 1, 0, $token );
 		} else {
-			$this->finalize();
-		}
-	}
-
-	public function run_step( int $offset, string $token ): array {
-		if ( ! $this->settings->has_credentials() || '' === (string) $this->settings->get( 'cif' ) ) {
-			return array(
-				'ok'     => false,
-				'reason' => __( 'Verifică emailul, secretul și firma.', 'fgsync-oblio' ),
-			);
-		}
-
-		$completed = false;
-		register_shutdown_function(
-			function () use ( $token, &$completed ): void {
-				if ( ! $completed ) { // @phpstan-ignore-line booleanNot.alwaysTrue -- mutated by reference later.
-					$this->recover_from_fatal( $token );
-				}
-			}
-		);
-
-		$step_size = $this->settings->stock_manual_batch();
-		$unlimited = 0 === $step_size;
-		$cursor    = $offset;
-		$done      = false;
-		$totals    = array(
-			'scanned' => 0,
-			'updated' => 0,
-		);
-
-		while ( $unlimited || $cursor - $offset < $step_size ) {
-			$current = (string) get_option( StockSyncCoordinator::RUN_TOKEN_OPTION, '' );
-			if ( '' !== $token && $token !== $current ) {
-				$completed = true;
-				return array(
-					'ok'     => false,
-					'reason' => __( 'Sincronizarea a fost înlocuită de o rulare mai nouă.', 'fgsync-oblio' ),
-				);
-			}
-
-			try {
-				$products = $this->fetch_page( $cursor );
-			} catch ( ApiException $exception ) {
-				$this->log_step_failure( $cursor, $exception->status_message() );
-				$this->abort();
-				$completed = true;
-				return array(
-					'ok'     => false,
-					'reason' => $exception->status_message(),
-				);
-			} catch ( Throwable $exception ) {
-				$this->log_step_failure( $cursor, $exception->getMessage() );
-				$this->abort();
-				$completed = true;
-				return array(
-					'ok'     => false,
-					'reason' => $exception->getMessage(),
-				);
-			}
-
-			$updated = $this->process_page( $products );
-			$totals  = $this->record_progress( count( $products ), $updated );
-			$this->log_page( $cursor, count( $products ), $updated, $totals );
-
-			$cursor += self::PAGE_SIZE;
-
-			if ( count( $products ) < self::PAGE_SIZE ) {
-				$done = true;
-				break;
-			}
-		}
-
-		if ( $done ) {
-			$this->finalize();
-		}
-
-		$completed = true;
-		return array(
-			'ok'          => true,
-			'done'        => $done,
-			'next_offset' => $cursor,
-			'scanned'     => $totals['scanned'],
-			'updated'     => $totals['updated'],
-		);
-	}
-
-	private function recover_from_fatal( string $token ): void {
-		$error = error_get_last();
-		if ( null === $error || ! in_array( $error['type'], array( E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR ), true ) ) {
-			return;
-		}
-
-		$current = (string) get_option( StockSyncCoordinator::RUN_TOKEN_OPTION, '' );
-		if ( '' === $token || $token === $current ) {
-			$this->logger->error( sprintf( 'Stock sync: request was interrupted (%s), lock released automatically', $error['message'] ) );
-			$this->abort();
+			$this->finalize( $token );
 		}
 	}
 
@@ -200,7 +113,7 @@ final class StockSyncBatch {
 		);
 	}
 
-	private function process_page( array $products ): int {
+	private function process_page( array $products, string $token ): int {
 		$selected     = array_values( (array) $this->settings->get( 'stock_locations' ) );
 		$update_price = $this->settings->is_enabled( 'stock_update_price' );
 		$reservations = $this->settings->is_enabled( 'stock_reserve_orders' ) ? $this->reservations->map() : array();
@@ -208,7 +121,13 @@ final class StockSyncBatch {
 		$sku_map = $this->resolve_skus( $products );
 
 		$updated = 0;
+		$checked = 0;
 		foreach ( $products as $product ) {
+			if ( 0 === $checked % self::TOKEN_RECHECK_INTERVAL && ! $this->token_current( $token ) ) {
+				break;
+			}
+			++$checked;
+
 			$agg = $this->aggregator->aggregate( (array) $product, $selected );
 
 			$agg = apply_filters( 'oblio_fgwoo_stock_aggregate', $agg, (array) $product, $selected );
@@ -233,10 +152,6 @@ final class StockSyncBatch {
 				$totals['scanned']
 			)
 		);
-	}
-
-	private function log_step_failure( int $offset, string $reason ): void {
-		$this->logger->error( sprintf( 'Stock sync: page from offset %d failed: %s', $offset, $reason ) );
 	}
 
 	private function resolve_skus( array $products ): array {
@@ -275,7 +190,28 @@ final class StockSyncBatch {
 		return $map;
 	}
 
+	/**
+	 * Empty tokens never match: only jobs carrying the current run's real token
+	 * may touch its state. Bypasses the options cache so a change another
+	 * process just made is actually seen, not a stale copy from earlier in
+	 * this same request.
+	 *
+	 * @param string $token Run token to compare against the currently stored one.
+	 * @phpstan-impure
+	 */
+	private function token_current( string $token ): bool {
+		if ( '' === $token ) {
+			return false;
+		}
+		wp_cache_delete( StockSyncCoordinator::RUN_TOKEN_OPTION, 'options' );
+		return (string) get_option( StockSyncCoordinator::RUN_TOKEN_OPTION, '' ) === $token;
+	}
+
 	private function handle_failure( int $offset, int $attempt, string $token, string $reason, bool $retryable ): void {
+		if ( ! $this->token_current( $token ) ) {
+			return;
+		}
+
 		if ( $retryable && $attempt < self::MAX_ATTEMPTS ) {
 			$delay = $this->scheduler->backoff( $attempt );
 			$this->scheduler->enqueue_stock_batch( $offset, $attempt + 1, $delay, $token );
@@ -284,34 +220,53 @@ final class StockSyncBatch {
 		}
 
 		$this->logger->error( sprintf( 'Stock sync: page from offset %d abandoned (attempt %d): %s', $offset, $attempt, $reason ) );
-		$this->abort();
+		$this->abort( $token );
 	}
 
-	private function abort(): void {
+	/**
+	 * CAS-deletes the run token as the ownership gate, then cleans up, and
+	 * only releases the lock last - while we still hold it, nobody else's
+	 * acquire() can succeed, so a stale worker's teardown can no longer wipe
+	 * a newer run's state out from under it.
+	 *
+	 * @param string $token Expected run owner.
+	 */
+	private function abort( string $token ): void {
+		if ( ! AtomicLock::delete_if_matches( StockSyncCoordinator::RUN_TOKEN_OPTION, $token ) ) {
+			return;
+		}
+
 		delete_transient( StockSyncCoordinator::PROGRESS_TRANSIENT );
-		delete_option( StockSyncCoordinator::RUN_TOKEN_OPTION );
-		AtomicLock::release( StockSyncCoordinator::RUN_LOCK );
 		$this->reservations->reset();
+		AtomicLock::release( StockSyncCoordinator::RUN_LOCK, $token );
 	}
 
-	private function record_progress( int $scanned, int $updated ): array {
+	private function record_progress( int $scanned, int $updated, string $token ): array {
 		$progress = get_transient( StockSyncCoordinator::PROGRESS_TRANSIENT );
 		$progress = is_array( $progress ) ? $progress : array(
 			'scanned' => 0,
 			'updated' => 0,
 		);
 
+		if ( ! AtomicLock::renew( StockSyncCoordinator::RUN_LOCK, $token, StockSyncCoordinator::RUN_LOCK_TTL ) ) {
+			return $progress;
+		}
+
 		$progress['scanned'] = (int) ( $progress['scanned'] ?? 0 ) + $scanned;
 		$progress['updated'] = (int) ( $progress['updated'] ?? 0 ) + $updated;
 
 		set_transient( StockSyncCoordinator::PROGRESS_TRANSIENT, $progress, DAY_IN_SECONDS );
 
-		AtomicLock::renew( StockSyncCoordinator::RUN_LOCK, StockSyncCoordinator::RUN_LOCK_TTL );
-
 		return $progress;
 	}
 
-	private function finalize(): void {
+	/**
+	 * @param string $token Expected run owner.
+	 */
+	private function finalize( string $token ): void {
+		if ( ! AtomicLock::delete_if_matches( StockSyncCoordinator::RUN_TOKEN_OPTION, $token ) ) {
+			return;
+		}
 
 		$progress = get_transient( StockSyncCoordinator::PROGRESS_TRANSIENT );
 		$scanned  = is_array( $progress ) ? (int) ( $progress['scanned'] ?? 0 ) : 0;
@@ -321,8 +276,7 @@ final class StockSyncBatch {
 		$this->logger->info( sprintf( 'Stock sync finished: %d out of %d products updated', $updated, $scanned ) );
 
 		delete_transient( StockSyncCoordinator::PROGRESS_TRANSIENT );
-		delete_option( StockSyncCoordinator::RUN_TOKEN_OPTION );
-		AtomicLock::release( StockSyncCoordinator::RUN_LOCK );
 		$this->reservations->reset();
+		AtomicLock::release( StockSyncCoordinator::RUN_LOCK, $token );
 	}
 }

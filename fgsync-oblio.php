@@ -3,7 +3,7 @@
  * Plugin Name:       FGSync for Oblio
  * Plugin URI:        https://uprise.ro/dezvoltari/dezvoltari-wp-woo/
  * Description:       Invoicing and stock management for WooCommerce through Oblio. Automatic invoices, proformas, delivery notes and credit notes in Oblio, with queued processing and warehouse-based stock sync. Native WooCommerce integration (HPOS + classic orders). Independent integration, not developed or endorsed by Oblio.eu.
- * Version:           1.1.0
+ * Version:           1.3.0
  * Requires at least: 6.5
  * Requires PHP:      8.1
  * Requires Plugins:  woocommerce
@@ -19,7 +19,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'FGSYNC_OBLIO_VERSION', '1.0.2' );
+define( 'FGSYNC_OBLIO_VERSION', '1.3.0' );
 define( 'FGSYNC_OBLIO_FILE', __FILE__ );
 define( 'FGSYNC_OBLIO_DIR', plugin_dir_path( __FILE__ ) );
 define( 'FGSYNC_OBLIO_URL', plugin_dir_url( __FILE__ ) );

@@ -113,33 +113,74 @@ final class OrderMeta {
 			return true;
 		}
 
-		$higher = wc_get_orders(
+		$branch = array(
+			'relation' => 'AND',
 			array(
-				'limit'      => 1,
-				'return'     => 'ids',
-				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- one-off admin check, indexed doc meta.
-				'meta_query' => array(
+				'key'     => self::key( $type, 'series' ),
+				'value'   => $doc['series'],
+				'compare' => '=',
+			),
+			array(
+				'key'     => self::key( $type, 'number' ),
+				'value'   => (int) $doc['number'],
+				'compare' => '>',
+				'type'    => 'NUMERIC',
+			),
+		);
+
+		if ( in_array( $type, array( self::TYPE_INVOICE, self::TYPE_PROFORMA ), true ) ) {
+			$meta_query = array(
+				'relation' => 'OR',
+				$branch,
+				array(
+					'relation' => 'AND',
 					array(
-						'key'     => self::key( $type, 'series' ),
+						'key'     => 'oblio_' . $type . '_series_name',
 						'value'   => $doc['series'],
 						'compare' => '=',
 					),
 					array(
-						'key'     => self::key( $type, 'number' ),
+						'key'     => 'oblio_' . $type . '_number',
 						'value'   => (int) $doc['number'],
 						'compare' => '>',
 						'type'    => 'NUMERIC',
 					),
 				),
+			);
+		} else {
+			$meta_query = $branch;
+		}
+
+		$higher = wc_get_orders(
+			array(
+				'limit'      => 1,
+				'return'     => 'ids',
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- one-off admin check, indexed doc meta.
+				'meta_query' => $meta_query,
 			)
 		);
 
 		return empty( $higher );
 	}
 
+	public static function persisted_idempotency_key( WC_Order $order, string $meta_key, string $fresh ): string {
+		$existing = (string) $order->get_meta( $meta_key );
+		if ( '' !== $existing ) {
+			return $existing;
+		}
+		$order->update_meta_data( $meta_key, $fresh );
+		$order->save();
+		return $fresh;
+	}
+
 	public static function clear( WC_Order $order, string $type ): void {
 		foreach ( array( 'series', 'number', 'link', 'date' ) as $field ) {
 			$order->delete_meta_data( self::key( $type, $field ) );
+		}
+		if ( in_array( $type, array( self::TYPE_INVOICE, self::TYPE_PROFORMA ), true ) ) {
+			foreach ( array( 'link', 'series_name', 'number', 'date' ) as $field ) {
+				$order->delete_meta_data( 'oblio_' . $type . '_' . $field );
+			}
 		}
 		$order->save();
 	}

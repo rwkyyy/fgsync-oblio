@@ -51,14 +51,7 @@ final class StockSyncAction {
 			wp_send_json_error( array( 'message' => __( 'Acțiune neautorizată.', 'fgsync-oblio' ) ), 403 );
 		}
 
-		$token  = isset( $_POST['token'] ) ? sanitize_text_field( wp_unslash( $_POST['token'] ) ) : '';
-		$offset = isset( $_POST['offset'] ) ? absint( wp_unslash( $_POST['offset'] ) ) : 0;
-
-		$result = $this->coordinator->step( $offset, $token );
-
-		if ( empty( $result['ok'] ) ) {
-			wp_send_json_error( array( 'message' => (string) ( $result['reason'] ?? __( 'Sincronizarea a eșuat.', 'fgsync-oblio' ) ) ) );
-		}
+		$result = $this->coordinator->progress();
 
 		$scanned = (int) ( $result['scanned'] ?? 0 );
 		$updated = (int) ( $result['updated'] ?? 0 );
@@ -66,11 +59,10 @@ final class StockSyncAction {
 
 		wp_send_json_success(
 			array(
-				'done'       => $done,
-				'nextOffset' => (int) ( $result['next_offset'] ?? 0 ),
-				'scanned'    => $scanned,
-				'updated'    => $updated,
-				'message'    => $done
+				'done'    => $done,
+				'scanned' => $scanned,
+				'updated' => $updated,
+				'message' => $done
 					? sprintf(
 						/* translators: 1: updated product count, 2: scanned product count */
 						__( 'Sincronizare completă: %1$d din %2$d produse actualizate.', 'fgsync-oblio' ),

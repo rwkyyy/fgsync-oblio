@@ -104,6 +104,11 @@ if ( ! function_exists( '__' ) ) {
 		return $text;
 	}
 }
+if ( ! function_exists( 'esc_html__' ) ) {
+	function esc_html__( $text, $domain = null ) {
+		return $text;
+	}
+}
 if ( ! function_exists( 'apply_filters' ) ) {
 	function apply_filters( $tag, $value ) {
 		return $value;

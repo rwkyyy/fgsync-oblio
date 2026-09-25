@@ -15,6 +15,9 @@ final class QueueStatus {
 	private const CACHE     = 'oblio_fgwoo_queue_counts';
 	private const CACHE_TTL = 30;
 
+	private const ADMIN_BAR_CACHE     = 'oblio_fgwoo_queue_counts_admin_bar';
+	private const ADMIN_BAR_CACHE_TTL = 5 * MINUTE_IN_SECONDS;
+
 	private ?array $snapshot = null;
 
 	public function available(): bool {
@@ -23,6 +26,25 @@ final class QueueStatus {
 
 	public function totals(): array {
 		return $this->snapshot()['totals'];
+	}
+
+	/**
+	 * Pending+failed only, cached longer - for the admin-bar dot, which needs
+	 * a coarse signal on every page load rather than the full per-hook
+	 * breakdown the Status panel shows.
+	 */
+	public function admin_bar_totals(): array {
+		$cached = get_transient( self::ADMIN_BAR_CACHE );
+		if ( is_array( $cached ) && isset( $cached['pending'], $cached['failed'] ) ) {
+			return $cached;
+		}
+
+		$totals = array(
+			'pending' => $this->count( array( 'status' => \ActionScheduler_Store::STATUS_PENDING ) ),
+			'failed'  => $this->count( array( 'status' => \ActionScheduler_Store::STATUS_FAILED ) ),
+		);
+		set_transient( self::ADMIN_BAR_CACHE, $totals, self::ADMIN_BAR_CACHE_TTL );
+		return $totals;
 	}
 
 	public function by_hook(): array {
@@ -64,7 +86,6 @@ final class QueueStatus {
 			Scheduler::HOOK_REFUND      => 'generate_refund',
 			Scheduler::HOOK_STOCK_BATCH => 'stock_sync_batch',
 			Scheduler::HOOK_RECONCILE   => 'reconcile_invoices',
-			Scheduler::HOOK_WEBHOOK     => 'process_webhook',
 		);
 
 		$result = array();

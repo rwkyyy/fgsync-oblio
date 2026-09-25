@@ -65,7 +65,7 @@ final class BulkActions {
 
 		foreach ( (array) $ids as $order_id ) {
 			$order = $this->orders->get_order( (int) $order_id );
-			if ( null === $order || ! $this->eligible( $order, $type ) ) {
+			if ( null === $order || ! current_user_can( 'edit_shop_order', (int) $order_id ) || ! $this->eligible( $order, $type ) ) {
 				++$skipped;
 				continue;
 			}

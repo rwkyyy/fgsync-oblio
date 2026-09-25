@@ -9,6 +9,8 @@ declare( strict_types=1 );
 
 namespace FGSyncOblio;
 
+use FGSyncOblio\Admin\AdminBarStatus;
+use FGSyncOblio\Admin\AdminBarToggle;
 use FGSyncOblio\Admin\BulkActions;
 use FGSyncOblio\Admin\ConnectionTest;
 use FGSyncOblio\Admin\ImportAction;
@@ -48,7 +50,6 @@ use FGSyncOblio\Queue\Jobs\GenerateDocument;
 use FGSyncOblio\Queue\Jobs\GenerateRefund;
 use FGSyncOblio\Queue\Reconciler;
 use FGSyncOblio\Queue\Scheduler;
-use FGSyncOblio\Queue\Jobs\ProcessWebhookEvent;
 use FGSyncOblio\Queue\Jobs\StockSyncBatch;
 use FGSyncOblio\Refund\RefundAutoIssue;
 use FGSyncOblio\Refund\RefundService;
@@ -58,12 +59,8 @@ use FGSyncOblio\Stock\ProductUpdater;
 use FGSyncOblio\Stock\StockReservations;
 use FGSyncOblio\Stock\StockSyncCoordinator;
 use FGSyncOblio\Support\Container;
-use FGSyncOblio\Webhook\Handler\CollectInsertedHandler;
-use FGSyncOblio\Webhook\Handler\StockHandler;
-use FGSyncOblio\Webhook\RestController;
-use FGSyncOblio\Webhook\TopicRegistry;
-use FGSyncOblio\Webhook\WebhookManager;
 use FGSyncOblio\Support\Encryption;
+use FGSyncOblio\Support\ConnectionHealth;
 use FGSyncOblio\Support\Logger;
 use FGSyncOblio\Support\RateLimiter;
 use FGSyncOblio\Support\Settings;
@@ -123,17 +120,20 @@ final class Plugin {
 			static fn (): OrderStore => new OrderStore()
 		);
 
+		$container->set( ConnectionHealth::class, static fn (): ConnectionHealth => new ConnectionHealth() );
+
 		$container->set(
 			ClientFactory::class,
 			static fn ( Container $container ): ClientFactory => new ClientFactory(
 				$container->get( Settings::class ),
 				$container->get( Encryption::class ),
-				$container->get( Logger::class )
+				$container->get( Logger::class ),
+				$container->get( ConnectionHealth::class )
 			)
 		);
 
 		$container->set( ClientMapper::class, static fn (): ClientMapper => new ClientMapper() );
-		$container->set( LineItemMapper::class, static fn (): LineItemMapper => new LineItemMapper() );
+		$container->set( LineItemMapper::class, static fn ( Container $container ): LineItemMapper => new LineItemMapper( $container->get( Settings::class ) ) );
 		$container->set( ShippingFeeMapper::class, static fn (): ShippingFeeMapper => new ShippingFeeMapper() );
 		$container->set( CollectMapper::class, static fn ( Container $container ): CollectMapper => new CollectMapper( $container->get( Settings::class ) ) );
 		$container->set( LifecyclePolicy::class, static fn ( Container $container ): LifecyclePolicy => new LifecyclePolicy( $container->get( Settings::class ) ) );
@@ -150,7 +150,8 @@ final class Plugin {
 				$container->get( Settings::class ),
 				$container->get( DocumentService::class ),
 				$container->get( Logger::class ),
-				$container->get( RateLimiter::class )
+				$container->get( RateLimiter::class ),
+				$container->get( Scheduler::class )
 			)
 		);
 
@@ -195,7 +196,10 @@ final class Plugin {
 			static fn ( Container $container ): AutoIssue => new AutoIssue(
 				$container->get( Settings::class ),
 				$container->get( Scheduler::class ),
-				$container->get( OrderStore::class )
+				$container->get( OrderStore::class ),
+				$container->get( DocumentService::class ),
+				$container->get( RateLimiter::class ),
+				$container->get( Logger::class )
 			)
 		);
 
@@ -262,8 +266,7 @@ final class Plugin {
 				$container->get( Settings::class ),
 				$container->get( Scheduler::class ),
 				$container->get( StockReservations::class ),
-				$container->get( Logger::class ),
-				$container->get( StockSyncBatch::class )
+				$container->get( Logger::class )
 			)
 		);
 
@@ -272,57 +275,6 @@ final class Plugin {
 			static fn ( Container $container ): StockSyncAction => new StockSyncAction(
 				$container->get( StockSyncCoordinator::class ),
 				$container->get( Settings::class )
-			)
-		);
-
-		$container->set(
-			CollectInsertedHandler::class,
-			static fn ( Container $container ): CollectInsertedHandler => new CollectInsertedHandler(
-				$container->get( OrderStore::class ),
-				$container->get( Logger::class )
-			)
-		);
-
-		$container->set(
-			StockHandler::class,
-			static fn ( Container $container ): StockHandler => new StockHandler(
-				$container->get( StockSyncCoordinator::class )
-			)
-		);
-
-		$container->set(
-			TopicRegistry::class,
-			static function ( Container $container ): TopicRegistry {
-				$registry = new TopicRegistry();
-				$registry->register( 'Collect/Inserted', $container->get( CollectInsertedHandler::class ) );
-				$registry->register( 'stock', $container->get( StockHandler::class ) );
-				return $registry;
-			}
-		);
-
-		$container->set(
-			RestController::class,
-			static fn ( Container $container ): RestController => new RestController(
-				$container->get( Settings::class ),
-				$container->get( Scheduler::class ),
-				$container->get( Logger::class )
-			)
-		);
-
-		$container->set(
-			WebhookManager::class,
-			static fn ( Container $container ): WebhookManager => new WebhookManager(
-				$container->get( Settings::class ),
-				$container->get( ClientFactory::class ),
-				$container->get( Logger::class )
-			)
-		);
-
-		$container->set(
-			ProcessWebhookEvent::class,
-			static fn ( Container $container ): ProcessWebhookEvent => new ProcessWebhookEvent(
-				$container->get( TopicRegistry::class ),
-				$container->get( Logger::class )
 			)
 		);
 
@@ -342,7 +294,8 @@ final class Plugin {
 			static fn ( Container $container ): NomenclatureCache => new NomenclatureCache(
 				$container->get( ClientFactory::class ),
 				$container->get( Settings::class ),
-				$container->get( Logger::class )
+				$container->get( Logger::class ),
+				$container->get( Scheduler::class )
 			)
 		);
 
@@ -355,6 +308,20 @@ final class Plugin {
 				$container->get( UpdateChecker::class ),
 				$container->get( HookInspector::class )
 			)
+		);
+
+		$container->set(
+			AdminBarStatus::class,
+			static fn ( Container $container ): AdminBarStatus => new AdminBarStatus(
+				$container->get( Settings::class ),
+				$container->get( ConnectionHealth::class ),
+				$container->get( QueueStatus::class )
+			)
+		);
+
+		$container->set(
+			AdminBarToggle::class,
+			static fn ( Container $container ): AdminBarToggle => new AdminBarToggle( $container->get( Settings::class ) )
 		);
 
 		$container->set(
@@ -433,17 +400,15 @@ final class Plugin {
 		$this->get( GenerateDocument::class )->register();
 		$this->get( GenerateRefund::class )->register();
 		$this->get( StockSyncBatch::class )->register();
-		$this->get( ProcessWebhookEvent::class )->register();
 		$this->get( AutoIssue::class )->register();
 		$this->get( RefundAutoIssue::class )->register();
 		$this->get( Reconciler::class )->register();
 		$this->get( StockSyncCoordinator::class )->register();
-		$this->get( RestController::class )->register();
-		$this->get( WebhookManager::class )->register();
 		$this->get( AccountInvoices::class )->register();
 		$this->get( ReturnsIntegration::class )->register();
 		$this->get( EmailButton::class )->register();
 		$this->get( ClientFactory::class )->register();
+		$this->get( AdminBarStatus::class )->register();
 
 		$settings = $this->get( Settings::class );
 
@@ -463,11 +428,6 @@ final class Plugin {
 		}
 
 		if ( is_admin() ) {
-			if ( ! get_option( 'oblio_fgwoo_webhook_stock_removed' ) ) {
-				update_option( 'oblio_fgwoo_webhook_stock_removed', 1, false );
-				add_action( 'shutdown', fn () => $this->get( WebhookManager::class )->reconcile() );
-			}
-
 			$this->get( NomenclatureCache::class )->register();
 			$this->get( SettingsPage::class )->register();
 			$this->get( SettingsShortcut::class )->register();
@@ -475,6 +435,7 @@ final class Plugin {
 			$this->get( LegacyNotice::class )->register();
 			$this->get( ConnectionTest::class )->register();
 			$this->get( StockSyncAction::class )->register();
+			$this->get( AdminBarToggle::class )->register();
 			$this->get( LogTailAction::class )->register();
 			$this->get( OrderActions::class )->register();
 			$this->get( OrderMetaBox::class )->register();
@@ -489,7 +450,7 @@ final class Plugin {
 	}
 
 	public function activate(): void {
-		add_option( 'oblio_fgwoo_version', FGSYNC_OBLIO_VERSION );
+		update_option( 'oblio_fgwoo_version', FGSYNC_OBLIO_VERSION );
 		update_option( 'oblio_fgwoo_activated_at', time(), false );
 
 		update_option( 'oblio_fgwoo_flush_rewrite', 1, false );
@@ -498,6 +459,7 @@ final class Plugin {
 	public function deactivate(): void {
 		if ( function_exists( 'as_unschedule_all_actions' ) ) {
 			as_unschedule_all_actions( '', array(), Scheduler::GROUP );
+			as_unschedule_all_actions( '', array(), 'oblio' );
 		}
 	}
 }

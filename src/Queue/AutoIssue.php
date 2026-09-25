@@ -10,10 +10,16 @@ declare( strict_types=1 );
 namespace FGSyncOblio\Queue;
 
 use FGSyncOblio\Compat\OrderStore;
+use FGSyncOblio\Document\DocumentIssuer;
 use FGSyncOblio\Order\OrderMeta;
+use FGSyncOblio\Support\Logger;
+use FGSyncOblio\Support\RateLimiter;
 use FGSyncOblio\Support\Settings;
+use Throwable;
 use WC_Order;
 final class AutoIssue {
+
+	private const MAX_INLINE_WAIT = 10;
 
 	private Settings $settings;
 
@@ -21,10 +27,26 @@ final class AutoIssue {
 
 	private OrderStore $orders;
 
-	public function __construct( Settings $settings, Scheduler $scheduler, OrderStore $orders ) {
-		$this->settings  = $settings;
-		$this->scheduler = $scheduler;
-		$this->orders    = $orders;
+	private DocumentIssuer $documents;
+
+	private RateLimiter $rate_limiter;
+
+	private Logger $logger;
+
+	public function __construct(
+		Settings $settings,
+		Scheduler $scheduler,
+		OrderStore $orders,
+		DocumentIssuer $documents,
+		RateLimiter $rate_limiter,
+		Logger $logger
+	) {
+		$this->settings     = $settings;
+		$this->scheduler    = $scheduler;
+		$this->orders       = $orders;
+		$this->documents    = $documents;
+		$this->rate_limiter = $rate_limiter;
+		$this->logger       = $logger;
 	}
 
 	public function register(): void {
@@ -56,7 +78,8 @@ final class AutoIssue {
 			return;
 		}
 
-		if ( 'event' !== (string) $this->settings->get( 'invoice_generation', 'event' ) ) {
+		$mode = (string) $this->settings->get( 'invoice_generation', 'event' );
+		if ( 'event' !== $mode && 'instant' !== $mode ) {
 			return;
 		}
 		if ( ! $this->entered( $from, $to, $this->settings->invoice_statuses() ) ) {
@@ -65,11 +88,21 @@ final class AutoIssue {
 		if ( OrderMeta::has( $order, OrderMeta::TYPE_INVOICE ) ) {
 			return;
 		}
-		$this->scheduler->enqueue_document(
-			$order->get_id(),
-			OrderMeta::TYPE_INVOICE,
-			array( 'use_stock' => $this->settings->is_enabled( 'invoice_autogen_use_stock' ) )
-		);
+
+		$options = array( 'use_stock' => $this->settings->is_enabled( 'invoice_autogen_use_stock' ) );
+
+		if ( 'instant' === $mode && $this->rate_limiter->peek() <= self::MAX_INLINE_WAIT ) {
+			try {
+				$this->documents->issue( $order, OrderMeta::TYPE_INVOICE, $options );
+				return;
+			} catch ( Throwable $exception ) {
+				$this->logger->warning(
+					sprintf( 'Order #%d: instant invoice issue failed (%s), falling back to the queue', $order->get_id(), $exception->getMessage() )
+				);
+			}
+		}
+
+		$this->scheduler->enqueue_document( $order->get_id(), OrderMeta::TYPE_INVOICE, $options );
 	}
 
 	private function maybe_issue_proforma( WC_Order $order, string $from, string $to ): void {

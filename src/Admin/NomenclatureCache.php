@@ -11,14 +11,17 @@ namespace FGSyncOblio\Admin;
 
 use FGSyncOblio\Api\ClientFactory;
 use FGSyncOblio\Api\Exception\ApiException;
+use FGSyncOblio\Queue\Scheduler;
 use FGSyncOblio\Support\Logger;
 use FGSyncOblio\Support\Settings;
 final class NomenclatureCache {
 
 	private const SERIES_TRANSIENT     = 'oblio_fgwoo_series';
 	private const MANAGEMENT_TRANSIENT = 'oblio_fgwoo_management';
+	private const REFRESH_BACKOFF      = 'oblio_fgwoo_nomenclature_refresh_backoff';
 
-	private const TTL = WEEK_IN_SECONDS;
+	private const TTL             = WEEK_IN_SECONDS;
+	private const BACKOFF_SECONDS = 5 * MINUTE_IN_SECONDS;
 
 	private ClientFactory $factory;
 
@@ -26,26 +29,30 @@ final class NomenclatureCache {
 
 	private Logger $logger;
 
-	public function __construct( ClientFactory $factory, Settings $settings, Logger $logger ) {
-		$this->factory  = $factory;
-		$this->settings = $settings;
-		$this->logger   = $logger;
+	private Scheduler $scheduler;
+
+	public function __construct( ClientFactory $factory, Settings $settings, Logger $logger, Scheduler $scheduler ) {
+		$this->factory   = $factory;
+		$this->settings  = $settings;
+		$this->logger    = $logger;
+		$this->scheduler = $scheduler;
 	}
 
 	public function register(): void {
 		add_action( 'update_option_oblio_fgwoo_cif', array( $this, 'on_cif_change' ) );
 		add_action( 'add_option_oblio_fgwoo_cif', array( $this, 'on_cif_change' ) );
+		add_action( Scheduler::HOOK_NOMENCLATURE, array( $this, 'refresh_with_backoff' ) );
 	}
 
 	public function on_cif_change(): void {
 		$this->refresh();
-		add_action( 'shutdown', array( $this, 'prime' ) );
+		$this->scheduler->enqueue_nomenclature_refresh();
 	}
 
-	public function prime(): void {
+	public function prime(): bool {
 		$cif = (string) $this->settings->get( 'cif' );
 		if ( '' === $cif || ! $this->settings->has_credentials() ) {
-			return;
+			return false;
 		}
 
 		try {
@@ -54,10 +61,37 @@ final class NomenclatureCache {
 			set_transient( self::MANAGEMENT_TRANSIENT, (array) $client->management( $cif ), self::TTL );
 		} catch ( ApiException $exception ) {
 			$this->logger->error( 'Nomenclature refresh failed: ' . $exception->status_message() );
-			return;
+			return false;
 		}
 
 		$this->logger->debug( 'Nomenclature refreshed (series + management)' );
+		return true;
+	}
+
+	/**
+	 * Stale-while-revalidate for page render: never blocks the current
+	 * request on Oblio. If the cache is missing, the actual refresh runs in
+	 * a background Action Scheduler job - this load just shows whatever's
+	 * cached (possibly nothing). A failed refresh sets a short backoff so a
+	 * down API isn't retried on every single page load.
+	 */
+	public function ensure_fresh(): void {
+		if ( false !== get_transient( self::SERIES_TRANSIENT ) && false !== get_transient( self::MANAGEMENT_TRANSIENT ) ) {
+			return;
+		}
+		if ( false !== get_transient( self::REFRESH_BACKOFF ) ) {
+			return;
+		}
+		if ( '' === (string) $this->settings->get( 'cif' ) || ! $this->settings->has_credentials() ) {
+			return;
+		}
+		$this->scheduler->enqueue_nomenclature_refresh();
+	}
+
+	public function refresh_with_backoff(): void {
+		if ( ! $this->prime() ) {
+			set_transient( self::REFRESH_BACKOFF, 1, self::BACKOFF_SECONDS );
+		}
 	}
 
 	public function companies(): array {

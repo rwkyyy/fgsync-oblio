@@ -11,16 +11,35 @@ namespace FGSyncOblio\Document\Mapper;
 
 use FGSyncOblio\Admin\ProductFields;
 use FGSyncOblio\Document\BuildContext;
+use FGSyncOblio\Document\DocumentException;
+use FGSyncOblio\Support\Settings;
 use WC_Order;
 use WC_Order_Item_Product;
+use WC_Product;
 final class LineItemMapper {
 
+	private Settings $settings;
+
+	public function __construct( Settings $settings ) {
+		$this->settings = $settings;
+	}
+
 	public function map( WC_Order $order, BuildContext $ctx ): array {
-		$products = array();
-		$total    = 0.0;
+		$products    = array();
+		$total       = 0.0;
+		$skip_bundle = 'skip' === $this->settings->get( 'bundle_line_mode', 'skip' );
 
 		foreach ( $order->get_items() as $item ) {
-			$product  = $item->get_product();
+			$product = $item->get_product();
+			if ( $skip_bundle && $product instanceof WC_Product && $product->is_type( 'bundle' ) ) {
+				if ( abs( (float) $item->get_total() ) > 0.005 ) {
+					throw new DocumentException(
+						esc_html__( 'Comanda conține un pachet (Bundle) al cărui preț este pus pe linia principală, nu pe componente. Setarea curentă sare peste acea linie, ceea ce ar pierde valoarea de pe factură. Schimbă "Linia produsului tip pachet" (Avansat) pe "Include" sau contactează suportul.', 'fgsync-oblio' )
+					);
+				}
+				continue;
+			}
+
 			$quantity = (float) $item->get_quantity();
 			if ( $quantity <= 0 ) {
 				continue;

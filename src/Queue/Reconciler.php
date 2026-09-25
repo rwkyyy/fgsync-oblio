@@ -70,6 +70,10 @@ final class Reconciler {
 						'key'     => 'oblio_invoice_link',
 						'compare' => 'NOT EXISTS',
 					),
+					array(
+						'key'     => OrderMeta::key( OrderMeta::TYPE_INVOICE, 'failed' ),
+						'compare' => 'NOT EXISTS',
+					),
 				),
 			)
 		);
@@ -83,10 +87,6 @@ final class Reconciler {
 				continue;
 			}
 			if ( OrderMeta::has( $order, OrderMeta::TYPE_INVOICE ) ) {
-				continue;
-			}
-
-			if ( '' !== (string) $order->get_meta( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'failed' ) ) ) {
 				continue;
 			}
 

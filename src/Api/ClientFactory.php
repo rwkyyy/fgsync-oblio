@@ -9,6 +9,7 @@ declare( strict_types=1 );
 
 namespace FGSyncOblio\Api;
 
+use FGSyncOblio\Support\ConnectionHealth;
 use FGSyncOblio\Support\Encryption;
 use FGSyncOblio\Support\Logger;
 use FGSyncOblio\Support\RateLimiter;
@@ -21,14 +22,17 @@ final class ClientFactory {
 
 	private Logger $logger;
 
+	private ConnectionHealth $health;
+
 	private TokenStore $tokens;
 
 	private RateLimiter $rate_limiter;
 
-	public function __construct( Settings $settings, Encryption $encryption, Logger $logger ) {
+	public function __construct( Settings $settings, Encryption $encryption, Logger $logger, ConnectionHealth $health ) {
 		$this->settings     = $settings;
 		$this->encryption   = $encryption;
 		$this->logger       = $logger;
+		$this->health       = $health;
 		$this->tokens       = new TokenStore( $encryption );
 		$this->rate_limiter = new RateLimiter();
 	}
@@ -44,13 +48,14 @@ final class ClientFactory {
 			$this->get_secret(),
 			$this->tokens,
 			$this->logger,
-			$this->rate_limiter
+			$this->rate_limiter,
+			$this->health
 		);
 	}
 
 	public function create_with( string $email, string $secret ): OblioClient {
 
-		return new OblioClient( $email, $secret, new TokenStore( $this->encryption, false ), $this->logger, $this->rate_limiter );
+		return new OblioClient( $email, $secret, new TokenStore( $this->encryption, false ), $this->logger, $this->rate_limiter, $this->health );
 	}
 
 	public function tokens(): TokenStore {

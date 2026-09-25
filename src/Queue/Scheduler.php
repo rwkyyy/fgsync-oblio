@@ -12,13 +12,13 @@ namespace FGSyncOblio\Queue;
 final class Scheduler {
 
 	public const GROUP             = 'oblio_fgwoo';
+	private const OLD_GROUP        = 'oblio';
 	public const HOOK_GENERATE     = 'oblio_fgwoo_generate_document';
 	public const HOOK_REFUND       = 'oblio_fgwoo_generate_refund';
 	public const HOOK_RECONCILE    = 'oblio_fgwoo_reconcile';
 	public const HOOK_STOCK_SYNC   = 'oblio_fgwoo_stock_sync';
 	public const HOOK_STOCK_BATCH  = 'oblio_fgwoo_stock_batch';
-	public const HOOK_STOCK_SETTLE = 'oblio_fgwoo_stock_settle';
-	public const HOOK_WEBHOOK      = 'oblio_fgwoo_process_webhook';
+	public const HOOK_NOMENCLATURE = 'oblio_fgwoo_refresh_nomenclature';
 
 	public const SCHEDULE_CHECK = 'oblio_fgwoo_schedule_check';
 
@@ -144,6 +144,13 @@ final class Scheduler {
 		return $map;
 	}
 
+	/**
+	 * Only scans the current group - the pre-1.0 group rename is long
+	 * complete, and document/refund actions are one-off (not recurring), so
+	 * no legitimate action can still be sitting in the old group.
+	 *
+	 * @param string $hook Action hook to look up.
+	 */
 	private function pending_payloads( string $hook ): array {
 		if ( ! function_exists( 'as_get_scheduled_actions' ) || ! class_exists( \ActionScheduler_Store::class ) ) {
 			return array();
@@ -195,43 +202,18 @@ final class Scheduler {
 		}
 	}
 
-	public function schedule_settle( int $delay ): void {
-		if ( ! $this->available() ) {
-			return;
-		}
-		as_schedule_single_action( time() + max( 1, $delay ), self::HOOK_STOCK_SETTLE, array(), self::GROUP );
-	}
-
-	public function settle_pending(): bool {
-		return $this->available() && false !== as_next_scheduled_action( self::HOOK_STOCK_SETTLE, array(), self::GROUP );
-	}
-
 	public function cancel_stock_batches(): void {
 		if ( function_exists( 'as_unschedule_all_actions' ) ) {
 			as_unschedule_all_actions( self::HOOK_STOCK_BATCH, array(), self::GROUP );
 		}
 	}
 
-	public function enqueue_webhook( string $topic, array $data ): void {
-		if ( ! $this->available() ) {
-			return;
-		}
-		as_enqueue_async_action(
-			self::HOOK_WEBHOOK,
-			array(
-				array(
-					'topic' => $topic,
-					'data'  => $data,
-				),
-			),
-			self::GROUP
-		);
-	}
-
 	public function ensure_stock_scheduled( bool $enabled, string $interval ): void {
 		if ( ! $this->available() ) {
 			return;
 		}
+
+		as_unschedule_all_actions( self::HOOK_STOCK_SYNC, array(), self::OLD_GROUP );
 
 		$scheduled       = false !== as_next_scheduled_action( self::HOOK_STOCK_SYNC, array(), self::GROUP );
 		$stored_interval = (string) get_option( 'oblio_fgwoo_stock_scheduled_interval', '' );
@@ -284,6 +266,8 @@ final class Scheduler {
 			return;
 		}
 
+		as_unschedule_all_actions( self::HOOK_RECONCILE, array(), self::OLD_GROUP );
+
 		$scheduled       = false !== as_next_scheduled_action( self::HOOK_RECONCILE, array(), self::GROUP );
 		$stored_interval = (string) get_option( 'oblio_fgwoo_reconcile_scheduled_interval', '' );
 
@@ -303,6 +287,27 @@ final class Scheduler {
 		as_unschedule_all_actions( self::HOOK_RECONCILE, array(), self::GROUP );
 		as_schedule_recurring_action( time() + $seconds, $seconds, self::HOOK_RECONCILE, array(), self::GROUP );
 		update_option( 'oblio_fgwoo_reconcile_scheduled_interval', $interval, false );
+	}
+
+	/**
+	 * Self-deduplicating: no-ops if a refresh is already pending/running, so
+	 * a CIF change and a stale-cache page load in the same window can't
+	 * double up on the same nomenclature calls.
+	 */
+	public function enqueue_nomenclature_refresh(): void {
+		if ( ! $this->available() ) {
+			return;
+		}
+
+		if ( function_exists( 'as_has_scheduled_action' ) ) {
+			if ( as_has_scheduled_action( self::HOOK_NOMENCLATURE, array(), self::GROUP ) ) {
+				return;
+			}
+		} elseif ( false !== as_next_scheduled_action( self::HOOK_NOMENCLATURE, array(), self::GROUP ) ) {
+			return;
+		}
+
+		as_enqueue_async_action( self::HOOK_NOMENCLATURE, array(), self::GROUP );
 	}
 
 	public function backoff( int $attempt ): int {

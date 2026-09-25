@@ -50,7 +50,6 @@ final class SettingsTest extends TestCase {
 	public function test_stock_sync_trigger_defaults_off(): void {
 		$this->assertSame( 'off', $this->settings->stock_sync_trigger() );
 		$this->assertFalse( $this->settings->stock_schedule_enabled() );
-		$this->assertFalse( $this->settings->stock_webhook_enabled() );
 		$this->assertFalse( $this->settings->stock_sync_configured() );
 	}
 
@@ -59,11 +58,10 @@ final class SettingsTest extends TestCase {
 
 		$this->assertSame( 'schedule', $this->settings->stock_sync_trigger() );
 		$this->assertTrue( $this->settings->stock_schedule_enabled() );
-		$this->assertFalse( $this->settings->stock_webhook_enabled() );
 		$this->assertTrue( $this->settings->stock_sync_configured() );
 	}
 
-	public function test_stock_sync_trigger_webhook_is_temporarily_disabled(): void {
+	public function test_stock_sync_trigger_legacy_webhook_values_map_correctly(): void {
 		$this->settings->set( 'stock_sync_trigger', 'webhook' );
 		$this->assertSame( 'off', $this->settings->stock_sync_trigger() );
 		$this->assertFalse( $this->settings->stock_sync_configured() );
@@ -71,19 +69,6 @@ final class SettingsTest extends TestCase {
 		$this->settings->set( 'stock_sync_trigger', 'both' );
 		$this->assertSame( 'schedule', $this->settings->stock_sync_trigger() );
 		$this->assertTrue( $this->settings->stock_schedule_enabled() );
-
-		$this->assertFalse( $this->settings->stock_webhook_enabled() );
-	}
-
-	public function test_stock_sync_trigger_derived_from_legacy_flags(): void {
-
-		$this->settings->set( 'stock_sync', 'yes' );
-		$this->settings->set( 'webhooks_enabled', 'yes' );
-		$this->settings->set( 'webhook_stock', 'yes' );
-
-		$this->assertSame( 'schedule', $this->settings->stock_sync_trigger() );
-		$this->assertTrue( $this->settings->stock_schedule_enabled() );
-		$this->assertFalse( $this->settings->stock_webhook_enabled() );
 	}
 
 	public function test_stock_sync_trigger_derived_schedule_only(): void {
@@ -91,6 +76,5 @@ final class SettingsTest extends TestCase {
 
 		$this->assertSame( 'schedule', $this->settings->stock_sync_trigger() );
 		$this->assertTrue( $this->settings->stock_schedule_enabled() );
-		$this->assertFalse( $this->settings->stock_webhook_enabled() );
 	}
 }

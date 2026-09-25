@@ -11,6 +11,7 @@ namespace FGSyncOblio\Api;
 
 use FGSyncOblio\Api\Exception\ApiException;
 use FGSyncOblio\Api\Exception\AuthException;
+use FGSyncOblio\Support\ConnectionHealth;
 use FGSyncOblio\Support\Logger;
 use FGSyncOblio\Support\RateLimiter;
 final class OblioClient {
@@ -28,12 +29,15 @@ final class OblioClient {
 
 	private RateLimiter $rate_limiter;
 
-	public function __construct( string $email, string $secret, TokenStore $tokens, Logger $logger, RateLimiter $rate_limiter ) {
+	private ConnectionHealth $health;
+
+	public function __construct( string $email, string $secret, TokenStore $tokens, Logger $logger, RateLimiter $rate_limiter, ConnectionHealth $health ) {
 		$this->email        = $email;
 		$this->secret       = $secret;
 		$this->tokens       = $tokens;
 		$this->logger       = $logger;
 		$this->rate_limiter = $rate_limiter;
+		$this->health       = $health;
 	}
 
 	public function nomenclature( string $type, string $cif = '', array $filters = array() ): array {
@@ -115,25 +119,6 @@ final class OblioClient {
 		return is_array( $response['data'] ?? null ) ? $response['data'] : array();
 	}
 
-	public function create_webhook( string $cif, string $topic, string $endpoint ): array {
-		$response = $this->request(
-			'POST',
-			'/api/webhooks',
-			array( 'json' => compact( 'cif', 'topic', 'endpoint' ) )
-		);
-		return is_array( $response['data'] ?? null ) ? $response['data'] : array();
-	}
-
-	public function list_webhooks(): array {
-		$response = $this->request( 'GET', '/api/webhooks' );
-		return is_array( $response['data'] ?? null ) ? $response['data'] : array();
-	}
-
-	public function delete_webhook( $id ): array {
-		$response = $this->request( 'DELETE', '/api/webhooks/' . rawurlencode( (string) $id ) );
-		return is_array( $response['data'] ?? null ) ? $response['data'] : array();
-	}
-
 	public function request( string $method, string $path, array $opts = array() ): array {
 		return $this->do_request( $method, $path, $opts, false );
 	}
@@ -168,6 +153,7 @@ final class OblioClient {
 		if ( is_wp_error( $response ) ) {
 			$message = $response->get_error_message();
 			$this->logger->error( sprintf( '%s %s: transport error: %s', $method, $path, $message ) );
+			$this->health->record_failure( $message );
 			throw new ApiException( esc_html( $message ) );
 		}
 
@@ -186,10 +172,19 @@ final class OblioClient {
 				? (string) $decoded['statusMessage']
 				: sprintf( 'HTTP %d', $code );
 			$this->logger->error( sprintf( '%s %s failed (%d): %s', $method, $path, $code, $status_message ) );
+			if ( 401 === $code || $code >= 500 ) {
+				$this->health->record_failure( $status_message );
+			}
 			throw new ApiException( esc_html( $status_message ), (int) $code, esc_html( $status_message ) );
 		}
 
-		return is_array( $decoded ) ? $decoded : array();
+		if ( ! is_array( $decoded ) ) {
+			$this->logger->error( sprintf( '%s %s: HTTP 200 with an unreadable body; treating as ambiguous (a document may already exist remotely)', $method, $path ) );
+			throw new ApiException( esc_html__( 'Răspuns neclar de la Oblio (200 OK, conținut ilizibil); se reîncearcă automat.', 'fgsync-oblio' ) );
+		}
+
+		$this->health->record_success();
+		return $decoded;
 	}
 
 	private function access_token(): array {
@@ -218,6 +213,7 @@ final class OblioClient {
 		);
 
 		if ( is_wp_error( $response ) ) {
+			$this->health->record_failure( $response->get_error_message() );
 			throw new AuthException( esc_html( $response->get_error_message() ) );
 		}
 
@@ -230,10 +226,12 @@ final class OblioClient {
 				? (string) $data['statusMessage']
 				: sprintf( 'Autorizare eșuată (HTTP %d)', $code );
 			$this->logger->error( 'Authentication failed: ' . $message );
+			$this->health->record_failure( $message );
 			throw new AuthException( esc_html( $message ), (int) $code, esc_html( $message ) );
 		}
 
 		$this->tokens->set( $data );
+		$this->health->record_success();
 		$this->logger->debug( 'Access token obtained', array( 'expires_in' => $data['expires_in'] ?? null ) );
 
 		return $this->tokens->get() ?? array(

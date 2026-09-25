@@ -231,13 +231,13 @@ parameters:
 		-
 			message: '#^Access to constant STATUS_FAILED on an unknown class ActionScheduler_Store\.$#'
 			identifier: class.notFound
-			count: 2
+			count: 3
 			path: src/Admin/QueueStatus.php
 
 		-
 			message: '#^Access to constant STATUS_PENDING on an unknown class ActionScheduler_Store\.$#'
 			identifier: class.notFound
-			count: 2
+			count: 3
 			path: src/Admin/QueueStatus.php
 
 		-
@@ -249,6 +249,12 @@ parameters:
 		-
 			message: '#^Call to static method store\(\) on an unknown class ActionScheduler\.$#'
 			identifier: class.notFound
+			count: 1
+			path: src/Admin/QueueStatus.php
+
+		-
+			message: '#^Method FGSyncOblio\\Admin\\QueueStatus\:\:admin_bar_totals\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Admin/QueueStatus.php
 
@@ -451,6 +457,30 @@ parameters:
 			path: src/Admin/SettingsPage.php
 
 		-
+			message: '#^Method FGSyncOblio\\Admin\\SettingsPage\:\:with_saved_value\(\) has parameter \$options with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Admin/SettingsPage.php
+
+		-
+			message: '#^Method FGSyncOblio\\Admin\\SettingsPage\:\:with_saved_value\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Admin/SettingsPage.php
+
+		-
+			message: '#^Method FGSyncOblio\\Admin\\SettingsPage\:\:with_saved_values\(\) has parameter \$options with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Admin/SettingsPage.php
+
+		-
+			message: '#^Method FGSyncOblio\\Admin\\SettingsPage\:\:with_saved_values\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Admin/SettingsPage.php
+
+		-
 			message: '#^Property FGSyncOblio\\Admin\\SettingsPage\:\:\$sections_cache type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -565,12 +595,6 @@ parameters:
 			path: src/Api/OblioClient.php
 
 		-
-			message: '#^Method FGSyncOblio\\Api\\OblioClient\:\:create_webhook\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Api/OblioClient.php
-
-		-
 			message: '#^Method FGSyncOblio\\Api\\OblioClient\:\:delete_document\(\) has parameter \$number with no type specified\.$#'
 			identifier: missingType.parameter
 			count: 1
@@ -589,18 +613,6 @@ parameters:
 			path: src/Api/OblioClient.php
 
 		-
-			message: '#^Method FGSyncOblio\\Api\\OblioClient\:\:delete_webhook\(\) has parameter \$id with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Api/OblioClient.php
-
-		-
-			message: '#^Method FGSyncOblio\\Api\\OblioClient\:\:delete_webhook\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Api/OblioClient.php
-
-		-
 			message: '#^Method FGSyncOblio\\Api\\OblioClient\:\:do_request\(\) has parameter \$opts with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -608,12 +620,6 @@ parameters:
 
 		-
 			message: '#^Method FGSyncOblio\\Api\\OblioClient\:\:do_request\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Api/OblioClient.php
-
-		-
-			message: '#^Method FGSyncOblio\\Api\\OblioClient\:\:list_webhooks\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
 			path: src/Api/OblioClient.php
@@ -813,7 +819,7 @@ parameters:
 		-
 			message: '#^Call to an undefined method WC_Order_Item\:\:get_total\(\)\.$#'
 			identifier: method.notFound
-			count: 1
+			count: 2
 			path: src/Document/Mapper/LineItemMapper.php
 
 		-
@@ -1057,12 +1063,6 @@ parameters:
 			path: src/Queue/Jobs/GenerateRefund.php
 
 		-
-			message: '#^Method FGSyncOblio\\Queue\\Jobs\\ProcessWebhookEvent\:\:run\(\) has parameter \$payload with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Queue/Jobs/ProcessWebhookEvent.php
-
-		-
 			message: '#^Method FGSyncOblio\\Queue\\Jobs\\StockSyncBatch\:\:fetch_page\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -1105,12 +1105,6 @@ parameters:
 			path: src/Queue/Jobs/StockSyncBatch.php
 
 		-
-			message: '#^Method FGSyncOblio\\Queue\\Jobs\\StockSyncBatch\:\:run_step\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Queue/Jobs/StockSyncBatch.php
-
-		-
 			message: '#^Function as_enqueue_async_action not found\.$#'
 			identifier: function.notFound
 			count: 4
@@ -1131,13 +1125,13 @@ parameters:
 		-
 			message: '#^Function as_schedule_single_action not found\.$#'
 			identifier: function.notFound
-			count: 6
+			count: 5
 			path: src/Queue/Scheduler.php
 
 		-
 			message: '#^Function as_unschedule_all_actions not found\.$#'
 			identifier: function.notFound
-			count: 4
+			count: 6
 			path: src/Queue/Scheduler.php
 
 		-
@@ -1148,12 +1142,6 @@ parameters:
 
 		-
 			message: '#^Method FGSyncOblio\\Queue\\Scheduler\:\:enqueue_document\(\) has parameter \$options with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Queue/Scheduler.php
-
-		-
-			message: '#^Method FGSyncOblio\\Queue\\Scheduler\:\:enqueue_webhook\(\) has parameter \$data with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
 			path: src/Queue/Scheduler.php
@@ -1393,7 +1381,7 @@ parameters:
 			path: src/Stock/StockSyncCoordinator.php
 
 		-
-			message: '#^Method FGSyncOblio\\Stock\\StockSyncCoordinator\:\:step\(\) return type has no value type specified in iterable type array\.$#'
+			message: '#^Method FGSyncOblio\\Stock\\StockSyncCoordinator\:\:progress\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
 			path: src/Stock/StockSyncCoordinator.php
@@ -1493,51 +1481,3 @@ parameters:
 			identifier: missingType.parameter
 			count: 1
 			path: src/Support/Settings.php
-
-		-
-			message: '#^Method FGSyncOblio\\Webhook\\Handler\\CollectInsertedHandler\:\:handle\(\) has parameter \$data with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Webhook/Handler/CollectInsertedHandler.php
-
-		-
-			message: '#^Method FGSyncOblio\\Webhook\\Handler\\StockHandler\:\:handle\(\) has parameter \$data with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Webhook/Handler/StockHandler.php
-
-		-
-			message: '#^Method FGSyncOblio\\Webhook\\RestController\:\:extract_event\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Webhook/RestController.php
-
-		-
-			message: '#^Method FGSyncOblio\\Webhook\\TopicRegistry\:\:dispatch\(\) has parameter \$data with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Webhook/TopicRegistry.php
-
-		-
-			message: '#^Property FGSyncOblio\\Webhook\\TopicRegistry\:\:\$handlers type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Webhook/TopicRegistry.php
-
-		-
-			message: '#^Method FGSyncOblio\\Webhook\\WebhookHandler\:\:handle\(\) has parameter \$data with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Webhook/WebhookHandler.php
-
-		-
-			message: '#^Method FGSyncOblio\\Webhook\\WebhookManager\:\:desired_topics\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Webhook/WebhookManager.php
-
-		-
-			message: '#^Method FGSyncOblio\\Webhook\\WebhookManager\:\:is_reusable\(\) has parameter \$desired with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Webhook/WebhookManager.php

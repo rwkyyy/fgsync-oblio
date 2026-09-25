@@ -159,7 +159,16 @@ final class InvoiceBuilder {
 
 	private function currency( WC_Order $order ): string {
 		$currency = substr( (string) $order->get_currency(), 0, 3 );
-		return 'lei' === strtolower( $currency ) ? 'RON' : $currency;
+		$currency = 'lei' === strtolower( $currency ) ? 'RON' : $currency;
+
+		if ( $this->settings->is_enabled( 'oss_eur_currency' ) ) {
+			$billing_country = $order->get_billing_country();
+			if ( '' !== $billing_country && 'RO' !== $billing_country ) {
+				$currency = 'EUR';
+			}
+		}
+
+		return (string) apply_filters( 'oblio_fgwoo_document_currency', $currency, $order );
 	}
 
 	private function issue_date( WC_Order $order, array $options ): string {
@@ -221,10 +230,28 @@ final class InvoiceBuilder {
 	}
 
 	private function idempotency_key( WC_Order $order, string $doc_type ): string {
-		$key = sprintf( 'woocommerce-%s', str_pad( (string) $order->get_id(), 15, '0', STR_PAD_LEFT ) );
+		$legacy = sprintf( 'woocommerce-%s', str_pad( (string) $order->get_id(), 15, '0', STR_PAD_LEFT ) );
 		if ( OrderMeta::TYPE_INVOICE !== $doc_type ) {
-			$key .= '-' . $doc_type;
+			$legacy .= '-' . $doc_type;
 		}
-		return $key;
+
+		$fresh = $this->has_prior_oblio_activity( $order )
+			? $legacy
+			: $this->install_namespace() . '-' . $legacy;
+
+		return OrderMeta::persisted_idempotency_key( $order, OrderMeta::key( $doc_type, 'idempotency' ), $fresh );
+	}
+
+	private function has_prior_oblio_activity( WC_Order $order ): bool {
+		foreach ( array( OrderMeta::TYPE_INVOICE, OrderMeta::TYPE_PROFORMA, OrderMeta::TYPE_NOTICE, OrderMeta::TYPE_STORNO ) as $type ) {
+			if ( OrderMeta::has( $order, $type ) ) {
+				return true;
+			}
+		}
+		return '' !== (string) $order->get_meta( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'failed' ) );
+	}
+
+	private function install_namespace(): string {
+		return substr( md5( site_url() . '|' . (string) $this->settings->get( 'cif' ) ), 0, 12 );
 	}
 }

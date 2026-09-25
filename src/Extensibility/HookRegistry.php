@@ -38,14 +38,14 @@ final class HookRegistry {
 				'label'   => __( 'Tipul de încasare per gateway', 'fgsync-oblio' ),
 				'section' => 'collection',
 			),
-			'oblio_fgwoo_collect_complete_order'          => array(
-				'type'    => 'filter',
-				'label'   => __( 'Ordinul consideră comanda plătită la încasare', 'fgsync-oblio' ),
-				'section' => 'collection',
-			),
 			'oblio_fgwoo_document_language'               => array(
 				'type'    => 'filter',
 				'label'   => __( 'Limba documentului (WPML)', 'fgsync-oblio' ),
+				'section' => 'documents',
+			),
+			'oblio_fgwoo_document_currency'               => array(
+				'type'    => 'filter',
+				'label'   => __( 'Moneda documentului (EUR pentru facturare OSS în afara României)', 'fgsync-oblio' ),
 				'section' => 'documents',
 			),
 			'oblio_fgwoo_reconcile_lookback_days'         => array(
@@ -66,6 +66,10 @@ final class HookRegistry {
 			'oblio_fgwoo_storno_data'                     => array(
 				'type'  => 'filter',
 				'label' => __( 'Payload storno (retur)', 'fgsync-oblio' ),
+			),
+			'oblio_fgwoo_admin_bar_queue_threshold'       => array(
+				'type'  => 'filter',
+				'label' => __( 'Pragul de coadă „mare” pentru punctul galben din bara de admin', 'fgsync-oblio' ),
 			),
 			'oblio_fgwoo_stock_aggregate'                 => array(
 				'type'    => 'filter',
@@ -97,11 +101,6 @@ final class HookRegistry {
 				'label'   => __( 'Statusurile de comandă tratate ca rezervate', 'fgsync-oblio' ),
 				'section' => 'stock',
 			),
-			'oblio_fgwoo_webhook_topics'                  => array(
-				'type'    => 'filter',
-				'label'   => __( 'Topicuri webhook', 'fgsync-oblio' ),
-				'section' => 'stock',
-			),
 			'oblio_fgwoo_document_issued'                 => array(
 				'type'  => 'action',
 				'label' => __( 'După emiterea unui document', 'fgsync-oblio' ),
@@ -113,10 +112,6 @@ final class HookRegistry {
 			'oblio_fgwoo_storno_issued'                   => array(
 				'type'  => 'action',
 				'label' => __( 'După emiterea unui storno', 'fgsync-oblio' ),
-			),
-			'oblio_fgwoo_webhook'                         => array(
-				'type'  => 'action',
-				'label' => __( 'La primirea unui webhook', 'fgsync-oblio' ),
 			),
 			'oblio_fgwoo_booted'                          => array(
 				'type'  => 'action',

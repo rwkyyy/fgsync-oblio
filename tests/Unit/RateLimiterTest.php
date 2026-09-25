@@ -11,6 +11,7 @@ use FGSyncOblio\Support\RateLimiter;
 use FGSyncOblio\Support\SlotStore;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 final class InMemorySlotStore implements SlotStore {
 
 	private ?int $value = null;
@@ -102,6 +103,16 @@ final class RateLimiterTest extends TestCase {
 		$this->assertSame( 0, $limiter->reserve() );
 		$this->assertSame( 3, $store->cas_calls );
 		$this->assertSame( 2004, $store->read() );
+	}
+
+	public function test_reservation_throws_when_truly_exhausted(): void {
+		$store = new InMemorySlotStore();
+		$store->seed( 1000 );
+		$store->fail_next_cas( 100 );
+		$limiter = new RateLimiter( $store, 4, static fn() => 2000 );
+
+		$this->expectException( RuntimeException::class );
+		$limiter->reserve();
 	}
 
 	public function test_throttle_sleeps_the_full_reserved_wait(): void {

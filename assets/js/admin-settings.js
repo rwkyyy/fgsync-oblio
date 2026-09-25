@@ -62,12 +62,10 @@
 				$sync.prop( 'disabled', false );
 			}
 
-			function step( token, offset ) {
+			function poll() {
 				$.post( fgsyncOblio.ajaxUrl, {
 					action: 'oblio_fgwoo_stock_sync_step',
-					nonce: fgsyncOblio.nonce,
-					token: token,
-					offset: offset
+					nonce: fgsyncOblio.nonce
 				} ).done( function ( response ) {
 					var data = response && response.data;
 					if ( ! response || ! response.success || ! data ) {
@@ -79,7 +77,7 @@
 						$sync.prop( 'disabled', false );
 						return;
 					}
-					step( token, data.nextOffset );
+					setTimeout( poll, 2000 );
 				} ).fail( function () {
 					fail( fgsyncOblio.i18n.requestFailed );
 				} );
@@ -92,11 +90,11 @@
 				nonce: fgsyncOblio.nonce
 			} ).done( function ( response ) {
 				var data = response && response.data;
-				if ( ! response || ! response.success || ! data || ! data.token ) {
+				if ( ! response || ! response.success || ! data ) {
 					fail( data && data.message );
 					return;
 				}
-				step( data.token, 0 );
+				setTimeout( poll, 2000 );
 			} ).fail( function () {
 				fail( fgsyncOblio.i18n.requestFailed );
 			} );
@@ -291,7 +289,6 @@
 
 			var trigger = $( '#oblio_fgwoo_stock_sync_trigger' ).val() || '';
 			toggleRow( 'oblio_fgwoo_stock_interval', 'schedule' === trigger || 'both' === trigger );
-			toggleRow( 'oblio_fgwoo_webhook_stock_delay', 'webhook' === trigger || 'both' === trigger );
 		}
 
 		function showSection( name ) {
@@ -397,5 +394,18 @@
 	$( function () {
 		$( '#oblio_fgwoo_test_result, .oblio-fgwoo-sync-result, .oblio-fgwoo-import-result' )
 			.attr( { role: 'status', 'aria-live': 'polite' } );
+	} );
+
+	$( function () {
+		$( '#oblio-fgwoo-adminbar-toggle' ).on( 'change', function () {
+			var $toggle = $( this );
+			$.post( fgsyncOblio.ajaxUrl, {
+				action: 'oblio_fgwoo_toggle_admin_bar',
+				nonce: fgsyncOblio.nonce,
+				enabled: $toggle.is( ':checked' ) ? 'yes' : 'no'
+			} ).fail( function () {
+				$toggle.prop( 'checked', ! $toggle.is( ':checked' ) );
+			} );
+		} );
 	} );
 }( jQuery ) );

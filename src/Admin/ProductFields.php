@@ -116,7 +116,7 @@ final class ProductFields {
 	}
 
 	public function save_variation_fields( $variation_id, $index ): void {
-		if ( ! $this->verify_variation_save() ) {
+		if ( ! $this->verify_variation_save( (int) $variation_id ) ) {
 			return;
 		}
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified in verify_variation_save().
@@ -157,7 +157,12 @@ final class ProductFields {
 			&& (bool) wp_verify_nonce( sanitize_key( wp_unslash( $_POST['woocommerce_meta_nonce'] ) ), 'woocommerce_save_data' );
 	}
 
-	private function verify_variation_save(): bool {
+	private function verify_variation_save( int $variation_id ): bool {
+		$parent_id = (int) wp_get_post_parent_id( $variation_id );
+		if ( ! current_user_can( 'edit_product', $parent_id > 0 ? $parent_id : $variation_id ) ) {
+			return false;
+		}
+
 		return isset( $_POST['security'] )
 			&& (bool) wp_verify_nonce( sanitize_key( wp_unslash( $_POST['security'] ) ), 'save-variations' );
 	}

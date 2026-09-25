@@ -10,16 +10,14 @@ declare( strict_types=1 );
 namespace FGSyncOblio\Document;
 
 use FGSyncOblio\Api\ClientFactory;
+use FGSyncOblio\Api\Exception\ApiException;
 use FGSyncOblio\Order\OrderMeta;
-use FGSyncOblio\Support\AtomicLock;
 use FGSyncOblio\Support\Logger;
+use FGSyncOblio\Support\OrderLock;
 use FGSyncOblio\Support\Settings;
 use RuntimeException;
 use WC_Order;
 final class DocumentService implements DocumentIssuer {
-
-	private const LOCK_TTL  = 120;
-	private const LOCK_WAIT = 20;
 
 	private Settings $settings;
 
@@ -55,10 +53,10 @@ final class DocumentService implements DocumentIssuer {
 			return new DocumentResult( $doc_type, $existing['series'], $existing['number'], $existing['link'] );
 		}
 
-		$lock = self::lock_key( $order->get_id(), $doc_type );
-		if ( ! $this->acquire_lock( $lock ) ) {
+		$owner = OrderLock::acquire( $order->get_id() );
+		if ( null === $owner ) {
 			throw new RuntimeException(
-				esc_html__( 'Un alt proces emite deja acest document pentru comandă; se va reîncerca automat.', 'fgsync-oblio' )
+				esc_html__( 'Un alt proces emite deja un document pentru comandă; se va reîncerca automat.', 'fgsync-oblio' )
 			);
 		}
 
@@ -77,11 +75,13 @@ final class DocumentService implements DocumentIssuer {
 			$this->maybe_drop_proforma( $order, $doc_type );
 
 			$payload = $this->builder->build( $order, $doc_type, $options );
-			$data    = $this->factory->create()->create_document( $doc_type, $payload );
-			$result  = DocumentResult::from_api( $doc_type, $data );
 
-			if ( '' === $result->series_name && '' === $result->number ) {
-				throw new DocumentException( esc_html__( 'Răspuns invalid de la Oblio la emiterea documentului.', 'fgsync-oblio' ) );
+			OrderLock::renew( $order->get_id(), $owner );
+			$data   = $this->factory->create()->create_document( $doc_type, $payload );
+			$result = DocumentResult::from_api( $doc_type, $data );
+
+			if ( '' === $result->series_name || '' === $result->number || '' === $result->link ) {
+				throw new ApiException( esc_html__( 'Răspuns incomplet de la Oblio; se reîncearcă automat pentru a evita un document duplicat.', 'fgsync-oblio' ) );
 			}
 
 			if ( OrderMeta::TYPE_INVOICE === $doc_type ) {
@@ -97,27 +97,26 @@ final class DocumentService implements DocumentIssuer {
 
 			return $result;
 		} finally {
-			AtomicLock::release( $lock );
+			OrderLock::release( $order->get_id(), $owner );
 		}
 	}
 
-	private static function lock_key( int $order_id, string $doc_type ): string {
-		return 'oblio_fgwoo_issue_lock_' . $order_id . '_' . $doc_type;
-	}
-
-	private function acquire_lock( string $key ): bool {
-		$deadline = microtime( true ) + self::LOCK_WAIT;
-		do {
-			if ( AtomicLock::acquire( $key, self::LOCK_TTL ) ) {
-				return true;
-			}
-			usleep( 200000 );
-		} while ( microtime( true ) < $deadline );
-
-		return false;
-	}
-
 	public function delete( WC_Order $order, string $doc_type ): bool {
+		$owner = OrderLock::acquire( $order->get_id() );
+		if ( null === $owner ) {
+			throw new RuntimeException(
+				esc_html__( 'Un alt proces emite deja un document pentru comandă; se va reîncerca automat.', 'fgsync-oblio' )
+			);
+		}
+
+		try {
+			return $this->delete_unlocked( $order, $doc_type );
+		} finally {
+			OrderLock::release( $order->get_id(), $owner );
+		}
+	}
+
+	private function delete_unlocked( WC_Order $order, string $doc_type ): bool {
 		$doc = OrderMeta::get( $order, $doc_type );
 		if ( null === $doc ) {
 			return false;
@@ -150,7 +149,7 @@ final class DocumentService implements DocumentIssuer {
 			return;
 		}
 		try {
-			$this->delete( $order, OrderMeta::TYPE_PROFORMA );
+			$this->delete_unlocked( $order, OrderMeta::TYPE_PROFORMA );
 		} catch ( \Throwable $exception ) {
 
 			$this->logger->warning( 'Could not delete the proforma before the invoice: ' . $exception->getMessage() );

@@ -41,6 +41,7 @@ final class StatusPanel {
 		$docs_today = $this->count_issued( $entries );
 
 		echo '<div class="oblio-fgwoo-status">';
+		$this->admin_bar_toggle();
 		$this->summary( $totals, $docs_today );
 		echo '<div class="oblio-fgwoo-grid">';
 		echo '<div class="oblio-fgwoo-col-main">';
@@ -50,6 +51,12 @@ final class StatusPanel {
 		$this->update_card();
 		$this->hooks_card( $overrides );
 		echo '</div></div></div>';
+	}
+
+	private function admin_bar_toggle(): void {
+		$checked = $this->settings->is_enabled( 'admin_bar_status' );
+		echo '<label class="oblio-fgwoo-adminbar-toggle"><input type="checkbox" id="oblio-fgwoo-adminbar-toggle"' . ( $checked ? ' checked' : '' ) . '> '
+			. esc_html__( 'Comandă rapidă în bara de admin (punct de stare)', 'fgsync-oblio' ) . '</label>';
 	}
 
 	private function summary( array $totals, int $docs_today ): void {

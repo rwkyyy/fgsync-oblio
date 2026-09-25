@@ -10,13 +10,16 @@ declare( strict_types=1 );
 namespace FGSyncOblio\Refund;
 
 use FGSyncOblio\Api\ClientFactory;
+use FGSyncOblio\Api\Exception\ApiException;
 use FGSyncOblio\Compat\OrderStore;
 use FGSyncOblio\Document\BuildContext;
 use FGSyncOblio\Document\DocumentException;
 use FGSyncOblio\Document\DocumentResult;
 use FGSyncOblio\Order\OrderMeta;
 use FGSyncOblio\Support\Logger;
+use FGSyncOblio\Support\OrderLock;
 use FGSyncOblio\Support\Settings;
+use RuntimeException;
 use WC_Order;
 use WC_Order_Refund;
 final class RefundService implements RefundIssuer {
@@ -47,100 +50,131 @@ final class RefundService implements RefundIssuer {
 			return null;
 		}
 
-		$guard_key = 'oblio_fgwoo_storno_refund_' . $refund_id;
-		if ( '' !== (string) $order->get_meta( $guard_key ) ) {
-			return null;
+		$owner = OrderLock::acquire( $order_id );
+		if ( null === $owner ) {
+			throw new RuntimeException( esc_html__( 'Un alt proces emite deja un document pentru comandă; se va reîncerca automat.', 'fgsync-oblio' ) );
 		}
 
-		$invoice = OrderMeta::get( $order, OrderMeta::TYPE_INVOICE );
-		if ( null === $invoice ) {
-			throw new DocumentException( esc_html__( 'Nu există factură pentru care să se emită storno.', 'fgsync-oblio' ) );
-		}
+		try {
+			$refreshed = $this->orders->get_order( $order_id );
+			if ( null !== $refreshed ) {
+				$order = $refreshed;
+			}
 
-		if ( '' !== (string) $order->get_meta( OrderMeta::key( OrderMeta::TYPE_STORNO, 'full' ) ) ) {
-			return null;
-		}
+			$guard_key = 'oblio_fgwoo_storno_refund_' . $refund_id;
+			if ( '' !== (string) $order->get_meta( $guard_key ) ) {
+				return null;
+			}
 
-		$is_full = $this->is_full_refund( $order, $refund );
-		$payload = $this->build_storno( $order, $invoice, $refund, $is_full, $refund_id );
+			$invoice = OrderMeta::get( $order, OrderMeta::TYPE_INVOICE );
+			if ( null === $invoice ) {
+				throw new DocumentException( esc_html__( 'Nu există factură pentru care să se emită storno.', 'fgsync-oblio' ) );
+			}
 
-		$data   = $this->factory->create()->create_document( OrderMeta::TYPE_INVOICE, $payload );
-		$result = DocumentResult::from_api( OrderMeta::TYPE_STORNO, $data );
+			if ( '' !== (string) $order->get_meta( OrderMeta::key( OrderMeta::TYPE_STORNO, 'full' ) ) ) {
+				return null;
+			}
 
-		if ( '' === $result->series_name && '' === $result->number ) {
-			throw new DocumentException( esc_html__( 'Răspuns invalid de la Oblio la emiterea storno.', 'fgsync-oblio' ) );
-		}
+			$is_full = $this->is_full_refund( $order, $refund );
+			$payload = $this->build_storno( $order, $invoice, $refund, $is_full, $refund_id );
 
-		$order->update_meta_data(
-			$guard_key,
-			(string) wp_json_encode(
-				array(
-					'series' => $result->series_name,
-					'number' => $result->number,
-					'link'   => $result->link,
+			OrderLock::renew( $order_id, $owner );
+			$data   = $this->factory->create()->create_document( OrderMeta::TYPE_INVOICE, $payload );
+			$result = DocumentResult::from_api( OrderMeta::TYPE_STORNO, $data );
+
+			if ( '' === $result->series_name || '' === $result->number || '' === $result->link ) {
+				throw new ApiException( esc_html__( 'Răspuns incomplet de la Oblio; se reîncearcă automat pentru a evita un document duplicat.', 'fgsync-oblio' ) );
+			}
+
+			$order->update_meta_data(
+				$guard_key,
+				(string) wp_json_encode(
+					array(
+						'series' => $result->series_name,
+						'number' => $result->number,
+						'link'   => $result->link,
+					)
 				)
-			)
-		);
-		if ( $is_full ) {
-			$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_STORNO, 'full' ), current_time( 'mysql' ) );
+			);
+			if ( $is_full ) {
+				$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_STORNO, 'full' ), current_time( 'mysql' ) );
+			}
+			$this->record_storno( $order, $result, $is_full );
+			OrderMeta::save( $order, $result );
+
+			do_action( 'oblio_fgwoo_storno_issued', $order, $result, $refund_id, $is_full );
+
+			$this->logger->info( sprintf( 'Order #%d refund #%d: storno %s %s (%s)', $order_id, $refund_id, $result->series_name, $result->number, $is_full ? 'full' : 'partial' ) );
+
+			return $result;
+		} finally {
+			OrderLock::release( $order_id, $owner );
 		}
-		$this->record_storno( $order, $result, $is_full );
-		OrderMeta::save( $order, $result );
-
-		do_action( 'oblio_fgwoo_storno_issued', $order, $result, $refund_id, $is_full );
-
-		$this->logger->info( sprintf( 'Order #%d refund #%d: storno %s %s (%s)', $order_id, $refund_id, $result->series_name, $result->number, $is_full ? 'full' : 'partial' ) );
-
-		return $result;
 	}
 
 	public function issue_full_storno( WC_Order $order ): DocumentResult {
-		$invoice = OrderMeta::get( $order, OrderMeta::TYPE_INVOICE );
-		if ( null === $invoice ) {
-			throw new DocumentException( esc_html__( 'Nu există factură pentru care să se emită storno.', 'fgsync-oblio' ) );
+		$order_id = $order->get_id();
+		$owner    = OrderLock::acquire( $order_id );
+		if ( null === $owner ) {
+			throw new RuntimeException( esc_html__( 'Un alt proces emite deja un document pentru comandă; se va reîncerca automat.', 'fgsync-oblio' ) );
 		}
 
-		$full_key = OrderMeta::key( OrderMeta::TYPE_STORNO, 'full' );
-
-		if ( '' !== (string) $order->get_meta( $full_key ) ) {
-			$existing = OrderMeta::get( $order, OrderMeta::TYPE_STORNO );
-			if ( null !== $existing ) {
-				return new DocumentResult( OrderMeta::TYPE_STORNO, $existing['series'], $existing['number'], $existing['link'] );
+		try {
+			$refreshed = $this->orders->get_order( $order_id );
+			if ( null !== $refreshed ) {
+				$order = $refreshed;
 			}
+
+			$invoice = OrderMeta::get( $order, OrderMeta::TYPE_INVOICE );
+			if ( null === $invoice ) {
+				throw new DocumentException( esc_html__( 'Nu există factură pentru care să se emită storno.', 'fgsync-oblio' ) );
+			}
+
+			$full_key = OrderMeta::key( OrderMeta::TYPE_STORNO, 'full' );
+
+			if ( '' !== (string) $order->get_meta( $full_key ) ) {
+				$existing = OrderMeta::get( $order, OrderMeta::TYPE_STORNO );
+				if ( null !== $existing ) {
+					return new DocumentResult( OrderMeta::TYPE_STORNO, $existing['series'], $existing['number'], $existing['link'] );
+				}
+			}
+
+			if ( null !== OrderMeta::get( $order, OrderMeta::TYPE_STORNO ) ) {
+				throw new DocumentException( esc_html__( 'Există deja un storno pentru această factură. Storneaz restul printr-o rambursare WooCommerce.', 'fgsync-oblio' ) );
+			}
+
+			$payload = array(
+				'cif'               => (string) $this->settings->get( 'cif' ),
+				'seriesName'        => (string) $this->settings->get( 'series_invoice' ),
+				'referenceDocument' => array(
+					'type'       => 'Factura',
+					'refund'     => 1,
+					'seriesName' => $invoice['series'],
+					'number'     => $invoice['number'],
+				),
+				'idempotencyKey'    => $this->storno_idempotency_key( $order, 0 ),
+			);
+
+			$payload = (array) apply_filters( 'oblio_fgwoo_storno_data', $payload, $order, null, true );
+
+			OrderLock::renew( $order_id, $owner );
+			$data   = $this->factory->create()->create_document( OrderMeta::TYPE_INVOICE, $payload );
+			$result = DocumentResult::from_api( OrderMeta::TYPE_STORNO, $data );
+
+			if ( '' === $result->series_name || '' === $result->number || '' === $result->link ) {
+				throw new ApiException( esc_html__( 'Răspuns incomplet de la Oblio; se reîncearcă automat pentru a evita un document duplicat.', 'fgsync-oblio' ) );
+			}
+
+			$order->update_meta_data( $full_key, current_time( 'mysql' ) );
+			$this->record_storno( $order, $result, true );
+			OrderMeta::save( $order, $result );
+			do_action( 'oblio_fgwoo_storno_issued', $order, $result, 0, true );
+			$this->logger->info( sprintf( 'Order #%d: manual full storno %s %s', $order->get_id(), $result->series_name, $result->number ) );
+
+			return $result;
+		} finally {
+			OrderLock::release( $order_id, $owner );
 		}
-
-		if ( null !== OrderMeta::get( $order, OrderMeta::TYPE_STORNO ) ) {
-			throw new DocumentException( esc_html__( 'Există deja un storno pentru această factură. Storneaz restul printr-o rambursare WooCommerce.', 'fgsync-oblio' ) );
-		}
-
-		$payload = array(
-			'cif'               => (string) $this->settings->get( 'cif' ),
-			'seriesName'        => (string) $this->settings->get( 'series_invoice' ),
-			'referenceDocument' => array(
-				'type'       => 'Factura',
-				'refund'     => 1,
-				'seriesName' => $invoice['series'],
-				'number'     => $invoice['number'],
-			),
-			'idempotencyKey'    => sprintf( 'woocommerce-%s-storno', str_pad( (string) $order->get_id(), 15, '0', STR_PAD_LEFT ) ),
-		);
-
-		$payload = (array) apply_filters( 'oblio_fgwoo_storno_data', $payload, $order, null, true );
-
-		$data   = $this->factory->create()->create_document( OrderMeta::TYPE_INVOICE, $payload );
-		$result = DocumentResult::from_api( OrderMeta::TYPE_STORNO, $data );
-
-		if ( '' === $result->series_name && '' === $result->number ) {
-			throw new DocumentException( esc_html__( 'Răspuns invalid de la Oblio la emiterea storno.', 'fgsync-oblio' ) );
-		}
-
-		$order->update_meta_data( $full_key, current_time( 'mysql' ) );
-		$this->record_storno( $order, $result, true );
-		OrderMeta::save( $order, $result );
-		do_action( 'oblio_fgwoo_storno_issued', $order, $result, 0, true );
-		$this->logger->info( sprintf( 'Order #%d: manual full storno %s %s', $order->get_id(), $result->series_name, $result->number ) );
-
-		return $result;
 	}
 
 	private function record_storno( WC_Order $order, DocumentResult $result, bool $is_full ): void {
@@ -173,7 +207,7 @@ final class RefundService implements RefundIssuer {
 				'seriesName' => $invoice['series'],
 				'number'     => $invoice['number'],
 			),
-			'idempotencyKey'    => sprintf( 'woocommerce-%s-storno-%d', str_pad( (string) $order->get_id(), 15, '0', STR_PAD_LEFT ), $refund_id ),
+			'idempotencyKey'    => $this->storno_idempotency_key( $order, $refund_id ),
 		);
 
 		if ( ! $is_full ) {
@@ -187,6 +221,38 @@ final class RefundService implements RefundIssuer {
 		}
 
 		return (array) apply_filters( 'oblio_fgwoo_storno_data', $payload, $order, $refund, $is_full );
+	}
+
+	private function storno_idempotency_key( WC_Order $order, int $refund_id ): string {
+		$legacy = 0 === $refund_id
+			? sprintf( 'woocommerce-%s-storno', str_pad( (string) $order->get_id(), 15, '0', STR_PAD_LEFT ) )
+			: sprintf( 'woocommerce-%s-storno-%d', str_pad( (string) $order->get_id(), 15, '0', STR_PAD_LEFT ), $refund_id );
+
+		$fresh = $this->has_prior_oblio_activity( $order )
+			? $legacy
+			: $this->install_namespace() . '-' . $legacy;
+
+		return OrderMeta::persisted_idempotency_key( $order, OrderMeta::key( OrderMeta::TYPE_STORNO, 'idempotency_' . $refund_id ), $fresh );
+	}
+
+	private function has_prior_oblio_activity( WC_Order $order ): bool {
+		// A storno's invoice always exists by definition, so inherit ITS key format instead
+		// of treating that existence as a signal.
+		$invoice_key = (string) $order->get_meta( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'idempotency' ) );
+		if ( '' !== $invoice_key ) {
+			return 0 !== strpos( $invoice_key, $this->install_namespace() . '-' );
+		}
+
+		foreach ( array( OrderMeta::TYPE_PROFORMA, OrderMeta::TYPE_NOTICE, OrderMeta::TYPE_STORNO ) as $type ) {
+			if ( OrderMeta::has( $order, $type ) ) {
+				return true;
+			}
+		}
+		return '' !== (string) $order->get_meta( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'failed' ) );
+	}
+
+	private function install_namespace(): string {
+		return substr( md5( site_url() . '|' . (string) $this->settings->get( 'cif' ) ), 0, 12 );
 	}
 
 	private function refund_products( WC_Order $order, WC_Order_Refund $refund ): array {
