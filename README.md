@@ -1,4 +1,5 @@
-# FGSync for Oblio
+# FGSync for Oblio 
+## Facturare Gestiune Sincronizare pentru Oblio 
 
 [![Versiune WordPress.org](https://img.shields.io/wordpress/plugin/v/fgsync-oblio.svg?logo=wordpress&logoColor=white&label=wp.org)](https://ro.wordpress.org/plugins/fgsync-oblio/)
 [![Testat până la](https://img.shields.io/wordpress/plugin/tested/fgsync-oblio.svg?label=testat%20p%C3%A2n%C4%83%20la)](https://ro.wordpress.org/plugins/fgsync-oblio/)
@@ -17,13 +18,13 @@ Plugin open-source independent, nedezvoltat, neaprobat și nesusținut de Oblio.
 serviciu terț, este necesar un cont Oblio activ.
 
 Acesta este repository-ul de dezvoltare. Pluginul este publicat pe WordPress.org la
-**[ro.wordpress.org/plugins/fgsync-oblio](https://ro.wordpress.org/plugins/fgsync-oblio/)** — acolo găsiți
+**[ro.wordpress.org/plugins/fgsync-oblio](https://ro.wordpress.org/plugins/fgsync-oblio/)** - acolo găsiți
 versiunea stabilă de instalat. Descrierea completă și changelog-ul publicate pe WordPress.org se află în
 [`readme.txt`](readme.txt).
 
 ## Funcționalități
 
-* Facturi, proforme, avize și storno — automat pe status de comandă sau manual din ecranul comenzii.
+* Facturi, proforme, avize și storno - automat pe status de comandă sau manual din ecranul comenzii.
 * Procesare pe coadă (Queue / Action Scheduler): emiterea nu blochează niciodată checkout-ul/site-ul/ecranul operatorului.
 * Sincronizare stoc în loturi, pe una sau mai multe gestiuni, după SKU.
 * Încasare automată ("marcat ca plătit"), configurabilă pe metodă de plată.
@@ -36,17 +37,28 @@ Lista completă e în [`readme.txt`](readme.txt), secțiunea `== Description ==`
 
 ## Diferențe față de pluginul original
 
-FGSync este o reconstrucție independentă, nu un fork: codul a fost scris de la zero, folosind
-pluginul vechi doar ca referință de funcționalitate. Motivul principal al reconstrucției a fost
-performanța și extensibilitatea: pluginul vechi procesează sincronizarea de stoc într-o singură
-execuție PHP, cu interogări separate pentru fiecare produs (vezi secțiunea Stoc), și expune doar
-două filtre proprii peste care se poate interveni. FGSync rulează pe coadă, în loturi, cu interogări
-agregate și 23 de filtre/hook-uri proprii pentru cazuri speciale (vezi secțiunea Extensibilitate).
-Tabelele de mai jos compară, funcționalitate cu funcționalitate, FGSync cu pluginul original
-„WooCommerce Oblio".
+FGSync este o **reconstrucție independentă**, nu un fork; Codul a fost scris de la zero, folosind
+pluginul vechi doar ca referință de funcționalitate.
 
-Legendă: ✅ funcționează, ⚠️ parțial sau nefuncțional, ❌ lipsește, `-` nu se aplică. Numele îngroșat
-marchează o funcționalitate de bază; un rând care începe cu `↳` descrie o îmbunătățire adăugată de
+Motivul principal al reconstrucției a fost **performanța și extensibilitatea**. Pluginul vechi rulează sincron, într-o singură execuție PHP, mai
+multe operații care pot lua mult timp pe magazine medii/mari: sincronizarea de stoc (vezi secțiunea Stoc),
+emiterea în masă a facturilor din lista de comenzi și chiar încărcarea paginii de Setări. 
+
+FGSync rulează aceleași operații pe coadă (queue / action scheduler) sau din cache, și adaugă 23 de filtre/hook-uri
+proprii pentru cazuri speciale (vezi secțiunea Extensibilitate). Tabelele de mai jos compară,
+funcționalitate cu funcționalitate, FGSync cu pluginul original „WooCommerce Oblio".
+
+**Legendă**: 
+
+✅ funcționează
+
+⚠️ parțial sau nefuncțional
+
+❌ lipsește
+
+`-` nu se aplică. 
+
+**Numele îngroșat marchează o funcționalitate de bază**; un rând care începe cu `↳` descrie o îmbunătățire adăugată de
 FGSync peste funcționalitatea de bază listată chiar deasupra lui, nu o funcționalitate separată.
 
 ### Facturare (documente)
@@ -92,6 +104,8 @@ FGSync peste funcționalitatea de bază listată chiar deasupra lui, nu o funcț
 | ↳ Reprogramare automată în loc de așteptare fixă | `-`                                    | ✅ |
 | **Încasare automată ("marcat ca plătit")** | ✅ comutator general cu risc de omitere | ✅ |
 | ↳ Configurabilă per metodă de plată, cu excepții | `-`                                    | ✅ |
+| **Încărcare pagină Setări (serii, gestiuni)** | ⚠️ până la 4 cereri către API-ul Oblio, la fiecare încărcare, cu pauze fixe totalizând 1,5s | ✅ |
+| ↳ Date din cache (până la o săptămână), reîmprospătate doar la cerere sau la schimbarea CIF | `-`                                    | ✅ |
 
 ### Extensibilitate
 
@@ -115,7 +129,8 @@ FGSync peste funcționalitatea de bază listată chiar deasupra lui, nu o funcț
 |---|---|---|
 | **Coloană cu statusul Oblio în lista de comenzi** | ✅ | ✅ |
 | ↳ Indicator de eroare, cu motivul eșecului afișat | `-` | ✅ |
-| **Acțiuni în masă: emitere factură** | ✅ | ✅ |
+| **Acțiuni în masă: emitere factură** | ⚠️ execuție sincronă, într-o singură cerere HTTP: la multe comenzi selectate deodată, risc de timeout | ✅ |
+| ↳ Fiecare comandă selectată e pusă în coadă, nu procesată sincron în cererea admin | `-` | ✅ |
 | ↳ Emitere proformă și storno în masă | `-` | ✅ |
 | **Filtrare listă de comenzi după statusul Oblio** | ❌ | ✅ |
 | **Vizibilitate a motivului de eșec la emitere** | ❌ | ✅ pe ecranul comenzii și în lista de comenzi |
