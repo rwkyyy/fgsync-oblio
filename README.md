@@ -37,8 +37,13 @@ Lista completă e în [`readme.txt`](readme.txt), secțiunea `== Description ==`
 ## Diferențe față de pluginul original
 
 FGSync este o reconstrucție independentă, nu un fork: codul a fost scris de la zero, folosind
-pluginul vechi doar ca referință de funcționalitate. Tabelele de mai jos compară, funcționalitate cu
-funcționalitate, FGSync cu pluginul original „WooCommerce Oblio".
+pluginul vechi doar ca referință de funcționalitate. Motivul principal al reconstrucției a fost
+performanța și extensibilitatea: pluginul vechi procesează sincronizarea de stoc într-o singură
+execuție PHP, cu interogări separate pentru fiecare produs (vezi secțiunea Stoc), și expune doar
+două filtre proprii peste care se poate interveni. FGSync rulează pe coadă, în loturi, cu interogări
+agregate și 23 de filtre/hook-uri proprii pentru cazuri speciale (vezi secțiunea Extensibilitate).
+Tabelele de mai jos compară, funcționalitate cu funcționalitate, FGSync cu pluginul original
+„WooCommerce Oblio".
 
 Legendă: ✅ funcționează, ⚠️ parțial sau nefuncțional, ❌ lipsește, `-` nu se aplică. Numele îngroșat
 marchează o funcționalitate de bază; un rând care începe cu `↳` descrie o îmbunătățire adăugată de
@@ -46,22 +51,26 @@ FGSync peste funcționalitatea de bază listată chiar deasupra lui, nu o funcț
 
 ### Facturare (documente)
 
-| Funcționalitate | Integrarea Oblio.eu | FGSync |
-|---|---|---|
-| **Facturi, emitere automată sau manuală** | ✅ | ✅ |
-| ↳ Emitere pe coadă (Action Scheduler), nu mai blochează comanda | `-` | ✅ |
-| ↳ Reîncercare automată cu backoff la eșec | `-` | ✅ |
-| **Proforme** | ✅ (blocate pentru plata cu cardul) | ✅ |
-| **Ștergere document** | ✅ posibilă doar pentru ultimul document din serie: Oblio refuză ștergerea oricărui alt document, indiferent de plugin | ✅ |
-| ↳ Butonul de ștergere e ascuns când documentul nu e ultimul din serie, în loc să apară eroarea Oblio după click | `-` | ✅ |
-| **Storno (credit note), integral și parțial** | ❌ | ✅ automat la rambursarea comenzii |
-| **Aviz (notă de livrare)** | ⚠️ codul există, dar nu e funcțional | ✅ |
-| **Reconciliere pentru documente omise** | ❌ | ✅ job recurent |
+| Funcționalitate | Integrarea Oblio.eu                                                                                              | FGSync |
+|---|------------------------------------------------------------------------------------------------------------------|---|
+| **Facturi, emitere automată sau manuală** | ✅                                                                                                                | ✅ |
+| ↳ Emitere pe coadă (Action Scheduler), nu mai blochează comanda | `-`                                                                                                              | ✅ |
+| ↳ Reîncercare automată cu backoff la eșec | `-`                                                                                                              | ✅ |
+| **Proforme** | ✅ (blocate pentru plata cu cardul)                                                                               | ✅ |
+| **Ștergere document** | ✅ posibilă doar pentru ultimul document din serie: Oblio refuză ștergerea oricărui alt document, afișat constant | ✅ |
+| ↳ Butonul de ștergere e ascuns când documentul nu e ultimul din serie, în loc să apară eroarea Oblio după click | `-`                                                                                                              | ✅ |
+| **Storno (credit note), integral și parțial** | ❌                                                                                                                | ✅ automat la rambursarea comenzii |
+| **Aviz (notă de livrare)** | ⚠️ codul există, dar nu e funcțional                                                                             | ✅ |
+| **Reconciliere pentru documente omise** | ❌                                                                                                                | ✅ job recurent |
 
 ### Stoc
 
 | Funcționalitate | Integrarea Oblio.eu | FGSync |
 |---|---|---|
+| **Procesare a sincronizării de stoc** | ⚠️ o singură execuție PHP citește toate paginile din Oblio și aplică toate modificările; risc de timeout sau epuizare memorie la cataloage mari | ✅ |
+| ↳ Pe pagini de 250 de produse, fiecare pagină o sarcină de coadă separată, cu progres salvat între ele | `-` | ✅ |
+| ↳ O interogare unică pentru SKU-urile din pagina curentă, nu una separată pentru fiecare produs primit de la Oblio | `-` | ✅ |
+| ↳ Scrie doar produsele al căror stoc sau preț chiar s-a schimbat, nu pe toate cele primite de la Oblio | `-` | ✅ |
 | **Sincronizare stoc programată** | ✅ cron fix, la fiecare oră | ✅ |
 | ↳ Interval configurabil (orar, la 6h, la 12h, zilnic) | `-` | ✅ |
 | **Sincronizare pe o gestiune** | ✅ | ✅ |
@@ -75,14 +84,20 @@ FGSync peste funcționalitatea de bază listată chiar deasupra lui, nu o funcț
 
 ### Fiabilitate și performanță
 
+| Funcționalitate | Integrarea Oblio.eu                    | FGSync |
+|---|----------------------------------------|---|
+| **Blocaj la emitere concurentă** | ✅ un lacăt global, la nivel de fișier  | ✅ |
+| ↳ Lacăt per comandă, cu expirare automată dacă rămâne blocat | `-`                                    | ✅ |
+| **Limitare rată API Oblio** | ✅ pauză fixă între cereri              | ✅ |
+| ↳ Reprogramare automată în loc de așteptare fixă | `-`                                    | ✅ |
+| **Încasare automată ("marcat ca plătit")** | ✅ comutator general cu risc de omitere | ✅ |
+| ↳ Configurabilă per metodă de plată, cu excepții | `-`                                    | ✅ |
+
+### Extensibilitate
+
 | Funcționalitate | Integrarea Oblio.eu | FGSync |
 |---|---|---|
-| **Blocaj la emitere concurentă** | ✅ un lacăt global, la nivel de fișier | ✅ |
-| ↳ Lacăt per comandă, cu expirare automată dacă rămâne blocat | `-` | ✅ |
-| **Limitare rată API Oblio** | ✅ pauză fixă între cereri | ✅ |
-| ↳ Reprogramare automată în loc de așteptare fixă | `-` | ✅ |
-| **Încasare automată ("marcat ca plătit")** | ✅ comutator general | ✅ |
-| ↳ Configurabilă per metodă de plată, cu excepții | `-` | ✅ |
+| **Filtre și hook-uri proprii pentru cazuri speciale** | ⚠️ 2 (payload-ul facturii și rezultatul emiterii) | ✅ 23, acoperind facturare, stoc, rezervări, reconciliere, storno și email |
 
 ### Compatibilitate
 
