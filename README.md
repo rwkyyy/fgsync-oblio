@@ -188,3 +188,6 @@ community/best-effort, fără SLA garantat.
 ## Licență
 
 GPL-2.0-or-later. Vezi [LICENSE](LICENSE).
+
+## MEnțiuni
+Mulțumiri speciale lui Sorin D. și Aurelian M. pentru răbdarea, ideile și asistența în testarea acestui proiect.
