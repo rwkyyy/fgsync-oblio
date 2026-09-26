@@ -46,7 +46,7 @@ FGSync peste funcționalitatea de bază listată chiar deasupra lui, nu o funcț
 
 ### Facturare (documente)
 
-| Funcționalitate | Oblio.eu Integration | FGSync |
+| Funcționalitate | Integrarea Oblio.eu | FGSync |
 |---|---|---|
 | **Facturi, emitere automată sau manuală** | ✅ | ✅ |
 | ↳ Emitere pe coadă (Action Scheduler), nu mai blochează comanda | `-` | ✅ |
@@ -60,7 +60,7 @@ FGSync peste funcționalitatea de bază listată chiar deasupra lui, nu o funcț
 
 ### Stoc
 
-| Funcționalitate | Oblio.eu Integration | FGSync |
+| Funcționalitate | Integrarea Oblio.eu | FGSync |
 |---|---|---|
 | **Sincronizare stoc programată** | ✅ cron fix, la fiecare oră | ✅ |
 | ↳ Interval configurabil (orar, la 6h, la 12h, zilnic) | `-` | ✅ |
@@ -75,7 +75,7 @@ FGSync peste funcționalitatea de bază listată chiar deasupra lui, nu o funcț
 
 ### Fiabilitate și performanță
 
-| Funcționalitate | Oblio.eu Integration | FGSync |
+| Funcționalitate | Integrarea Oblio.eu | FGSync |
 |---|---|---|
 | **Blocaj la emitere concurentă** | ✅ un lacăt global, la nivel de fișier | ✅ |
 | ↳ Lacăt per comandă, cu expirare automată dacă rămâne blocat | `-` | ✅ |
@@ -86,7 +86,7 @@ FGSync peste funcționalitatea de bază listată chiar deasupra lui, nu o funcț
 
 ### Compatibilitate
 
-| Funcționalitate | Oblio.eu Integration | FGSync |
+| Funcționalitate | Integrarea Oblio.eu | FGSync |
 |---|---|---|
 | **High-Performance Order Storage (HPOS)** | ⚠️ parțială | ✅ completă |
 | **WPML / WooCommerce Multilingual** | ❌ | ✅ |
@@ -96,7 +96,7 @@ FGSync peste funcționalitatea de bază listată chiar deasupra lui, nu o funcț
 
 ### Comenzi și interfață admin
 
-| Funcționalitate | Oblio.eu Integration | FGSync |
+| Funcționalitate | Integrarea Oblio.eu | FGSync |
 |---|---|---|
 | **Coloană cu statusul Oblio în lista de comenzi** | ✅ | ✅ |
 | ↳ Indicator de eroare, cu motivul eșecului afișat | `-` | ✅ |
@@ -107,14 +107,14 @@ FGSync peste funcționalitatea de bază listată chiar deasupra lui, nu o funcț
 
 ### Automatizări externe
 
-| Funcționalitate | Oblio.eu Integration | FGSync |
+| Funcționalitate | Integrarea Oblio.eu | FGSync |
 |---|---|---|
 | **Webhook-uri Oblio (confirmare plată cu cardul)** | ✅ | ⚠️ eliminat temporar, revine într-o versiune viitoare |
 | **Integrare WooCommerce Returns → storno** | ❌ funcția nu exista în WooCommerce | ✅ experimentală, dezactivată implicit |
 
 ### Securitate și mentenanță
 
-| Funcționalitate | Oblio.eu Integration | FGSync |
+| Funcționalitate | Integrarea Oblio.eu | FGSync |
 |---|---|---|
 | **Stocare cheie API** | ✅ text simplu | ✅ criptată (AES-256-GCM) |
 | **Jurnal de activitate** | ✅ fișier JSON brut, fără interfață | ✅ jurnal WooCommerce, cu panou de stare dedicat |
