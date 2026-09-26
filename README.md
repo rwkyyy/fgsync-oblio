@@ -42,10 +42,16 @@ pluginul vechi doar ca referință de funcționalitate.
 
 Motivul principal al reconstrucției a fost **performanța și extensibilitatea**. Pluginul vechi rulează sincron, într-o singură execuție PHP, mai
 multe operații care pot lua mult timp pe magazine medii/mari: sincronizarea de stoc (vezi secțiunea Stoc),
-emiterea în masă a facturilor din lista de comenzi și chiar încărcarea paginii de Setări. 
+emiterea în masă a facturilor din lista de comenzi și chiar încărcarea paginii de Setări. La emiterea automată
+a unei facturi (la finalizarea comenzii sau la schimbarea statusului), pluginul vechi poate bloca cererea
+clientului sau a operatorului **până la ~60 de secunde** (lacăt de fișier cu așteptare activă, până la 30s,
+plus timeout-ul de 30s al cererii către API-ul Oblio), fără reîncercare automată la eșec.
 
 FGSync rulează aceleași operații pe coadă (queue / action scheduler) sau din cache, și adaugă 23 de filtre/hook-uri
-proprii pentru cazuri speciale (vezi secțiunea Extensibilitate). Tabelele de mai jos compară,
+proprii pentru cazuri speciale (vezi secțiunea Extensibilitate). Codul e integral rescris pe o bază modernă -
+PHP 8.1+ cu tipare stricte (`strict_types`) și namespace-uri în toate cele peste 70 de fișiere din `src/`,
+acoperit de o suită de teste automate (PHPUnit) - față de codul vechi, care nu declară o versiune minimă de
+PHP și nu folosește tipare stricte. Tabelele de mai jos compară,
 funcționalitate cu funcționalitate, FGSync cu pluginul original „WooCommerce Oblio".
 
 **Legendă**: 
@@ -81,7 +87,7 @@ FGSync peste funcționalitatea de bază listată chiar deasupra lui, nu o funcț
 |---|---|---|
 | **Procesare a sincronizării de stoc** | ⚠️ o singură execuție PHP citește toate paginile din Oblio și aplică toate modificările; risc de timeout sau epuizare memorie la cataloage mari | ✅ |
 | ↳ Pe pagini de 250 de produse, fiecare pagină o sarcină de coadă separată, cu progres salvat între ele | `-` | ✅ |
-| ↳ O interogare unică pentru SKU-urile din pagina curentă, nu una separată pentru fiecare produs primit de la Oblio | `-` | ✅ |
+| ↳ O interogare unică pentru SKU-urile din pagina curentă (până la 500 → 1 interogare per pagină de 250 produse), nu una separată pentru fiecare produs primit de la Oblio | `-` | ✅ |
 | ↳ Scrie doar produsele al căror stoc sau preț chiar s-a schimbat, nu pe toate cele primite de la Oblio | `-` | ✅ |
 | **Sincronizare stoc programată** | ✅ cron fix, la fiecare oră | ✅ |
 | ↳ Interval configurabil (orar, la 6h, la 12h, zilnic) | `-` | ✅ |
@@ -98,9 +104,9 @@ FGSync peste funcționalitatea de bază listată chiar deasupra lui, nu o funcț
 
 | Funcționalitate | Integrarea Oblio.eu                    | FGSync |
 |---|----------------------------------------|---|
-| **Blocaj la emitere concurentă** | ✅ un lacăt global, la nivel de fișier  | ✅ |
+| **Blocaj la emitere concurentă** | ✅ un lacăt global, la nivel de fișier, cu așteptare activă până la 30s | ✅ |
 | ↳ Lacăt per comandă, cu expirare automată dacă rămâne blocat | `-`                                    | ✅ |
-| **Limitare rată API Oblio** | ✅ pauză fixă între cereri              | ✅ |
+| **Limitare rată API Oblio** | ⚠️ pauză fixă de 0,5s, doar la paginarea sincronizării de stoc - nicio limitare la emiterea documentelor | ✅ la fiecare emitere (facturi, proforme, avize, storno) |
 | ↳ Reprogramare automată în loc de așteptare fixă | `-`                                    | ✅ |
 | **Încasare automată ("marcat ca plătit")** | ✅ comutator general cu risc de omitere | ✅ |
 | ↳ Configurabilă per metodă de plată, cu excepții | `-`                                    | ✅ |
@@ -152,6 +158,7 @@ FGSync peste funcționalitatea de bază listată chiar deasupra lui, nu o funcț
 | **Mecanism de actualizare** | ✅ updater propriu, în afara WordPress.org | ✅ standard WordPress.org (SVN) |
 | **Import de date din pluginul vechi** | ❌ | ✅ unidirecțional |
 | **Pagină „Ajutor"** | ✅ | ❌ plănuit: wiki pe GitHub și secțiune FAQ pe pagina din WordPress.org |
+| **Bază de cod** | ⚠️ fără versiune minimă de PHP declarată, cod procedural, fără tipare stricte, fără teste automate | ✅ PHP 8.1+, tipare stricte (`strict_types`) și namespace-uri în tot codul, testat cu PHPUnit |
 
 ## Cerințe
 
