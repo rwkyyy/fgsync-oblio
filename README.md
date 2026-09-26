@@ -11,7 +11,7 @@
 [![Licență](https://img.shields.io/badge/licen%C8%9B%C4%83-GPL--2.0--or--later-blue)](LICENSE)
 
 Integrare independentă WooCommerce cu [Oblio.eu](https://www.oblio.eu): emitere automată de facturi,
-proforme, avize și storno, procesare pe cozi (queue), sincronizare stoc pe mai multe gestiuni și webhooks.
+proforme, avize și storno, procesare pe cozi (queue) și sincronizare stoc pe mai multe gestiuni.
 
 Plugin open-source independent, nedezvoltat, neaprobat și nesusținut de Oblio.eu. Oblio este un
 serviciu terț, este necesar un cont Oblio activ.
@@ -33,6 +33,95 @@ versiunea stabilă de instalat. Descrierea completă și changelog-ul publicate 
 * Compatibilitate OSS
 
 Lista completă e în [`readme.txt`](readme.txt), secțiunea `== Description ==`.
+
+## Diferențe față de pluginul original
+
+FGSync este o reconstrucție independentă, nu un fork: codul a fost scris de la zero, folosind
+pluginul vechi doar ca referință de funcționalitate. Tabelele de mai jos compară, funcționalitate cu
+funcționalitate, FGSync cu pluginul original „WooCommerce Oblio".
+
+Legendă: ✅ funcționează, ⚠️ parțial sau nefuncțional, ❌ lipsește, `-` nu se aplică. Numele îngroșat
+marchează o funcționalitate de bază; un rând care începe cu `↳` descrie o îmbunătățire adăugată de
+FGSync peste funcționalitatea de bază listată chiar deasupra lui, nu o funcționalitate separată.
+
+### Facturare (documente)
+
+| Funcționalitate | Oblio.eu Integration | FGSync |
+|---|---|---|
+| **Facturi, emitere automată sau manuală** | ✅ | ✅ |
+| ↳ Emitere pe coadă (Action Scheduler), nu mai blochează comanda | `-` | ✅ |
+| ↳ Reîncercare automată cu backoff la eșec | `-` | ✅ |
+| **Proforme** | ✅ (blocate pentru plata cu cardul) | ✅ |
+| **Ștergere document** | ✅ posibilă doar pentru ultimul document din serie: Oblio refuză ștergerea oricărui alt document, indiferent de plugin | ✅ |
+| ↳ Butonul de ștergere e ascuns când documentul nu e ultimul din serie, în loc să apară eroarea Oblio după click | `-` | ✅ |
+| **Storno (credit note), integral și parțial** | ❌ | ✅ automat la rambursarea comenzii |
+| **Aviz (notă de livrare)** | ⚠️ codul există, dar nu e funcțional | ✅ |
+| **Reconciliere pentru documente omise** | ❌ | ✅ job recurent |
+
+### Stoc
+
+| Funcționalitate | Oblio.eu Integration | FGSync |
+|---|---|---|
+| **Sincronizare stoc programată** | ✅ cron fix, la fiecare oră | ✅ |
+| ↳ Interval configurabil (orar, la 6h, la 12h, zilnic) | `-` | ✅ |
+| **Sincronizare pe o gestiune** | ✅ | ✅ |
+| ↳ Agregare pe mai multe gestiuni deodată | `-` | ✅ |
+| **Sincronizare stoc manuală** | ✅ sincronă, blochează pagina | ✅ |
+| ↳ Rulează pe fundal, cu bară de progres | `-` | ✅ |
+| **Rezervare stoc pentru comenzi neonorate** | ✅ fereastră fixă de 30 de zile | ✅ |
+| ↳ Fereastră și statusuri de comandă configurabile | `-` | ✅ |
+| **Actualizare preț din Oblio** | ✅ | ✅ |
+| ↳ Nu suprascrie prețul când moneda nu se potrivește | `-` | ✅ |
+
+### Fiabilitate și performanță
+
+| Funcționalitate | Oblio.eu Integration | FGSync |
+|---|---|---|
+| **Blocaj la emitere concurentă** | ✅ un lacăt global, la nivel de fișier | ✅ |
+| ↳ Lacăt per comandă, cu expirare automată dacă rămâne blocat | `-` | ✅ |
+| **Limitare rată API Oblio** | ✅ pauză fixă între cereri | ✅ |
+| ↳ Reprogramare automată în loc de așteptare fixă | `-` | ✅ |
+| **Încasare automată ("marcat ca plătit")** | ✅ comutator general | ✅ |
+| ↳ Configurabilă per metodă de plată, cu excepții | `-` | ✅ |
+
+### Compatibilitate
+
+| Funcționalitate | Oblio.eu Integration | FGSync |
+|---|---|---|
+| **High-Performance Order Storage (HPOS)** | ⚠️ parțială | ✅ completă |
+| **WPML / WooCommerce Multilingual** | ❌ | ✅ |
+| **WooCommerce Bundles** | ❌ | ✅ |
+| **Facturare OSS (EUR pentru clienți din afara României)** | ❌ | ✅ opțională |
+| **Câmpuri CIF/RC din alte pluginuri de checkout** | ✅ | ✅ |
+
+### Comenzi și interfață admin
+
+| Funcționalitate | Oblio.eu Integration | FGSync |
+|---|---|---|
+| **Coloană cu statusul Oblio în lista de comenzi** | ✅ | ✅ |
+| ↳ Indicator de eroare, cu motivul eșecului afișat | `-` | ✅ |
+| **Acțiuni în masă: emitere factură** | ✅ | ✅ |
+| ↳ Emitere proformă și storno în masă | `-` | ✅ |
+| **Filtrare listă de comenzi după statusul Oblio** | ❌ | ✅ |
+| **Vizibilitate a motivului de eșec la emitere** | ❌ | ✅ pe ecranul comenzii și în lista de comenzi |
+
+### Automatizări externe
+
+| Funcționalitate | Oblio.eu Integration | FGSync |
+|---|---|---|
+| **Webhook-uri Oblio (confirmare plată cu cardul)** | ✅ | ⚠️ eliminat temporar, revine într-o versiune viitoare |
+| **Integrare WooCommerce Returns → storno** | ❌ funcția nu exista în WooCommerce | ✅ experimentală, dezactivată implicit |
+
+### Securitate și mentenanță
+
+| Funcționalitate | Oblio.eu Integration | FGSync |
+|---|---|---|
+| **Stocare cheie API** | ✅ text simplu | ✅ criptată (AES-256-GCM) |
+| **Jurnal de activitate** | ✅ fișier JSON brut, fără interfață | ✅ jurnal WooCommerce, cu panou de stare dedicat |
+| **Indicator de conexiune în bara de admin** | ❌ | ✅ |
+| **Mecanism de actualizare** | ✅ updater propriu, în afara WordPress.org | ✅ standard WordPress.org (SVN) |
+| **Import de date din pluginul vechi** | ❌ | ✅ unidirecțional |
+| **Pagină „Ajutor"** | ✅ | ❌ plănuit: wiki pe GitHub și secțiune FAQ pe pagina din WordPress.org |
 
 ## Cerințe
 

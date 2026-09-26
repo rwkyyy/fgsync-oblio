@@ -28,13 +28,13 @@ final class ClientFactory {
 
 	private RateLimiter $rate_limiter;
 
-	public function __construct( Settings $settings, Encryption $encryption, Logger $logger, ConnectionHealth $health ) {
+	public function __construct( Settings $settings, Encryption $encryption, Logger $logger, ConnectionHealth $health, RateLimiter $rate_limiter ) {
 		$this->settings     = $settings;
 		$this->encryption   = $encryption;
 		$this->logger       = $logger;
 		$this->health       = $health;
 		$this->tokens       = new TokenStore( $encryption );
-		$this->rate_limiter = new RateLimiter();
+		$this->rate_limiter = $rate_limiter;
 	}
 
 	public function register(): void {

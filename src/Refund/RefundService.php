@@ -39,7 +39,7 @@ final class RefundService implements RefundIssuer {
 		$this->logger   = $logger;
 	}
 
-	public function issue_for_refund( int $order_id, int $refund_id ): ?DocumentResult {
+	public function issue_for_refund( int $order_id, int $refund_id, bool $fail_fast = false ): ?DocumentResult {
 		$order = $this->orders->get_order( $order_id );
 		if ( null === $order ) {
 			return null;
@@ -49,8 +49,18 @@ final class RefundService implements RefundIssuer {
 		if ( ! $refund instanceof WC_Order_Refund ) {
 			return null;
 		}
+		// Every other caller derives $order_id and $refund_id consistently by
+		// construction (Reconciler gets $order from $refund->get_parent_id()
+		// itself; queue payloads are built the same way) - this guard protects
+		// the one exception, ReturnsIntegration's independent order/refund
+		// resolution from an external WC Returns event, from ever building a
+		// storno against a mismatched order/refund pair.
+		if ( $refund->get_parent_id() !== $order_id ) {
+			$this->logger->error( sprintf( 'Refund #%d does not belong to order #%d, refusing to issue a storno', $refund_id, $order_id ) );
+			return null;
+		}
 
-		$owner = OrderLock::acquire( $order_id );
+		$owner = OrderLock::acquire( $order_id, $fail_fast ? OrderLock::FAIL_FAST : OrderLock::WAIT );
 		if ( null === $owner ) {
 			throw new RuntimeException( esc_html__( 'Un alt proces emite deja un document pentru comandă; se va reîncerca automat.', 'fgsync-oblio' ) );
 		}
@@ -101,20 +111,28 @@ final class RefundService implements RefundIssuer {
 			}
 			$this->record_storno( $order, $result, $is_full );
 			OrderMeta::save( $order, $result );
-
-			do_action( 'oblio_fgwoo_storno_issued', $order, $result, $refund_id, $is_full );
-
-			$this->logger->info( sprintf( 'Order #%d refund #%d: storno %s %s (%s)', $order_id, $refund_id, $result->series_name, $result->number, $is_full ? 'full' : 'partial' ) );
-
-			return $result;
 		} finally {
 			OrderLock::release( $order_id, $owner );
 		}
+
+		// Runs after the lock is released, same reasoning as DocumentService::issue():
+		// the storno is already persisted, so a hook exception here doesn't leave a
+		// retry silently skipping it forever, and a slow callback doesn't extend
+		// lock contention.
+		try {
+			do_action( 'oblio_fgwoo_storno_issued', $order, $result, $refund_id, $is_full );
+		} catch ( \Throwable $exception ) {
+			$this->logger->error( sprintf( 'Order #%d refund #%d: post-issue hook failed for storno %s %s: %s', $order_id, $refund_id, $result->series_name, $result->number, $exception->getMessage() ) );
+		}
+
+		$this->logger->info( sprintf( 'Order #%d refund #%d: storno %s %s (%s) issued', $order_id, $refund_id, $result->series_name, $result->number, $is_full ? 'full' : 'partial' ) );
+
+		return $result;
 	}
 
-	public function issue_full_storno( WC_Order $order ): DocumentResult {
+	public function issue_full_storno( WC_Order $order, bool $fail_fast = false ): DocumentResult {
 		$order_id = $order->get_id();
-		$owner    = OrderLock::acquire( $order_id );
+		$owner    = OrderLock::acquire( $order_id, $fail_fast ? OrderLock::FAIL_FAST : OrderLock::WAIT );
 		if ( null === $owner ) {
 			throw new RuntimeException( esc_html__( 'Un alt proces emite deja un document pentru comandă; se va reîncerca automat.', 'fgsync-oblio' ) );
 		}
@@ -168,13 +186,19 @@ final class RefundService implements RefundIssuer {
 			$order->update_meta_data( $full_key, current_time( 'mysql' ) );
 			$this->record_storno( $order, $result, true );
 			OrderMeta::save( $order, $result );
-			do_action( 'oblio_fgwoo_storno_issued', $order, $result, 0, true );
-			$this->logger->info( sprintf( 'Order #%d: manual full storno %s %s', $order->get_id(), $result->series_name, $result->number ) );
-
-			return $result;
 		} finally {
 			OrderLock::release( $order_id, $owner );
 		}
+
+		try {
+			do_action( 'oblio_fgwoo_storno_issued', $order, $result, 0, true );
+		} catch ( \Throwable $exception ) {
+			$this->logger->error( sprintf( 'Order #%d: post-issue hook failed for full storno %s %s: %s', $order->get_id(), $result->series_name, $result->number, $exception->getMessage() ) );
+		}
+
+		$this->logger->info( sprintf( 'Order #%d: manual full storno %s %s issued', $order->get_id(), $result->series_name, $result->number ) );
+
+		return $result;
 	}
 
 	private function record_storno( WC_Order $order, DocumentResult $result, bool $is_full ): void {
@@ -255,9 +279,13 @@ final class RefundService implements RefundIssuer {
 		return substr( md5( site_url() . '|' . (string) $this->settings->get( 'cif' ) ), 0, 12 );
 	}
 
-	private function refund_products( WC_Order $order, WC_Order_Refund $refund ): array {
+	private function order_currency( WC_Order $order ): string {
 		$currency = substr( (string) $order->get_currency(), 0, 3 );
-		$currency = 'lei' === strtolower( $currency ) ? 'RON' : $currency;
+		return 'lei' === strtolower( $currency ) ? 'RON' : $currency;
+	}
+
+	private function refund_products( WC_Order $order, WC_Order_Refund $refund ): array {
+		$currency = $this->order_currency( $order );
 		$ctx      = BuildContext::from_settings( $this->settings, $currency );
 
 		$products = array();
@@ -334,8 +362,7 @@ final class RefundService implements RefundIssuer {
 			return array();
 		}
 
-		$currency = substr( (string) $order->get_currency(), 0, 3 );
-		$currency = 'lei' === strtolower( $currency ) ? 'RON' : $currency;
+		$currency = $this->order_currency( $order );
 		$ctx      = BuildContext::from_settings( $this->settings, $currency );
 		$reason   = trim( (string) $refund->get_reason() );
 
@@ -372,8 +399,7 @@ final class RefundService implements RefundIssuer {
 			return $products;
 		}
 
-		$currency = substr( (string) $order->get_currency(), 0, 3 );
-		$currency = 'lei' === strtolower( $currency ) ? 'RON' : $currency;
+		$currency = $this->order_currency( $order );
 		$ctx      = BuildContext::from_settings( $this->settings, $currency );
 
 		$products[] = array(

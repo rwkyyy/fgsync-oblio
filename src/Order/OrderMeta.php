@@ -88,7 +88,7 @@ final class OrderMeta {
 		$order->update_meta_data( self::key( $type, 'series' ), $result->series_name );
 		$order->update_meta_data( self::key( $type, 'number' ), $result->number );
 		$order->update_meta_data( self::key( $type, 'link' ), $result->link );
-		$order->update_meta_data( self::key( $type, 'date' ), current_time( 'Y-m-d' ) );
+		$order->update_meta_data( self::key( $type, 'date' ), '' !== $result->date ? $result->date : current_time( 'Y-m-d' ) );
 		$order->save();
 	}
 

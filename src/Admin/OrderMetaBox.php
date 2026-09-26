@@ -87,7 +87,7 @@ final class OrderMetaBox {
 		if ( $this->settings->is_enabled( 'notice_enabled' ) ) {
 			$errors[] = $this->document_row( $order, OrderMeta::TYPE_NOTICE, __( 'Aviz', 'fgsync-oblio' ), false );
 		}
-		$this->storno_row( $order );
+		$errors = array_merge( $errors, $this->storno_row( $order ) );
 
 		foreach ( array_filter( $errors ) as $reason ) {
 			printf(
@@ -144,9 +144,16 @@ final class OrderMetaBox {
 		return $reason;
 	}
 
-	private function storno_row( WC_Order $order ): void {
+	/**
+	 * @param WC_Order $order Order to render the storno row for.
+	 * @return array<int,string> Non-empty failure reasons for any refund
+	 *                           whose storno is still outstanding, so
+	 *                           render() can surface them the same way it
+	 *                           does for invoice/proforma/notice failures.
+	 */
+	private function storno_row( WC_Order $order ): array {
 		if ( ! OrderMeta::has( $order, OrderMeta::TYPE_INVOICE ) ) {
-			return;
+			return array();
 		}
 		$storni = OrderMeta::storno_list( $order );
 		echo '<p class="oblio-fgwoo-orderbox-row">';
@@ -175,5 +182,26 @@ final class OrderMetaBox {
 			);
 		}
 		echo '</p>';
+
+		$reasons = array();
+		foreach ( $this->storno_refund_ids( $order ) as $refund_id ) {
+			$reason = (string) $order->get_meta( 'oblio_fgwoo_storno_failed_' . $refund_id );
+			if ( '' !== $reason ) {
+				$reasons[] = $reason;
+			}
+		}
+		return $reasons;
+	}
+
+	/**
+	 * @param WC_Order $order Order to list refund IDs for.
+	 * @return array<int,int> 0 (full storno) plus every refund ID on the order.
+	 */
+	private function storno_refund_ids( WC_Order $order ): array {
+		$ids = array( 0 );
+		foreach ( $order->get_refunds() as $refund ) {
+			$ids[] = $refund->get_id();
+		}
+		return $ids;
 	}
 }

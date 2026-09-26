@@ -703,12 +703,6 @@ parameters:
 			path: src/Document/DocumentIssuer.php
 
 		-
-			message: '#^Method FGSyncOblio\\Document\\DocumentResult\:\:from_api\(\) has parameter \$data with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Document/DocumentResult.php
-
-		-
 			message: '#^Method FGSyncOblio\\Document\\DocumentService\:\:issue\(\) has parameter \$options with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -1075,12 +1069,6 @@ parameters:
 			path: src/Queue/Jobs/StockSyncBatch.php
 
 		-
-			message: '#^Method FGSyncOblio\\Queue\\Jobs\\StockSyncBatch\:\:process_page\(\) has parameter \$products with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Queue/Jobs/StockSyncBatch.php
-
-		-
 			message: '#^Method FGSyncOblio\\Queue\\Jobs\\StockSyncBatch\:\:record_progress\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -1107,7 +1095,7 @@ parameters:
 		-
 			message: '#^Function as_enqueue_async_action not found\.$#'
 			identifier: function.notFound
-			count: 4
+			count: 2
 			path: src/Queue/Scheduler.php
 
 		-
@@ -1125,7 +1113,7 @@ parameters:
 		-
 			message: '#^Function as_schedule_single_action not found\.$#'
 			identifier: function.notFound
-			count: 5
+			count: 1
 			path: src/Queue/Scheduler.php
 
 		-
@@ -1135,37 +1123,13 @@ parameters:
 			path: src/Queue/Scheduler.php
 
 		-
-			message: '#^Method FGSyncOblio\\Queue\\Scheduler\:\:build_pending_map\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Queue/Scheduler.php
-
-		-
 			message: '#^Method FGSyncOblio\\Queue\\Scheduler\:\:enqueue_document\(\) has parameter \$options with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
 			path: src/Queue/Scheduler.php
 
 		-
-			message: '#^Method FGSyncOblio\\Queue\\Scheduler\:\:pending_payloads\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Queue/Scheduler.php
-
-		-
 			message: '#^Method FGSyncOblio\\Queue\\Scheduler\:\:reschedule_document\(\) has parameter \$options with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Queue/Scheduler.php
-
-		-
-			message: '#^Property FGSyncOblio\\Queue\\Scheduler\:\:\$pending_generate type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Queue/Scheduler.php
-
-		-
-			message: '#^Property FGSyncOblio\\Queue\\Scheduler\:\:\$pending_refund type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
 			path: src/Queue/Scheduler.php
@@ -1345,25 +1309,7 @@ parameters:
 			path: src/Stock/ProductUpdater.php
 
 		-
-			message: '#^Method FGSyncOblio\\Stock\\StockReservations\:\:build\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Stock/StockReservations.php
-
-		-
 			message: '#^Method FGSyncOblio\\Stock\\StockReservations\:\:map\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Stock/StockReservations.php
-
-		-
-			message: '#^Method FGSyncOblio\\Stock\\StockReservations\:\:sum_reserved_quantities\(\) has parameter \$order_ids with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Stock/StockReservations.php
-
-		-
-			message: '#^Method FGSyncOblio\\Stock\\StockReservations\:\:sum_reserved_quantities\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
 			path: src/Stock/StockReservations.php

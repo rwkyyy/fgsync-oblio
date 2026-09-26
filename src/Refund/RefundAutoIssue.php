@@ -10,8 +10,8 @@ declare( strict_types=1 );
 namespace FGSyncOblio\Refund;
 
 use FGSyncOblio\Compat\OrderStore;
-use FGSyncOblio\Order\OrderMeta;
 use FGSyncOblio\Queue\Scheduler;
+use FGSyncOblio\Support\Logger;
 use FGSyncOblio\Support\Settings;
 final class RefundAutoIssue {
 
@@ -21,10 +21,13 @@ final class RefundAutoIssue {
 
 	private OrderStore $orders;
 
-	public function __construct( Settings $settings, Scheduler $scheduler, OrderStore $orders ) {
+	private Logger $logger;
+
+	public function __construct( Settings $settings, Scheduler $scheduler, OrderStore $orders, Logger $logger ) {
 		$this->settings  = $settings;
 		$this->scheduler = $scheduler;
 		$this->orders    = $orders;
+		$this->logger    = $logger;
 	}
 
 	public function register(): void {
@@ -39,11 +42,19 @@ final class RefundAutoIssue {
 			return;
 		}
 
-		$order = $this->orders->get_order( (int) $order_id );
-		if ( null === $order || ! OrderMeta::has( $order, OrderMeta::TYPE_INVOICE ) ) {
+		if ( null === $this->orders->get_order( (int) $order_id ) ) {
 			return;
 		}
 
-		$this->scheduler->enqueue_refund( (int) $order_id, (int) $refund_id );
+		// The invoice may still be queued (not yet issued) at this point - the
+		// job itself retries with backoff until it appears, instead of this
+		// giving up here and never revisiting the refund. enqueue_*() also
+		// returns false when the storno is already queued (dedup) - checked
+		// only now, on the failure path, so that ordinary case isn't logged
+		// as an error.
+		if ( ! $this->scheduler->enqueue_refund( (int) $order_id, (int) $refund_id )
+			&& ! $this->scheduler->has_pending_refund( (int) $order_id, (int) $refund_id ) ) {
+			$this->logger->error( sprintf( 'Refund auto-issue: could not schedule storno for order #%d refund #%d', (int) $order_id, (int) $refund_id ) );
+		}
 	}
 }

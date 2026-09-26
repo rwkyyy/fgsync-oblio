@@ -139,6 +139,19 @@ final class AtomicLock {
 		return false !== $value && self::expires_of( (string) $value ) > time();
 	}
 
+	/**
+	 * @param string $option Option name.
+	 * @return int|null Seconds until the lock expires, or null if not currently locked.
+	 */
+	public static function seconds_remaining( string $option ): ?int {
+		$value = get_option( $option, false );
+		if ( false === $value ) {
+			return null;
+		}
+		$remaining = self::expires_of( (string) $value ) - time();
+		return $remaining > 0 ? $remaining : null;
+	}
+
 	private static function encode( int $expires, string $owner ): string {
 		return $expires . '|' . $owner;
 	}

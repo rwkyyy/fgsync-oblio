@@ -51,7 +51,39 @@ final class ClientMapper {
 		if ( is_string( $value ) ) {
 			return $value;
 		}
+		$legacy = $this->legacy_checkout_value( $order, $field );
+		if ( null !== $legacy ) {
+			return $legacy;
+		}
 		return $this->find_meta_by_pattern( $order, $pattern );
+	}
+
+	/**
+	 * `av_facturare` / `curiero_pf_pj_option` are order-meta arrays written by
+	 * popular third-party Romanian checkout plugins (CIF/RC + PF-PJ fields).
+	 * WooCommerce's own get_meta() already unserializes them; only cif/rc are
+	 * ever stored in them, so any other field falls straight through to the
+	 * regex scan.
+	 *
+	 * @param WC_Order $order Order to read.
+	 * @param string   $field One of 'cif', 'rc', 'iban', 'bank'.
+	 * @return string|null Resolved value, or null when not found so the caller
+	 *                      can fall through to the regex scan.
+	 */
+	private function legacy_checkout_value( WC_Order $order, string $field ): ?string {
+		if ( 'cif' !== $field && 'rc' !== $field ) {
+			return null;
+		}
+		$av_facturare = $order->get_meta( 'av_facturare' );
+		$curiero      = $order->get_meta( 'curiero_pf_pj_option' );
+		$av_facturare = is_array( $av_facturare ) ? $av_facturare : array();
+		$curiero      = is_array( $curiero ) ? $curiero : array();
+
+		$value = 'cif' === $field
+			? ( $av_facturare['cui'] ?? $av_facturare['cnp'] ?? $curiero['cui'] ?? null )
+			: ( $av_facturare['nr_reg_com'] ?? $curiero['nr_reg_com'] ?? null );
+
+		return ( null !== $value && is_scalar( $value ) ) ? (string) $value : null;
 	}
 
 	private function find_meta_by_pattern( WC_Order $order, string $pattern ): string {

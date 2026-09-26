@@ -108,7 +108,13 @@ final class EmailButton {
 		$options = array( 'use_stock' => $this->settings->is_enabled( 'invoice_autogen_use_stock' ) );
 
 		if ( $this->rate_limiter->peek() > self::MAX_INLINE_WAIT ) {
-			$this->scheduler->enqueue_document( $order->get_id(), OrderMeta::TYPE_INVOICE, $options );
+			// enqueue_*() also returns false when the invoice is already
+			// queued (dedup) - checked only now, on the failure path, so an
+			// ordinary duplicate trigger isn't logged as an error.
+			if ( ! $this->scheduler->enqueue_document( $order->get_id(), OrderMeta::TYPE_INVOICE, $options )
+				&& ! $this->scheduler->has_pending_document( $order->get_id(), OrderMeta::TYPE_INVOICE ) ) {
+				$this->logger->error( sprintf( 'Email button: could not schedule invoice for order #%d', $order->get_id() ) );
+			}
 			return $document;
 		}
 
@@ -119,7 +125,7 @@ final class EmailButton {
 		set_transient( $lock, 1, 30 );
 
 		try {
-			$result = $this->documents->issue( $order, OrderMeta::TYPE_INVOICE, $options );
+			$result = $this->documents->issue( $order, OrderMeta::TYPE_INVOICE, $options, true );
 			return array(
 				'series' => $result->series_name,
 				'number' => $result->number,
@@ -128,7 +134,10 @@ final class EmailButton {
 			);
 		} catch ( \Throwable $exception ) {
 			$this->logger->warning( sprintf( 'Email button: could not ensure the invoice for order #%d: %s', $order->get_id(), $exception->getMessage() ) );
-			$this->scheduler->enqueue_document( $order->get_id(), OrderMeta::TYPE_INVOICE, $options );
+			if ( ! $this->scheduler->enqueue_document( $order->get_id(), OrderMeta::TYPE_INVOICE, $options )
+				&& ! $this->scheduler->has_pending_document( $order->get_id(), OrderMeta::TYPE_INVOICE ) ) {
+				$this->logger->error( sprintf( 'Email button: could not schedule invoice for order #%d', $order->get_id() ) );
+			}
 			return OrderMeta::get( $order, OrderMeta::TYPE_INVOICE );
 		} finally {
 			delete_transient( $lock );

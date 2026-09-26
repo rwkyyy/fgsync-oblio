@@ -4,7 +4,7 @@ Tags: woocommerce, invoicing, oblio, invoice, romania
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.3.0
+Stable tag: 1.3.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -118,9 +118,35 @@ A shortcut to the FGSync Status screen, with a small colored dot: green means ev
 
 = How do customers get the invoice by email? =
 
-Under Email, pick a mode. "Standalone" sends a separate message from the plugin when the document is issued, using your subject/message templates. "Button" instead adds a button linking to the Oblio invoice inside WooCommerce's own order emails, for the order statuses you select (for example, the Completed order email). In "Button" mode, if the invoice has not been issued yet when that email is sent, the plugin issues it at that moment so the button always links to a real invoice; this happens even when automatic invoicing is off. Use the `oblio_fgwoo_email_button_issue` filter to disable that behaviour if you only want a button when an invoice already exists.
+Under Email, pick a mode. "Standalone" sends a separate message from the plugin when the document is issued, using your subject/message templates. "Button" instead adds a button linking to the Oblio invoice inside WooCommerce's own order emails, for the order statuses you select (for example, the Completed order email). In "Button" mode, if the invoice has not been issued yet when that email is sent, the plugin tries to issue it at that moment, even when automatic invoicing is off, so the button usually links to a real invoice. If Oblio's rate limit is busy or that attempt fails, the invoice is queued instead and that particular email goes out without the button; the invoice itself still gets issued shortly after. Use the `oblio_fgwoo_email_button_issue` filter to disable the inline attempt if you only want a button when an invoice already exists.
 
 == Changelog ==
+
+= 1.3.1 =
+* Fixed a background job (invoice/refund issuance, stock sync page) that Action Scheduler failed to actually schedule being reported as queued anyway and silently disappearing; it's now correctly retried or surfaced as a failure instead.
+* Fixed the background refresh of the series/warehouse list not actually running when triggered outside the WordPress admin area (WP-Cron, WP-CLI) — it would silently report success without refreshing anything.
+* Fixed a rare case, only reachable on a store with a very deep queue backlog, where two documents could end up queued for the same order at once.
+* Fixed removing the Oblio credentials while a stock sync was running leaving that sync's lock stuck for up to 30 minutes instead of stopping immediately.
+* Queued invoice/refund issuance and the inline "Vezi factura" email button no longer block for up to 20 seconds when another process is already working on the same order; they now back off and retry automatically instead, the same way an already-queued job does.
+* A queued invoice/refund job now waits in place for its turn to call Oblio for at most 5 seconds (was 15); longer waits are rescheduled instead, so a burst of orders is processed with less delay per background worker.
+* Checking whether a document is already queued for an order is now instant regardless of how large the pending queue is, and two near-simultaneous triggers for the same order (e.g. an automatic and a manual issue) can no longer both queue a document.
+* Stock sync now aggregates reserved quantities from open orders in a single database query instead of scanning them in batches, and no longer rebuilds that cache twice per run.
+* If that reservation lookup fails, stock sync now retries the affected page instead of writing quantities as if nothing were reserved.
+* Debug logging during stock sync now only logs products that actually changed, instead of every product in the catalog.
+* Repeated failures reaching Oblio (e.g. during an outage) no longer rewrite the stored connection-health status on every single attempt.
+* Fixed a refund created while its invoice was still queued permanently skipping its automatic storno; it now keeps retrying for as long as batch invoicing or a deep queue could realistically take, instead of giving up after a few minutes.
+* Automatic invoice, proforma and storno issuance now log an error if the background job genuinely couldn't be scheduled, without misreporting the normal case of a duplicate trigger finding a job already queued.
+* Fixed an unrelated stock-sync error (e.g. a misbehaving filter) being able to silently stop a sync partway through instead of retrying that page.
+* Fixed a very deep queue backlog being able to invalidate a job's dedup marker while it was still legitimately waiting its turn.
+* The "unlock sync" button/action now only acts on a stock sync that's actually stuck (no progress in several minutes, and long enough to rule out a normal slow page), instead of being able to cancel a normal, still-running sync.
+* Fixed "unlock sync" not actually cancelling the still-queued background steps of the sync it was unlocking.
+* Fixed an invoice or storno that failed only because Oblio was temporarily unreachable being abandoned for good after a few minutes; it's now automatically retried by the periodic reconciliation check, the same way a still-missing invoice already was. A genuine validation error (e.g. bad data) is still left alone rather than retried.
+* Added automatic retrying of a storno that never got issued (e.g. after a long Oblio outage), and its failure reason now also appears on the order screen, next to the invoice/proforma ones.
+* Fixed the stock sync progress indicator being able to report "done" for a sync that actually crashed partway through, and fixed the "sync appears stuck" unlock option being able to disappear again once a crashed sync's lock fully timed out.
+* Fixed the invoice email's issue/due date sometimes showing the order's creation date instead of the invoice's actual issue date.
+* Fixed the "documents issued today" count on the status page always showing zero.
+* Fixed uninstalling or network-deactivating on a multisite network only cleaning up the site the action was performed from, leaving scheduled jobs and options behind on every other site.
+* The company tax ID (CIF) and trade registry number are now also picked up from a couple of popular third-party Romanian checkout plugins that store them under their own custom fields, in addition to the existing automatic detection.
 
 = 1.3.0 =
 * Fixed a set of rare concurrency issues that could surface under overlapping triggers — a manual action clicked while an automatic one was already running, two refunds on the same order close together, or a cancelled stock sync overlapping a new one. Document issuance, deletion, and refunds for a given order are now fully serialized, and an interrupted process can no longer leave another one's lock or in-progress state stuck or corrupted.

@@ -128,7 +128,8 @@ final class Plugin {
 				$container->get( Settings::class ),
 				$container->get( Encryption::class ),
 				$container->get( Logger::class ),
-				$container->get( ConnectionHealth::class )
+				$container->get( ConnectionHealth::class ),
+				$container->get( RateLimiter::class )
 			)
 		);
 
@@ -239,13 +240,20 @@ final class Plugin {
 			static fn ( Container $container ): RefundAutoIssue => new RefundAutoIssue(
 				$container->get( Settings::class ),
 				$container->get( Scheduler::class ),
-				$container->get( OrderStore::class )
+				$container->get( OrderStore::class ),
+				$container->get( Logger::class )
 			)
 		);
 
 		$container->set( LocationAggregator::class, static fn (): LocationAggregator => new LocationAggregator() );
 		$container->set( ProductUpdater::class, static fn ( Container $container ): ProductUpdater => new ProductUpdater( $container->get( Logger::class ) ) );
-		$container->set( StockReservations::class, static fn (): StockReservations => new StockReservations() );
+		$container->set(
+			StockReservations::class,
+			static fn ( Container $container ): StockReservations => new StockReservations(
+				$container->get( OrderStore::class ),
+				$container->get( Logger::class )
+			)
+		);
 
 		$container->set(
 			StockSyncBatch::class,
@@ -404,6 +412,7 @@ final class Plugin {
 		$this->get( RefundAutoIssue::class )->register();
 		$this->get( Reconciler::class )->register();
 		$this->get( StockSyncCoordinator::class )->register();
+		$this->get( StockReservations::class )->register();
 		$this->get( AccountInvoices::class )->register();
 		$this->get( ReturnsIntegration::class )->register();
 		$this->get( EmailButton::class )->register();
@@ -414,21 +423,28 @@ final class Plugin {
 
 		if ( false === get_transient( Scheduler::SCHEDULE_CHECK ) ) {
 			$scheduler = $this->get( Scheduler::class );
-			$scheduler->ensure_reconcile_scheduled(
-				$settings->is_enabled( 'invoice_autogen' ),
+			$logger    = $this->get( Logger::class );
+
+			if ( ! $scheduler->ensure_reconcile_scheduled(
+				$settings->reconcile_watchdog_enabled(),
 				'batch' === (string) $settings->get( 'invoice_generation', 'event' )
 					? (string) $settings->get( 'invoice_batch_interval', 'hourly' )
 					: 'hourly'
-			);
-			$scheduler->ensure_stock_scheduled(
+			) ) {
+				$logger->error( 'Could not (re)schedule the reconciliation watchdog; will retry within the hour' );
+			}
+			if ( ! $scheduler->ensure_stock_scheduled(
 				$settings->stock_schedule_enabled(),
 				(string) $settings->get( 'stock_interval', 'hourly' )
-			);
+			) ) {
+				$logger->error( 'Could not (re)schedule stock sync; will retry within the hour' );
+			}
 			set_transient( Scheduler::SCHEDULE_CHECK, 1, HOUR_IN_SECONDS );
 		}
 
+		$this->get( NomenclatureCache::class )->register();
+
 		if ( is_admin() ) {
-			$this->get( NomenclatureCache::class )->register();
 			$this->get( SettingsPage::class )->register();
 			$this->get( SettingsShortcut::class )->register();
 			$this->get( Privacy::class )->register();
@@ -456,7 +472,32 @@ final class Plugin {
 		update_option( 'oblio_fgwoo_flush_rewrite', 1, false );
 	}
 
-	public function deactivate(): void {
+	/**
+	 * Action Scheduler's tables are per-site - a network-wide deactivation
+	 * only runs this callback once, in whichever site's context WordPress
+	 * happened to trigger it from, so a network-wide unschedule has to loop
+	 * over every site itself instead of assuming WordPress already did.
+	 *
+	 * @param bool $network_wide Whether this is a network-wide deactivation.
+	 */
+	public function deactivate( bool $network_wide = false ): void {
+		$this->unschedule_current_site();
+
+		if ( ! $network_wide || ! is_multisite() ) {
+			return;
+		}
+
+		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$blog_ids = $wpdb->get_col( "SELECT blog_id FROM {$wpdb->blogs}" );
+		foreach ( (array) $blog_ids as $blog_id ) {
+			switch_to_blog( (int) $blog_id );
+			$this->unschedule_current_site();
+			restore_current_blog();
+		}
+	}
+
+	private function unschedule_current_site(): void {
 		if ( function_exists( 'as_unschedule_all_actions' ) ) {
 			as_unschedule_all_actions( '', array(), Scheduler::GROUP );
 			as_unschedule_all_actions( '', array(), 'oblio' );

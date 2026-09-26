@@ -13,7 +13,7 @@ use FGSyncOblio\Document\DocumentResult;
 use WC_Order;
 interface RefundIssuer {
 
-	public function issue_for_refund( int $order_id, int $refund_id ): ?DocumentResult;
+	public function issue_for_refund( int $order_id, int $refund_id, bool $fail_fast = false ): ?DocumentResult;
 
-	public function issue_full_storno( WC_Order $order ): DocumentResult;
+	public function issue_full_storno( WC_Order $order, bool $fail_fast = false ): DocumentResult;
 }

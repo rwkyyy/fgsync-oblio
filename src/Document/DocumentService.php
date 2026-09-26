@@ -47,13 +47,13 @@ final class DocumentService implements DocumentIssuer {
 		$this->logger   = $logger;
 	}
 
-	public function issue( WC_Order $order, string $doc_type, array $options = array() ): DocumentResult {
+	public function issue( WC_Order $order, string $doc_type, array $options = array(), bool $fail_fast = false ): DocumentResult {
 		$existing = OrderMeta::get( $order, $doc_type );
 		if ( null !== $existing ) {
 			return new DocumentResult( $doc_type, $existing['series'], $existing['number'], $existing['link'] );
 		}
 
-		$owner = OrderLock::acquire( $order->get_id() );
+		$owner = OrderLock::acquire( $order->get_id(), $fail_fast ? OrderLock::FAIL_FAST : OrderLock::WAIT );
 		if ( null === $owner ) {
 			throw new RuntimeException(
 				esc_html__( 'Un alt proces emite deja un document pentru comandă; se va reîncerca automat.', 'fgsync-oblio' )
@@ -78,7 +78,7 @@ final class DocumentService implements DocumentIssuer {
 
 			OrderLock::renew( $order->get_id(), $owner );
 			$data   = $this->factory->create()->create_document( $doc_type, $payload );
-			$result = DocumentResult::from_api( $doc_type, $data );
+			$result = DocumentResult::from_api( $doc_type, $data, (string) ( $payload['issueDate'] ?? '' ) );
 
 			if ( '' === $result->series_name || '' === $result->number || '' === $result->link ) {
 				throw new ApiException( esc_html__( 'Răspuns incomplet de la Oblio; se reîncearcă automat pentru a evita un document duplicat.', 'fgsync-oblio' ) );
@@ -89,16 +89,25 @@ final class DocumentService implements DocumentIssuer {
 				OrderMeta::record_invoice_stock_usage( $order, ! empty( $options['use_stock'] ) );
 			}
 			OrderMeta::save( $order, $result );
-
-			do_action( 'oblio_fgwoo_document_issued', $order, $result, $options );
-
-			$this->emailer->maybe_send( $order, $result );
-			$this->logger->info( sprintf( 'Order #%d: %s %s %s issued', $order->get_id(), $doc_type, $result->series_name, $result->number ) );
-
-			return $result;
 		} finally {
 			OrderLock::release( $order->get_id(), $owner );
 		}
+
+		// Runs after the lock is released: the document is already persisted, so
+		// a slow mail callback no longer extends lock contention, and if the
+		// hook or emailer throws, this attempt still reports success instead of
+		// leaving the caller to schedule a retry that would just find the
+		// document already there and silently skip the hook/email forever.
+		try {
+			do_action( 'oblio_fgwoo_document_issued', $order, $result, $options );
+			$this->emailer->maybe_send( $order, $result );
+		} catch ( \Throwable $exception ) {
+			$this->logger->error( sprintf( 'Order #%d: post-issue hook/email failed for %s %s %s: %s', $order->get_id(), $doc_type, $result->series_name, $result->number, $exception->getMessage() ) );
+		}
+
+		$this->logger->info( sprintf( 'Order #%d: %s %s %s issued', $order->get_id(), $doc_type, $result->series_name, $result->number ) );
+
+		return $result;
 	}
 
 	public function delete( WC_Order $order, string $doc_type ): bool {

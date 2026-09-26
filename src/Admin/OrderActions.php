@@ -11,9 +11,9 @@ namespace FGSyncOblio\Admin;
 
 use FGSyncOblio\Compat\OrderStore;
 use FGSyncOblio\Document\DocumentException;
-use FGSyncOblio\Document\DocumentService;
+use FGSyncOblio\Document\DocumentIssuer;
 use FGSyncOblio\Order\OrderMeta;
-use FGSyncOblio\Refund\RefundService;
+use FGSyncOblio\Refund\RefundIssuer;
 use FGSyncOblio\Support\Logger;
 use Throwable;
 use WC_Order;
@@ -21,15 +21,15 @@ final class OrderActions {
 
 	public const NONCE_ACTION = 'oblio_fgwoo_order';
 
-	private DocumentService $documents;
+	private DocumentIssuer $documents;
 
-	private RefundService $refunds;
+	private RefundIssuer $refunds;
 
 	private OrderStore $orders;
 
 	private Logger $logger;
 
-	public function __construct( DocumentService $documents, RefundService $refunds, OrderStore $orders, Logger $logger ) {
+	public function __construct( DocumentIssuer $documents, RefundIssuer $refunds, OrderStore $orders, Logger $logger ) {
 		$this->documents = $documents;
 		$this->refunds   = $refunds;
 		$this->orders    = $orders;
@@ -69,7 +69,10 @@ final class OrderActions {
 					$result = $this->documents->issue( $order, $doc_type, array( 'use_stock' => $use_stock ) );
 					$order->delete_meta_data( OrderMeta::key( $doc_type, 'failed' ) );
 					$order->save();
-					$this->logger->info( sprintf( 'Manual action: order #%d %s %s %s issued', $order->get_id(), $doc_type, $result->series_name, $result->number ) );
+					// DocumentService::issue() already logs an "... issued" line for
+					// every issuance regardless of caller - logging it again here
+					// double-counts this order on StatusPanel's "documents issued
+					// today" tile.
 					wp_send_json_success(
 						array(
 							'series' => $result->series_name,
@@ -81,7 +84,8 @@ final class OrderActions {
 
 				case 'storno':
 					$result = $this->refunds->issue_full_storno( $order );
-					$this->logger->info( sprintf( 'Manual action: order #%d storno %s %s issued', $order->get_id(), $result->series_name, $result->number ) );
+					// RefundService::issue_full_storno() already logs the issuance -
+					// see the note in the 'issue' case above.
 					wp_send_json_success(
 						array(
 							'series' => $result->series_name,

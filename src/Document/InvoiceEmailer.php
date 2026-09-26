@@ -40,8 +40,14 @@ final class InvoiceEmailer {
 			? __( 'Proforma', 'fgsync-oblio' )
 			: __( 'Factura', 'fgsync-oblio' );
 
-		$created  = $order->get_date_created();
-		$issue_ts = $created ? (int) $created->format( 'U' ) : time();
+		// The order's creation date can predate the actual issue date (e.g.
+		// "issue today" or a delayed/queued issuance) - OrderMeta::save() (run
+		// before maybe_send()) already recorded the real issue date.
+		$document = OrderMeta::get( $order, $result->doc_type );
+		$issue_ts = null !== $document ? strtotime( $document['date'] ) : false;
+		if ( false === $issue_ts || $issue_ts <= 0 ) {
+			$issue_ts = time();
+		}
 		$due_days = (int) $this->settings->get( 'invoice_due', 0 );
 		$contact  = trim( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() );
 		$company  = trim( $order->get_billing_company() );

@@ -12,5 +12,7 @@ namespace FGSyncOblio\Document;
 use WC_Order;
 interface DocumentIssuer {
 
-	public function issue( WC_Order $order, string $doc_type, array $options = array() ): DocumentResult;
+	public function issue( WC_Order $order, string $doc_type, array $options = array(), bool $fail_fast = false ): DocumentResult;
+
+	public function delete( WC_Order $order, string $doc_type ): bool;
 }

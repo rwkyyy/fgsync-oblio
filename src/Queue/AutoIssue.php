@@ -102,7 +102,13 @@ final class AutoIssue {
 			}
 		}
 
-		$this->scheduler->enqueue_document( $order->get_id(), OrderMeta::TYPE_INVOICE, $options );
+		// enqueue_*() also returns false when the document is already queued
+		// (dedup) - checked only now, on the failure path, so an ordinary
+		// duplicate trigger isn't logged as an error.
+		if ( ! $this->scheduler->enqueue_document( $order->get_id(), OrderMeta::TYPE_INVOICE, $options )
+			&& ! $this->scheduler->has_pending_document( $order->get_id(), OrderMeta::TYPE_INVOICE ) ) {
+			$this->logger->error( sprintf( 'Auto-issue: could not schedule invoice for order #%d', $order->get_id() ) );
+		}
 	}
 
 	private function maybe_issue_proforma( WC_Order $order, string $from, string $to ): void {
@@ -116,7 +122,10 @@ final class AutoIssue {
 		if ( OrderMeta::has( $order, OrderMeta::TYPE_INVOICE ) || OrderMeta::has( $order, OrderMeta::TYPE_PROFORMA ) ) {
 			return;
 		}
-		$this->scheduler->enqueue_document( $order->get_id(), OrderMeta::TYPE_PROFORMA );
+		if ( ! $this->scheduler->enqueue_document( $order->get_id(), OrderMeta::TYPE_PROFORMA )
+			&& ! $this->scheduler->has_pending_document( $order->get_id(), OrderMeta::TYPE_PROFORMA ) ) {
+			$this->logger->error( sprintf( 'Auto-issue: could not schedule proforma for order #%d', $order->get_id() ) );
+		}
 	}
 
 	private function entered( string $from, string $to, array $targets ): bool {
@@ -136,7 +145,10 @@ final class AutoIssue {
 			return;
 		}
 
-		$this->scheduler->enqueue_document( (int) $order_id, OrderMeta::TYPE_PROFORMA );
+		if ( ! $this->scheduler->enqueue_document( (int) $order_id, OrderMeta::TYPE_PROFORMA )
+			&& ! $this->scheduler->has_pending_document( (int) $order_id, OrderMeta::TYPE_PROFORMA ) ) {
+			$this->logger->error( sprintf( 'Auto-issue: could not schedule proforma for order #%d', (int) $order_id ) );
+		}
 	}
 
 	private function is_configured(): bool {

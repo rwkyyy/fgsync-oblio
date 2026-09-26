@@ -72,13 +72,23 @@ final class BulkActions {
 
 			if ( 'storno' === $type ) {
 
-				$this->scheduler->enqueue_refund( (int) $order_id, 0 );
+				$scheduled = $this->scheduler->enqueue_refund( (int) $order_id, 0 );
 			} elseif ( 'proforma' === $type ) {
-				$this->scheduler->enqueue_document( (int) $order_id, OrderMeta::TYPE_PROFORMA );
+				$scheduled = $this->scheduler->enqueue_document( (int) $order_id, OrderMeta::TYPE_PROFORMA );
 			} else {
-				$this->scheduler->enqueue_document( (int) $order_id, OrderMeta::TYPE_INVOICE, array( 'use_stock' => $use_stock ) );
+				$scheduled = $this->scheduler->enqueue_document( (int) $order_id, OrderMeta::TYPE_INVOICE, array( 'use_stock' => $use_stock ) );
 			}
-			++$queued;
+
+			if ( $scheduled ) {
+				++$queued;
+			} elseif ( $this->already_pending( (int) $order_id, $type ) ) {
+				// enqueue_*() also returns false when the order was already
+				// queued - checked only now, on the failure path, so the
+				// common (successful) case pays no extra query.
+				++$skipped;
+			} else {
+				$this->logger->error( sprintf( 'Bulk action: could not schedule %s for order #%d', $type, (int) $order_id ) );
+			}
 		}
 
 		$this->logger->info( sprintf( 'Bulk action: %s queued for %d order(s), skipped %d', $type, $queued, $skipped ) );
@@ -91,6 +101,14 @@ final class BulkActions {
 			),
 			$redirect
 		);
+	}
+
+	private function already_pending( int $order_id, string $type ): bool {
+		if ( 'storno' === $type ) {
+			return $this->scheduler->has_pending_refund( $order_id, 0 );
+		}
+		$doc_type = 'proforma' === $type ? OrderMeta::TYPE_PROFORMA : OrderMeta::TYPE_INVOICE;
+		return $this->scheduler->has_pending_document( $order_id, $doc_type );
 	}
 
 	private function eligible( WC_Order $order, string $type ): bool {

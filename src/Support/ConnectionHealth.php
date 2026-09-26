@@ -42,7 +42,23 @@ final class ConnectionHealth {
 		);
 	}
 
+	/**
+	 * Same rewrite-skip logic as record_success(): a backlog of retries hitting
+	 * the same outage shouldn't rewrite the option on every single failure.
+	 * A changed reason still writes immediately, since that's new information.
+	 *
+	 * @param string $reason Human-readable failure reason.
+	 */
 	public function record_failure( string $reason ): void {
+		$state       = get_option( self::OPTION, null );
+		$was_failed  = is_array( $state ) && empty( $state['ok'] );
+		$last_at     = is_array( $state ) ? (int) ( $state['at'] ?? 0 ) : 0;
+		$last_reason = is_array( $state ) ? (string) ( $state['reason'] ?? '' ) : '';
+
+		if ( $was_failed && $last_reason === $reason && ( time() - $last_at ) < self::SUCCESS_REWRITE_INTERVAL ) {
+			return;
+		}
+
 		update_option(
 			self::OPTION,
 			array(

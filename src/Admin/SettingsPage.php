@@ -146,7 +146,7 @@ final class SettingsPage {
 			<p class="oblio-fgwoo-disclosure">
 				<?php
 				esc_html_e(
-					'FGSync for Oblio este o integrare open-source independentă. Nu este dezvoltată, aprobată, întreținută sau susținută de Oblio.eu; Oblio este un serviciu terț, fiind necesar un cont Oblio activ.',
+					'FGSync pentru Oblio este o integrare open-source independentă. Nu este dezvoltată, aprobată, întreținută sau susținută de Oblio.eu; Oblio este un serviciu terț, fiind necesar un cont Oblio activ.',
 					'fgsync-oblio'
 				);
 				?>
@@ -818,13 +818,13 @@ final class SettingsPage {
 				),
 			),
 			array(
-				'title'   => __( 'Linia produsului tip pachet (Bundles)', 'fgsync-oblio' ),
+				'title'   => __( 'Produse pachet (Bundles)', 'fgsync-oblio' ),
 				'type'    => 'select',
 				'id'      => $opt( 'bundle_line_mode' ),
 				'default' => 'skip',
 				'options' => array(
-					'skip'    => __( 'Sări peste linia pachetului (recomandat)', 'fgsync-oblio' ),
-					'include' => __( 'Include linia pachetului', 'fgsync-oblio' ),
+					'skip'    => __( 'OMITE linia pachetului (recomandat)', 'fgsync-oblio' ),
+					'include' => __( 'INCLUDE linia pachetului (trebuie să aibă stoc)', 'fgsync-oblio' ),
 				),
 				'desc'    => __( 'Doar componentele sunt facturate și scad din stoc; linia pachetului nu are cod propriu în Oblio. Dacă nu descarci stoc prin Oblio, „Include” poate fi mai clar pe factură.', 'fgsync-oblio' ),
 			),
@@ -1006,8 +1006,8 @@ final class SettingsPage {
 
 	public function render_stock_sync_field( array $field ): void {
 		unset( $field );
-		$last   = (int) get_option( \FGSyncOblio\Stock\StockSyncCoordinator::LAST_SYNC_OPTION, 0 );
-		$locked = \FGSyncOblio\Support\AtomicLock::is_locked( \FGSyncOblio\Stock\StockSyncCoordinator::RUN_LOCK );
+		$last  = (int) get_option( \FGSyncOblio\Stock\StockSyncCoordinator::LAST_SYNC_OPTION, 0 );
+		$stale = \FGSyncOblio\Stock\StockSyncCoordinator::is_run_stale();
 		?>
 		<tr valign="top">
 			<th scope="row"
@@ -1018,7 +1018,7 @@ final class SettingsPage {
 							class="button oblio-fgwoo-sync-now"><?php esc_html_e( 'Sincronizează acum', 'fgsync-oblio' ); ?></button>
 					<span class="oblio-fgwoo-sync-result oblio-fgwoo-result"></span>
 					<p class="description"><?php esc_html_e( 'Rulează sincronizare completă imediat. Pentru a accelera procesul, te rugăm să nu pleci din pagină!', 'fgsync-oblio' ); ?></p>
-					<?php if ( $locked ) : ?>
+					<?php if ( $stale ) : ?>
 						<p class="description oblio-fgwoo-lock-warning">
 							<?php esc_html_e( 'O sincronizare pare blocată (probabil întreruptă de server înainte să termine). Dacă nu pornește din nou de la sine, o poți debloca manual:', 'fgsync-oblio' ); ?>
 							<button type="button" class="button oblio-fgwoo-sync-unlock"><?php esc_html_e( 'Deblochează sincronizarea', 'fgsync-oblio' ); ?></button>

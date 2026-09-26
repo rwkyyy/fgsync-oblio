@@ -84,7 +84,9 @@ final class StockSyncAction {
 			wp_send_json_error( array( 'message' => __( 'Acțiune neautorizată.', 'fgsync-oblio' ) ), 403 );
 		}
 
-		$this->coordinator->unlock();
+		if ( ! $this->coordinator->unlock() ) {
+			wp_send_json_error( array( 'message' => __( 'Sincronizarea încă rulează normal; nu a fost eliberată.', 'fgsync-oblio' ) ) );
+		}
 
 		wp_send_json_success( array( 'message' => __( 'Blocarea a fost eliberată. Poți porni din nou sincronizarea.', 'fgsync-oblio' ) ) );
 	}

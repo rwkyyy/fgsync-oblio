@@ -56,7 +56,7 @@ final class StatusPanel {
 	private function admin_bar_toggle(): void {
 		$checked = $this->settings->is_enabled( 'admin_bar_status' );
 		echo '<label class="oblio-fgwoo-adminbar-toggle"><input type="checkbox" id="oblio-fgwoo-adminbar-toggle"' . ( $checked ? ' checked' : '' ) . '> '
-			. esc_html__( 'Comandă rapidă în bara de admin (punct de stare)', 'fgsync-oblio' ) . '</label>';
+			. esc_html__( 'Bulină de stare conexiune cu Oblio.eu', 'fgsync-oblio' ) . '</label><br>';
 	}
 
 	private function summary( array $totals, int $docs_today ): void {
@@ -134,7 +134,7 @@ final class StatusPanel {
 		if ( $this->settings->stock_sync_configured() ) {
 			echo '<button type="button" class="button button-primary oblio-fgwoo-sync-now" title="' . esc_attr__( 'Rulează întregul catalog acum, prin pași succesivi; poate dura câteva minute pe cataloage mari.', 'fgsync-oblio' ) . '">' . esc_html__( 'Sincronizează stoc', 'fgsync-oblio' ) . '</button>';
 			echo '<span class="oblio-fgwoo-sync-result"></span>';
-			if ( \FGSyncOblio\Support\AtomicLock::is_locked( StockSyncCoordinator::RUN_LOCK ) ) {
+			if ( StockSyncCoordinator::is_run_stale() ) {
 				echo '<button type="button" class="button oblio-fgwoo-sync-unlock" title="' . esc_attr__( 'O sincronizare pare blocată (probabil întreruptă de server înainte să termine).', 'fgsync-oblio' ) . '">' . esc_html__( 'Deblochează sincronizarea', 'fgsync-oblio' ) . '</button>';
 				echo '<span class="oblio-fgwoo-unlock-result"></span>';
 			}
@@ -206,7 +206,7 @@ final class StatusPanel {
 	private function count_issued( array $entries ): int {
 		$count = 0;
 		foreach ( $entries as $entry ) {
-			if ( false !== strpos( $entry['message'], ' emis' ) ) {
+			if ( false !== strpos( $entry['message'], ' issued' ) ) {
 				++$count;
 			}
 		}

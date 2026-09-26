@@ -103,6 +103,16 @@ final class Settings {
 		return self::PREFIX . $key;
 	}
 
+	/**
+	 * The reconciliation watchdog covers both invoices and stornos in one
+	 * recurring run (see Queue\Reconciler) - it must stay scheduled whenever
+	 * either autogen feature is on, not just invoice_autogen, or a store with
+	 * only storno_autogen enabled would never recover an exhausted storno job.
+	 */
+	public function reconcile_watchdog_enabled(): bool {
+		return $this->is_enabled( 'invoice_autogen' ) || $this->is_enabled( 'storno_autogen' );
+	}
+
 	public function invoice_statuses(): array {
 
 		$raw      = get_option( self::PREFIX . 'invoice_autogen_statuses', null );

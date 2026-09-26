@@ -14,6 +14,7 @@ use FGSyncOblio\Api\Exception\ApiException;
 use FGSyncOblio\Queue\Scheduler;
 use FGSyncOblio\Stock\LocationAggregator;
 use FGSyncOblio\Stock\ProductUpdater;
+use FGSyncOblio\Stock\ReservationUnavailableException;
 use FGSyncOblio\Stock\StockReservations;
 use FGSyncOblio\Stock\StockSyncCoordinator;
 use FGSyncOblio\Support\AtomicLock;
@@ -73,6 +74,8 @@ final class StockSyncBatch {
 		}
 
 		if ( ! $this->settings->has_credentials() || '' === (string) $this->settings->get( 'cif' ) ) {
+			$this->logger->warning( 'Stock sync: credentials no longer configured mid-run, aborting' );
+			$this->abort( $token );
 			return;
 		}
 
@@ -90,8 +93,16 @@ final class StockSyncBatch {
 			return;
 		}
 
-		$updated = $this->process_page( $products, $token );
-		$totals  = $this->record_progress( count( $products ), $updated, $token );
+		try {
+			$updated = $this->process_page( $products, $token );
+		} catch ( Throwable $exception ) {
+			// A filter, product load, or $product->save() can throw too - any of
+			// them escaping here would otherwise abandon the run without a
+			// retry and without ever scheduling the next page.
+			$this->handle_failure( $offset, $attempt, $token, $exception->getMessage(), true );
+			return;
+		}
+		$totals = $this->record_progress( count( $products ), $updated, $token );
 		$this->log_page( $offset, count( $products ), $updated, $totals );
 
 		if ( ! $this->token_current( $token ) ) {
@@ -99,7 +110,10 @@ final class StockSyncBatch {
 		}
 
 		if ( count( $products ) >= self::PAGE_SIZE ) {
-			$this->scheduler->enqueue_stock_batch( $offset + self::PAGE_SIZE, 1, 0, $token );
+			if ( ! $this->scheduler->enqueue_stock_batch( $offset + self::PAGE_SIZE, 1, 0, $token ) ) {
+				$this->logger->error( sprintf( 'Stock sync: could not schedule the next page from offset %d, aborting the run', $offset + self::PAGE_SIZE ) );
+				$this->abort( $token );
+			}
 		} else {
 			$this->finalize( $token );
 		}
@@ -113,6 +127,16 @@ final class StockSyncBatch {
 		);
 	}
 
+	/**
+	 * Fetches reservations before touching any product, so a failed
+	 * reservation query aborts the whole page instead of writing quantities
+	 * that fail to subtract what's actually reserved.
+	 *
+	 * @param array<int,mixed> $products Page of Oblio products to process.
+	 * @param string           $token    Run token, forwarded to token_current() checks.
+	 * @throws ReservationUnavailableException If reservations are enabled but
+	 *                                          the query fails.
+	 */
 	private function process_page( array $products, string $token ): int {
 		$selected     = array_values( (array) $this->settings->get( 'stock_locations' ) );
 		$update_price = $this->settings->is_enabled( 'stock_update_price' );
@@ -214,9 +238,11 @@ final class StockSyncBatch {
 
 		if ( $retryable && $attempt < self::MAX_ATTEMPTS ) {
 			$delay = $this->scheduler->backoff( $attempt );
-			$this->scheduler->enqueue_stock_batch( $offset, $attempt + 1, $delay, $token );
-			$this->logger->warning( sprintf( 'Stock sync: page from offset %d failed (attempt %d): %s, retrying in %ds', $offset, $attempt, $reason, $delay ) );
-			return;
+			if ( $this->scheduler->enqueue_stock_batch( $offset, $attempt + 1, $delay, $token ) ) {
+				$this->logger->warning( sprintf( 'Stock sync: page from offset %d failed (attempt %d): %s, retrying in %ds', $offset, $attempt, $reason, $delay ) );
+				return;
+			}
+			$this->logger->error( sprintf( 'Stock sync: page from offset %d could not be rescheduled for retry', $offset ) );
 		}
 
 		$this->logger->error( sprintf( 'Stock sync: page from offset %d abandoned (attempt %d): %s', $offset, $attempt, $reason ) );
@@ -237,7 +263,6 @@ final class StockSyncBatch {
 		}
 
 		delete_transient( StockSyncCoordinator::PROGRESS_TRANSIENT );
-		$this->reservations->reset();
 		AtomicLock::release( StockSyncCoordinator::RUN_LOCK, $token );
 	}
 
@@ -276,7 +301,6 @@ final class StockSyncBatch {
 		$this->logger->info( sprintf( 'Stock sync finished: %d out of %d products updated', $updated, $scanned ) );
 
 		delete_transient( StockSyncCoordinator::PROGRESS_TRANSIENT );
-		$this->reservations->reset();
 		AtomicLock::release( StockSyncCoordinator::RUN_LOCK, $token );
 	}
 }

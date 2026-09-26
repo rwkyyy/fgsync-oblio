@@ -91,11 +91,6 @@ final class HookRegistry {
 				'label'   => __( 'Fereastra rezervării de stoc (zile)', 'fgsync-oblio' ),
 				'section' => 'stock',
 			),
-			'oblio_fgwoo_stock_reservation_max_orders'    => array(
-				'type'    => 'filter',
-				'label'   => __( 'Numărul maxim de comenzi scanate pentru rezervare', 'fgsync-oblio' ),
-				'section' => 'stock',
-			),
 			'oblio_fgwoo_stock_reservation_statuses'      => array(
 				'type'    => 'filter',
 				'label'   => __( 'Statusurile de comandă tratate ca rezervate', 'fgsync-oblio' ),

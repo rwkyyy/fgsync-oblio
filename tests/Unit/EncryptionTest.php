@@ -39,8 +39,7 @@ final class EncryptionTest extends TestCase {
 
 	public function test_decrypts_legacy_cbc_values(): void {
 		$key_method = new \ReflectionMethod( $this->encryption, 'key' );
-		$key_method->setAccessible( true );
-		$key = $key_method->invoke( $this->encryption );
+		$key        = $key_method->invoke( $this->encryption );
 
 		$plaintext = 'legacy-cbc-secret-ăîșț';
 		$iv        = random_bytes( (int) openssl_cipher_iv_length( 'aes-256-cbc' ) );

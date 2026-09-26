@@ -112,8 +112,10 @@ final class ProductUpdater {
 			$wc->save();
 		}
 
-		$movement['changed'] = $changed;
-		$this->logger->debug( sprintf( 'Stock %s: %s', $changed ? 'movement' : 'unchanged', $code ), $movement );
+		if ( $changed ) {
+			$movement['changed'] = true;
+			$this->logger->debug( sprintf( 'Stock movement: %s', $code ), $movement );
+		}
 
 		return $changed;
 	}
