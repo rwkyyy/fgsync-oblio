@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://rwkyyy.github.io/oblio-fgwoo/sitemap.xml
+Sitemap: https://rwkyyy.github.io/fgsync-oblio/sitemap.xml

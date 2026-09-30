@@ -5,7 +5,7 @@
 [![Testat până la](https://img.shields.io/wordpress/plugin/tested/fgsync-oblio.svg?label=testat%20p%C3%A2n%C4%83%20la)](https://ro.wordpress.org/plugins/fgsync-oblio/)
 [![Descărcări](https://img.shields.io/wordpress/plugin/dt/fgsync-oblio.svg?label=desc%C4%83rc%C4%83ri)](https://ro.wordpress.org/plugins/fgsync-oblio/)
 [![Rating](https://img.shields.io/wordpress/plugin/rating/fgsync-oblio.svg?label=rating)](https://ro.wordpress.org/plugins/fgsync-oblio/#reviews)
-[![CI](https://github.com/rwkyyy/oblio-fgwoo/actions/workflows/ci.yml/badge.svg)](https://github.com/rwkyyy/oblio-fgwoo/actions/workflows/ci.yml)
+[![CI](https://github.com/rwkyyy/fgsync-oblio/actions/workflows/ci.yml/badge.svg)](https://github.com/rwkyyy/fgsync-oblio/actions/workflows/ci.yml)
 [![PHP](https://img.shields.io/badge/PHP-8.1%2B-777bb4?logo=php&logoColor=white)](composer.json)
 [![WooCommerce](https://img.shields.io/badge/WooCommerce-8.2%2B-7f54b3?logo=woocommerce&logoColor=white)](https://ro.wordpress.org/plugins/fgsync-oblio/)
 [![HPOS](https://img.shields.io/badge/HPOS-compatibil-4c1)](fgsync-oblio.php)
@@ -188,7 +188,7 @@ Release-urile (tag-uri) sunt publicate automat pe SVN-ul WordPress.org
 
 ## Suport și contribuții
 
-Probleme și sugestii: [issue tracker-ul de pe GitHub](https://github.com/rwkyyy/oblio-fgwoo/issues) sau
+Probleme și sugestii: [issue tracker-ul de pe GitHub](https://github.com/rwkyyy/fgsync-oblio/issues) sau
 forumul de suport de pe [pagina pluginului](https://ro.wordpress.org/plugins/fgsync-oblio/). Suport
 community/best-effort, fără SLA garantat.
 
