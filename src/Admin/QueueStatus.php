@@ -71,12 +71,15 @@ final class QueueStatus {
 		return $snapshot;
 	}
 
+	/**
+	 * No 'complete' key - StatusPanel never displays an all-time complete
+	 * count, so querying it was a wasted round trip on every cache miss.
+	 */
 	private function compute_totals(): array {
 		return array(
 			'pending'     => $this->count( array( 'status' => \ActionScheduler_Store::STATUS_PENDING ) ),
 			'in-progress' => $this->count( array( 'status' => \ActionScheduler_Store::STATUS_RUNNING ) ),
 			'failed'      => $this->count( array( 'status' => \ActionScheduler_Store::STATUS_FAILED ) ),
-			'complete'    => $this->count( array( 'status' => \ActionScheduler_Store::STATUS_COMPLETE ) ),
 		);
 	}
 

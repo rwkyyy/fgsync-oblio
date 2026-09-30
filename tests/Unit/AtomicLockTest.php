@@ -133,4 +133,16 @@ final class AtomicLockTest extends TestCase {
 
 		$this->assertNull( AtomicLock::seconds_remaining( 'lock_a' ) );
 	}
+
+	public function test_current_owner_is_null_for_a_missing_key(): void {
+		$this->assertNull( AtomicLock::current_owner( 'no_such_key' ) );
+	}
+
+	public function test_current_owner_reflects_the_holder_regardless_of_expiry(): void {
+		$owner = AtomicLock::acquire( 'lock_a', 100 );
+		$this->assertSame( $owner, AtomicLock::current_owner( 'lock_a' ) );
+
+		$GLOBALS['oblio_test_options']['lock_a'] = ( time() - 10 ) . '|stale-owner';
+		$this->assertSame( 'stale-owner', AtomicLock::current_owner( 'lock_a' ) );
+	}
 }

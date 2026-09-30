@@ -82,9 +82,9 @@ final class InvoiceEmailer {
 
 		$sent = wp_mail( $to, $subject, $message, $headers );
 		if ( $sent ) {
-			$this->logger->info( sprintf( 'Document email: order #%d, %s %s sent to %s', $order->get_id(), $result->series_name, $result->number, $to ) );
+			$this->logger->info( sprintf( 'Document email: order #%d, %s %s sent', $order->get_id(), $result->series_name, $result->number ) );
 		} else {
-			$this->logger->error( sprintf( 'Document email: order #%d, %s %s, wp_mail() failed sending to %s', $order->get_id(), $result->series_name, $result->number, $to ) );
+			$this->logger->error( sprintf( 'Document email: order #%d, %s %s, wp_mail() failed', $order->get_id(), $result->series_name, $result->number ) );
 		}
 	}
 }

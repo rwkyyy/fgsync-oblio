@@ -134,6 +134,22 @@ final class AtomicLock {
 		return 1 === (int) $deleted;
 	}
 
+	/**
+	 * Current owner token regardless of expiry (mirrors renew()/release()'s
+	 * own ownership check, which is also expiry-agnostic) - null if the key
+	 * doesn't exist at all. Lets a caller distinguish "nobody holds this
+	 * anymore" from "somebody else claimed it" after a failed renew().
+	 *
+	 * @param string $option Option name.
+	 */
+	public static function current_owner( string $option ): ?string {
+		$value = get_option( $option, false );
+		if ( false === $value ) {
+			return null;
+		}
+		return self::owner_of( (string) $value );
+	}
+
 	public static function is_locked( string $option ): bool {
 		$value = get_option( $option, false );
 		return false !== $value && self::expires_of( (string) $value ) > time();

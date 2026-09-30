@@ -167,35 +167,97 @@ final class ReconcilerTest extends TestCase {
 	}
 
 	/**
-	 * A single oldest-BATCH page fetched forever would leave any refund past
-	 * the first 100 in the lookback window permanently unexamined - a full
-	 * first page must trigger a second page request.
+	 * A flat lookback window alone would have the oldest-first query return
+	 * the exact same BATCH every run forever once a backlog exceeds it - the
+	 * persisted cursor must start each query from where the last run left off.
 	 */
-	public function test_storno_reconciliation_pages_past_a_full_first_page(): void {
-		$this->settings->set( 'storno_autogen', 'yes' );
-		$GLOBALS['oblio_test_wc_orders_result_queue'] = array(
-			range( 1000, 1099 ),
-			array( 2000 ),
-		);
+	public function test_invoice_reconciliation_query_starts_from_the_persisted_cursor(): void {
+		$this->settings->set( 'invoice_autogen', 'yes' );
+		$cursor = time() - 10;
+		update_option( 'oblio_fgwoo_reconcile_invoice_cursor', $cursor );
 
 		$this->reconciler->run();
 
-		$this->assertCount( 2, $GLOBALS['oblio_test_wc_orders_calls'] );
-		$this->assertSame( 1, $GLOBALS['oblio_test_wc_orders_calls'][0]['paged'] );
-		$this->assertSame( 2, $GLOBALS['oblio_test_wc_orders_calls'][1]['paged'] );
+		$call = $GLOBALS['oblio_test_wc_orders_calls'][0];
+		$this->assertSame( '>' . $cursor, $call['date_created'] );
 	}
 
 	/**
-	 * A pathological backlog (every page full) must not turn one reconcile
-	 * run into an unbounded scan - paging stops at the configured cap.
+	 * A full BATCH means more records may still be waiting past this page -
+	 * the cursor must advance to the latest examined date so the next run
+	 * continues instead of re-fetching the same oldest page again.
 	 */
-	public function test_storno_reconciliation_stops_paging_at_the_configured_max(): void {
-		$this->settings->set( 'storno_autogen', 'yes' );
-		$GLOBALS['oblio_test_filter_overrides']['oblio_fgwoo_reconcile_storno_max_pages'] = 3;
-		$GLOBALS['oblio_test_wc_orders_result'] = range( 4000, 4099 );
+	public function test_invoice_reconciliation_cursor_advances_past_a_full_batch(): void {
+		$this->settings->set( 'invoice_autogen', 'yes' );
+		$base = time() - 1000;
+		$ids  = range( 1, 100 );
+		$GLOBALS['oblio_test_wc_orders_result'] = $ids;
+		foreach ( $ids as $offset => $id ) {
+			$order = new WC_Order( $id );
+			$order->set_date_created( new \DateTime( '@' . ( $base + $offset ) ) );
+			$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'link' ), 'https://example.test/invoice' );
+			$GLOBALS['oblio_test_orders'][ $id ] = $order;
+		}
 
 		$this->reconciler->run();
 
-		$this->assertCount( 3, $GLOBALS['oblio_test_wc_orders_calls'] );
+		$this->assertSame( $base + 99, (int) get_option( 'oblio_fgwoo_reconcile_invoice_cursor' ) );
+	}
+
+	/**
+	 * Fewer than BATCH results means the whole lookback window has been
+	 * covered - the cursor must reset so the next run starts a fresh pass
+	 * (otherwise a record stuck at the very front, still eligible after a
+	 * failed retry, would never be re-examined again).
+	 */
+	public function test_invoice_reconciliation_cursor_resets_on_a_short_batch(): void {
+		$this->settings->set( 'invoice_autogen', 'yes' );
+		update_option( 'oblio_fgwoo_reconcile_invoice_cursor', 5000 );
+		$GLOBALS['oblio_test_wc_orders_result'] = array();
+
+		$this->reconciler->run();
+
+		$this->assertFalse( get_option( 'oblio_fgwoo_reconcile_invoice_cursor', false ) );
+	}
+
+	/**
+	 * Same starvation risk as invoices - a backlog of unhandled refunds bigger
+	 * than one BATCH must not pin the query to the same oldest page forever.
+	 */
+	public function test_storno_reconciliation_query_starts_from_the_persisted_cursor(): void {
+		$this->settings->set( 'storno_autogen', 'yes' );
+		$cursor = time() - 10;
+		update_option( 'oblio_fgwoo_reconcile_storno_cursor', $cursor );
+
+		$this->reconciler->run();
+
+		$call = $GLOBALS['oblio_test_wc_orders_calls'][0];
+		$this->assertSame( '>' . $cursor, $call['date_created'] );
+	}
+
+	public function test_storno_reconciliation_cursor_advances_past_a_full_batch(): void {
+		$this->settings->set( 'storno_autogen', 'yes' );
+		$base = time() - 1000;
+		$ids  = range( 1, 100 );
+		$GLOBALS['oblio_test_wc_orders_result'] = $ids;
+		foreach ( $ids as $offset => $id ) {
+			$refund = new WC_Order_Refund( $id, 0 );
+			$refund->set_date_created( new \DateTime( '@' . ( $base + $offset ) ) );
+			$GLOBALS['oblio_test_orders'][ $id ] = $refund;
+		}
+
+		$this->reconciler->run();
+
+		$this->assertSame( $base + 99, (int) get_option( 'oblio_fgwoo_reconcile_storno_cursor' ) );
+	}
+
+	public function test_storno_reconciliation_cursor_resets_on_a_short_batch(): void {
+		$this->settings->set( 'storno_autogen', 'yes' );
+		update_option( 'oblio_fgwoo_reconcile_storno_cursor', 5000 );
+		$GLOBALS['oblio_test_wc_orders_result'] = array();
+
+		$this->reconciler->run();
+
+		$this->assertFalse( get_option( 'oblio_fgwoo_reconcile_storno_cursor', false ) );
 	}
 }

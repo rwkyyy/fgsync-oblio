@@ -111,6 +111,31 @@ final class OrderActionsTest extends TestCase {
 		$this->assertTrue( $GLOBALS['oblio_test_json_response']['success'] );
 	}
 
+	/**
+	 * A prior permanent failure must not linger after a manual issue succeeds -
+	 * otherwise a later invoice deletion would leave Reconciler permanently
+	 * excluding this order (see Reconciler::reconcile_invoices()'s NOT EXISTS
+	 * on failed_permanent).
+	 */
+	public function test_a_manual_issue_clears_a_prior_permanent_failure(): void {
+		$order = new WC_Order( 1 );
+		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'failed' ), 'old reason' );
+		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'failed_permanent' ), '1' );
+		$GLOBALS['oblio_test_orders'][1] = $order;
+
+		$this->post(
+			array(
+				'order_id' => '1',
+				'task'     => 'issue',
+				'doc_type' => 'invoice',
+				'nonce'    => 'test-nonce',
+			)
+		);
+
+		$this->assertSame( '', (string) $order->get_meta( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'failed' ) ) );
+		$this->assertSame( '', (string) $order->get_meta( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'failed_permanent' ) ) );
+	}
+
 	public function test_a_manual_storno_produces_exactly_one_issued_log_line(): void {
 		$GLOBALS['oblio_test_orders'][1] = new WC_Order( 1 );
 

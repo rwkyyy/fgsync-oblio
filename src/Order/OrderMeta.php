@@ -177,6 +177,10 @@ final class OrderMeta {
 		foreach ( array( 'series', 'number', 'link', 'date' ) as $field ) {
 			$order->delete_meta_data( self::key( $type, $field ) );
 		}
+		if ( self::TYPE_INVOICE === $type ) {
+			// Otherwise stale, excluding this order from stock reservations forever.
+			$order->delete_meta_data( self::key( self::TYPE_INVOICE, 'use_stock' ) );
+		}
 		if ( in_array( $type, array( self::TYPE_INVOICE, self::TYPE_PROFORMA ), true ) ) {
 			foreach ( array( 'link', 'series_name', 'number', 'date' ) as $field ) {
 				$order->delete_meta_data( 'oblio_' . $type . '_' . $field );

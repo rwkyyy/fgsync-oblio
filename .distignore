@@ -1,6 +1,7 @@
 # Files and folders excluded from the WordPress.org release build.
 .DS_Store
 /.github
+/docs
 /tests
 /node_modules
 /vendor

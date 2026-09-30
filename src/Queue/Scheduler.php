@@ -244,6 +244,23 @@ final class Scheduler {
 	}
 
 	/**
+	 * Current owner of a document's pending marker, regardless of expiry -
+	 * null if nothing currently holds it. Used after a failed renew() to tell
+	 * a merely-vanished marker apart from one a newer chain has since
+	 * reclaimed (see GenerateDocument::run()).
+	 *
+	 * @param int    $order_id Order ID.
+	 * @param string $doc_type Document type.
+	 */
+	public function pending_document_owner( int $order_id, string $doc_type ): ?string {
+		return AtomicLock::current_owner( self::pending_document_key( $order_id, $doc_type ) );
+	}
+
+	public function pending_refund_owner( int $order_id, int $refund_id ): ?string {
+		return AtomicLock::current_owner( self::pending_refund_key( $order_id, $refund_id ) );
+	}
+
+	/**
 	 * Atomic claim: whichever of two near-simultaneous first-attempt
 	 * enqueues for the same order+doc_type (e.g. an auto-issue hook and a
 	 * manual admin click) acquires the marker first wins; the other no-ops.

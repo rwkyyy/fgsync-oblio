@@ -36,4 +36,32 @@ final class OrderMetaTest extends TestCase {
 		OrderMeta::record_invoice_stock_usage( $order, true );
 		$this->assertSame( '1', $order->get_meta( 'oblio_fgwoo_invoice_use_stock' ) );
 	}
+
+	/**
+	 * A stale '1' left behind after the invoice is deleted would keep this
+	 * order wrongly excluded from stock reservations forever (see
+	 * StockReservations::build()'s NOT EXISTS on this exact meta key).
+	 */
+	public function test_clearing_an_invoice_also_clears_the_use_stock_flag(): void {
+		$order = new WC_Order();
+		OrderMeta::record_invoice_stock_usage( $order, true );
+
+		OrderMeta::clear( $order, OrderMeta::TYPE_INVOICE );
+
+		$this->assertFalse( OrderMeta::invoice_used_stock( $order ) );
+		$this->assertSame( '', (string) $order->get_meta( 'oblio_fgwoo_invoice_use_stock' ) );
+	}
+
+	/**
+	 * The use_stock flag only ever exists under the invoice key - clearing a
+	 * different document type must not touch it.
+	 */
+	public function test_clearing_a_proforma_does_not_touch_the_invoice_use_stock_flag(): void {
+		$order = new WC_Order();
+		OrderMeta::record_invoice_stock_usage( $order, true );
+
+		OrderMeta::clear( $order, OrderMeta::TYPE_PROFORMA );
+
+		$this->assertTrue( OrderMeta::invoice_used_stock( $order ) );
+	}
 }

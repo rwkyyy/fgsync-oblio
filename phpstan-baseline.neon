@@ -223,12 +223,6 @@ parameters:
 			path: src/Admin/ProductFields.php
 
 		-
-			message: '#^Access to constant STATUS_COMPLETE on an unknown class ActionScheduler_Store\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Admin/QueueStatus.php
-
-		-
 			message: '#^Access to constant STATUS_FAILED on an unknown class ActionScheduler_Store\.$#'
 			identifier: class.notFound
 			count: 3

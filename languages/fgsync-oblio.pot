@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: FGSync for Oblio 1.3.1\n"
+"Project-Id-Version: FGSync for Oblio 1.3.2\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/fgsync-oblio\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-26T18:53:42+00:00\n"
+"POT-Creation-Date: 2026-09-30T13:04:24+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: fgsync-oblio\n"
@@ -156,11 +156,11 @@ msgstr ""
 msgid "Acțiune neautorizată pentru această comandă."
 msgstr ""
 
-#: src/Admin/OrderActions.php:100
+#: src/Admin/OrderActions.php:101
 msgid "Se poate șterge doar ultimul document din serie. Emite un storno în schimb."
 msgstr ""
 
-#: src/Admin/OrderActions.php:108
+#: src/Admin/OrderActions.php:109
 msgid "Acțiune necunoscută."
 msgstr ""
 
@@ -992,7 +992,7 @@ msgid "Sincronizează acum"
 msgstr ""
 
 #: src/Admin/SettingsPage.php:1020
-msgid "Rulează sincronizare completă imediat. Pentru a accelera procesul, te rugăm să nu pleci din pagină!"
+msgid "Rulează sincronizare completă în fundal, prin pași succesivi; poate dura câteva minute pe cataloage mari. Poți părăsi pagina, sincronizarea continuă."
 msgstr ""
 
 #: src/Admin/SettingsPage.php:1023
@@ -1005,12 +1005,12 @@ msgid "Deblochează sincronizarea"
 msgstr ""
 
 #. translators: %s: human time diff
-#: src/Admin/SettingsPage.php:1032
+#: src/Admin/SettingsPage.php:1034
 #, php-format
 msgid "<strong>Ultima sincronizare:</strong> %s în urmă."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1037
+#: src/Admin/SettingsPage.php:1042
 msgid "Alege un mod de declanșare mai sus (altul decât „Dezactivată”) pentru a putea sincroniza manual."
 msgstr ""
 
@@ -1187,7 +1187,7 @@ msgid "Email sau API secret lipsă."
 msgstr ""
 
 #: src/Document/DocumentService.php:59
-#: src/Document/DocumentService.php:117
+#: src/Document/DocumentService.php:118
 #: src/Refund/RefundService.php:65
 #: src/Refund/RefundService.php:137
 msgid "Un alt proces emite deja un document pentru comandă; se va reîncerca automat."
@@ -1370,15 +1370,15 @@ msgstr ""
 msgid "total"
 msgstr ""
 
-#: src/Queue/Jobs/GenerateDocument.php:68
-#: src/Queue/Jobs/GenerateDocument.php:108
-#: src/Queue/Jobs/GenerateRefund.php:78
-#: src/Queue/Jobs/GenerateRefund.php:129
-#: src/Queue/Jobs/GenerateRefund.php:144
+#: src/Queue/Jobs/GenerateDocument.php:71
+#: src/Queue/Jobs/GenerateDocument.php:111
+#: src/Queue/Jobs/GenerateRefund.php:81
+#: src/Queue/Jobs/GenerateRefund.php:132
+#: src/Queue/Jobs/GenerateRefund.php:147
 msgid "Nu s-a putut reprograma reîncercarea în coadă."
 msgstr ""
 
-#: src/Queue/Jobs/GenerateRefund.php:124
+#: src/Queue/Jobs/GenerateRefund.php:127
 msgid "Factura nu a fost emisă în timp util."
 msgstr ""
 

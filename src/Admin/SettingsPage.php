@@ -1017,7 +1017,7 @@ final class SettingsPage {
 					<button type="button"
 							class="button oblio-fgwoo-sync-now"><?php esc_html_e( 'Sincronizează acum', 'fgsync-oblio' ); ?></button>
 					<span class="oblio-fgwoo-sync-result oblio-fgwoo-result"></span>
-					<p class="description"><?php esc_html_e( 'Rulează sincronizare completă imediat. Pentru a accelera procesul, te rugăm să nu pleci din pagină!', 'fgsync-oblio' ); ?></p>
+					<p class="description"><?php esc_html_e( 'Rulează sincronizare completă în fundal, prin pași succesivi; poate dura câteva minute pe cataloage mari. Poți părăsi pagina, sincronizarea continuă.', 'fgsync-oblio' ); ?></p>
 					<?php if ( $stale ) : ?>
 						<p class="description oblio-fgwoo-lock-warning">
 							<?php esc_html_e( 'O sincronizare pare blocată (probabil întreruptă de server înainte să termine). Dacă nu pornește din nou de la sine, o poți debloca manual:', 'fgsync-oblio' ); ?>
@@ -1028,8 +1028,13 @@ final class SettingsPage {
 					<?php if ( $last ) : ?>
 						<p class="description">
 							<?php
-							/* translators: %s: human time diff */
-							printf( esc_html__( '<strong>Ultima sincronizare:</strong> %s în urmă.', 'fgsync-oblio' ), esc_html( human_time_diff( $last ) ) );
+							printf(
+								wp_kses_post(
+									/* translators: %s: human time diff */
+									__( '<strong>Ultima sincronizare:</strong> %s în urmă.', 'fgsync-oblio' )
+								),
+								esc_html( human_time_diff( $last ) )
+							);
 							?>
 						</p>
 					<?php endif; ?>

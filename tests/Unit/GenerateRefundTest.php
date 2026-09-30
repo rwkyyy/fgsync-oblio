@@ -68,6 +68,15 @@ final class GenerateRefundTest extends TestCase {
 	}
 
 	/**
+	 * 'owner-a' stands in for a marker genuinely claimed at enqueue time - a
+	 * test exercising the renewal/staleness behaviour itself sets up its own
+	 * marker state instead of calling this.
+	 */
+	private function seed_pending_refund( int $order_id, int $refund_id, string $owner = 'owner-a' ): void {
+		$GLOBALS['oblio_test_options'][ 'oblio_fgwoo_pending_refund_' . $order_id . '_' . $refund_id ] = ( time() + 3600 ) . '|' . $owner;
+	}
+
+	/**
 	 * A refund can be created while its invoice is still queued - the job
 	 * must retry with backoff instead of permanently failing or, worse,
 	 * silently doing nothing (RefundAutoIssue no longer pre-checks this).
@@ -77,6 +86,7 @@ final class GenerateRefundTest extends TestCase {
 	public function test_a_missing_invoice_is_retried_instead_of_failing_permanently(): void {
 		$order = new WC_Order( 1 );
 		$GLOBALS['oblio_test_orders'][1] = $order;
+		$this->seed_pending_refund( 1, 5 );
 
 		$this->job->run(
 			array(
@@ -103,6 +113,7 @@ final class GenerateRefundTest extends TestCase {
 	public function test_a_high_api_retry_attempt_does_not_shorten_the_invoice_wait_budget(): void {
 		$order = new WC_Order( 1 );
 		$GLOBALS['oblio_test_orders'][1] = $order;
+		$this->seed_pending_refund( 1, 5 );
 
 		$this->job->run(
 			array(
@@ -121,6 +132,7 @@ final class GenerateRefundTest extends TestCase {
 	public function test_a_missing_invoice_is_recorded_as_a_failure_once_the_wait_budget_is_exhausted(): void {
 		$order = new WC_Order( 1 );
 		$GLOBALS['oblio_test_orders'][1] = $order;
+		$this->seed_pending_refund( 1, 5 );
 
 		$this->job->run(
 			array(
@@ -146,6 +158,7 @@ final class GenerateRefundTest extends TestCase {
 		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'link' ), 'https://example.test/invoice' );
 		$GLOBALS['oblio_test_orders'][1] = $order;
 		$this->refunds->fail_with( new \FGSyncOblio\Document\DocumentException( 'already has a storno' ) );
+		$this->seed_pending_refund( 1, 5 );
 
 		$this->job->run(
 			array(
@@ -168,6 +181,7 @@ final class GenerateRefundTest extends TestCase {
 		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'link' ), 'https://example.test/invoice' );
 		$GLOBALS['oblio_test_orders'][1] = $order;
 		$this->refunds->fail_with( new \FGSyncOblio\Api\Exception\ApiException( 'server error', 500 ) );
+		$this->seed_pending_refund( 1, 5 );
 
 		$this->job->run(
 			array(
@@ -188,6 +202,7 @@ final class GenerateRefundTest extends TestCase {
 		$order->update_meta_data( 'oblio_fgwoo_storno_failed_5', 'old reason' );
 		$order->update_meta_data( 'oblio_fgwoo_storno_failed_permanent_5', '1' );
 		$GLOBALS['oblio_test_orders'][1] = $order;
+		$this->seed_pending_refund( 1, 5 );
 
 		$this->job->run(
 			array(
@@ -206,6 +221,7 @@ final class GenerateRefundTest extends TestCase {
 		$order = new WC_Order( 1 );
 		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'link' ), 'https://example.test/invoice' );
 		$GLOBALS['oblio_test_orders'][1] = $order;
+		$this->seed_pending_refund( 1, 5 );
 
 		$this->job->run(
 			array(
@@ -249,11 +265,12 @@ final class GenerateRefundTest extends TestCase {
 	}
 
 	/**
-	 * A stolen/expired-and-reclaimed marker must not crash the job or stop it
-	 * from completing - it's logged so the gap is visible, but the storno
-	 * still gets issued.
+	 * A stolen/expired-and-reclaimed marker means a newer chain now owns it -
+	 * this stale chain must abort instead of racing it with an outdated
+	 * payload, even though the newer chain's own eventual run will still
+	 * issue the storno.
 	 */
-	public function test_a_stolen_pending_marker_logs_a_warning_but_the_job_still_proceeds(): void {
+	public function test_a_stolen_pending_marker_logs_a_warning_and_aborts_the_job(): void {
 		$order = new WC_Order( 1 );
 		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'link' ), 'https://example.test/invoice' );
 		$GLOBALS['oblio_test_orders'][1] = $order;
@@ -271,9 +288,36 @@ final class GenerateRefundTest extends TestCase {
 		$messages = array_column( $GLOBALS['oblio_test_wc_logs'], 'message' );
 		$matches  = array_filter(
 			$messages,
-			static fn ( string $message ): bool => false !== strpos( $message, 'could not renew the pending marker' )
+			static fn ( string $message ): bool => false !== strpos( $message, 'owned by a newer chain' )
 		);
 		$this->assertNotEmpty( $matches );
-		$this->assertCount( 1, $this->refunds->calls );
+		$this->assertCount( 0, $this->refunds->calls );
+	}
+
+	/**
+	 * A marker that's simply gone is just as stale as one reclaimed by someone
+	 * else - this chain must not assume it's still the sole owner.
+	 */
+	public function test_a_missing_pending_marker_logs_a_warning_and_aborts_the_job(): void {
+		$order = new WC_Order( 1 );
+		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'link' ), 'https://example.test/invoice' );
+		$GLOBALS['oblio_test_orders'][1] = $order;
+
+		$this->job->run(
+			array(
+				'order_id'      => 1,
+				'refund_id'     => 5,
+				'attempt'       => 1,
+				'pending_owner' => 'owner-a',
+			)
+		);
+
+		$messages = array_column( $GLOBALS['oblio_test_wc_logs'], 'message' );
+		$matches  = array_filter(
+			$messages,
+			static fn ( string $message ): bool => false !== strpos( $message, 'is gone, aborting this stale job' )
+		);
+		$this->assertNotEmpty( $matches );
+		$this->assertCount( 0, $this->refunds->calls );
 	}
 }

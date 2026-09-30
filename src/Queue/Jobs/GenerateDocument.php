@@ -54,12 +54,15 @@ final class GenerateDocument {
 		$attempt  = (int) ( $payload['attempt'] ?? 1 );
 		$owner    = (string) ( $payload['pending_owner'] ?? '' );
 
-		// Refresh the pending-document marker as soon as this attempt actually
-		// starts, not just on a rate-limiter defer - an Action Scheduler delay
-		// past PENDING_TTL before the first pickup would otherwise let it expire
-		// and permit a second, duplicate chain for the same order+doc_type.
+		// Refresh the marker now, not just on a rate-limiter defer, so it can't expire mid-chain.
+		// A failed renewal means it's gone or reclaimed by a newer chain, so stop instead of risking a stale issue.
 		if ( '' !== $owner && ! $this->scheduler->renew_pending_document( $order_id, $doc_type, $owner ) ) {
-			$this->logger->warning( sprintf( 'Queue: could not renew the pending marker for order #%d %s at job start', $order_id, $doc_type ) );
+			if ( null === $this->scheduler->pending_document_owner( $order_id, $doc_type ) ) {
+				$this->logger->warning( sprintf( 'Queue: pending marker for order #%d %s is gone, aborting this stale job', $order_id, $doc_type ) );
+			} else {
+				$this->logger->warning( sprintf( 'Queue: pending marker for order #%d %s is now owned by a newer chain, aborting this stale job', $order_id, $doc_type ) );
+			}
+			return;
 		}
 
 		$wait = $this->rate_limiter->peek();

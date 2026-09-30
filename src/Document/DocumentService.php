@@ -93,16 +93,17 @@ final class DocumentService implements DocumentIssuer {
 			OrderLock::release( $order->get_id(), $owner );
 		}
 
-		// Runs after the lock is released: the document is already persisted, so
-		// a slow mail callback no longer extends lock contention, and if the
-		// hook or emailer throws, this attempt still reports success instead of
-		// leaving the caller to schedule a retry that would just find the
-		// document already there and silently skip the hook/email forever.
+		// Runs after the lock releases, in separate try/catch blocks so a throwing hook can't suppress the email.
 		try {
 			do_action( 'oblio_fgwoo_document_issued', $order, $result, $options );
+		} catch ( \Throwable $exception ) {
+			$this->logger->error( sprintf( 'Order #%d: post-issue hook failed for %s %s %s: %s', $order->get_id(), $doc_type, $result->series_name, $result->number, $exception->getMessage() ) );
+		}
+
+		try {
 			$this->emailer->maybe_send( $order, $result );
 		} catch ( \Throwable $exception ) {
-			$this->logger->error( sprintf( 'Order #%d: post-issue hook/email failed for %s %s %s: %s', $order->get_id(), $doc_type, $result->series_name, $result->number, $exception->getMessage() ) );
+			$this->logger->error( sprintf( 'Order #%d: invoice email failed for %s %s %s: %s', $order->get_id(), $doc_type, $result->series_name, $result->number, $exception->getMessage() ) );
 		}
 
 		$this->logger->info( sprintf( 'Order #%d: %s %s %s issued', $order->get_id(), $doc_type, $result->series_name, $result->number ) );

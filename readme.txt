@@ -4,7 +4,7 @@ Tags: woocommerce, invoicing, oblio, invoice, romania
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.3.1
+Stable tag: 1.3.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -25,6 +25,8 @@ FGSync for Oblio is an independent open-source integration between WooCommerce a
 * Queued processing (Action Scheduler) so issuing never blocks checkout or status changes.
 * Automatic retries with backoff, plus a reconciliation job for missed invoices.
 * Stock synced in batches, across one or more warehouses (locations), matching the WooCommerce SKU with the Oblio product code.
+* Bulk actions (invoice/proforma/storno for multiple orders at once) are queued per order, not run one after another in the same admin request.
+* Settings and warehouse/series lists are read from a short-lived cache, refreshed on demand, instead of calling Oblio on every page load.
 
 **Collection and notifications**
 
@@ -38,6 +40,10 @@ FGSync for Oblio is an independent open-source integration between WooCommerce a
 * Compatible with WPML / WooCommerce Multilingual (invoice language and currency from the order).
 * Logs through WooCommerce (WooCommerce, Status, Logs) and a dedicated status panel.
 * One-click import from the old "WooCommerce Oblio" plugin.
+
+**Extensibility**
+
+* Filters and actions for cases the settings screen doesn't cover: adjusting a stock quantity or price before it's written, overriding a document's currency or language per order, and changing the invoice email button's behavior.
 
 This plugin uses the Oblio.eu API. You need an Oblio account and an API secret.
 
@@ -120,7 +126,23 @@ A shortcut to the FGSync Status screen, with a small colored dot: green means ev
 
 Under Email, pick a mode. "Standalone" sends a separate message from the plugin when the document is issued, using your subject/message templates. "Button" instead adds a button linking to the Oblio invoice inside WooCommerce's own order emails, for the order statuses you select (for example, the Completed order email). In "Button" mode, if the invoice has not been issued yet when that email is sent, the plugin tries to issue it at that moment, even when automatic invoicing is off, so the button usually links to a real invoice. If Oblio's rate limit is busy or that attempt fails, the invoice is queued instead and that particular email goes out without the button; the invoice itself still gets issued shortly after. Use the `oblio_fgwoo_email_button_issue` filter to disable the inline attempt if you only want a button when an invoice already exists.
 
+= Can I customize FGSync's behavior for my store? =
+
+Yes. A few examples: `oblio_fgwoo_stock_quantity` and `oblio_fgwoo_stock_price` adjust a value right before it's written during stock sync, `oblio_fgwoo_document_currency` and `oblio_fgwoo_document_language` override those per order, and `oblio_fgwoo_email_button_issue` (see above) controls the email button's inline-issue behavior. See the plugin's GitHub repository for the current list.
+
 == Changelog ==
+
+= 1.3.2 =
+* Fixed invoice reconciliation never reaching orders past the first 100 missed invoices in the lookback window on stores with a large backlog; it now makes forward progress across runs instead of rechecking the same batch every time.
+* Storno reconciliation no longer needs to scan up to 20 pages of orders in a single run; progress now carries over between runs instead.
+* Fixed deleting an invoice not immediately restoring that order to normal stock reservation; it could stay excluded for up to an hour due to a stale cache.
+* Fixed a rare race where a queued invoice or refund job could proceed using a stale or already-reclaimed pending marker instead of stopping, risking a duplicate or outdated issuance.
+* Fixed a "permanently failed" indicator staying on an order after the document was later issued successfully by hand.
+* Fixed the "Ultima sincronizare" (last sync) label on the stock status page displaying literal `<strong>` tags instead of bold text.
+* Fixed the manual stock sync description still describing the old page-blocking behavior; it now correctly says the sync runs in the background and the page can be closed.
+* The plugin log no longer records the customer's email address when a document email is sent or fails to send.
+* The queue status panel no longer queries an all-time "complete" job count that was never shown on screen.
+* Documentation: described bulk-action queuing and settings-page caching under Performance, added an Extensibility section listing the available filters/actions, and added a matching FAQ entry.
 
 = 1.3.1 =
 * Fixed a background job (invoice/refund issuance, stock sync page) that Action Scheduler failed to actually schedule being reported as queued anyway and silently disappearing; it's now correctly retried or surfaced as a failure instead.

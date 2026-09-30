@@ -68,6 +68,7 @@ final class OrderActions {
 				case 'issue':
 					$result = $this->documents->issue( $order, $doc_type, array( 'use_stock' => $use_stock ) );
 					$order->delete_meta_data( OrderMeta::key( $doc_type, 'failed' ) );
+					$order->delete_meta_data( OrderMeta::key( $doc_type, 'failed_permanent' ) );
 					$order->save();
 					// DocumentService::issue() already logs an "... issued" line for
 					// every issuance regardless of caller - logging it again here

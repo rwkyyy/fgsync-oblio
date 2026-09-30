@@ -213,6 +213,7 @@ final class StockReservationsTest extends TestCase {
 		$hooks = array_column( $GLOBALS['oblio_test_add_action_calls'], 'hook' );
 		$this->assertContains( 'woocommerce_order_status_changed', $hooks );
 		$this->assertContains( 'oblio_fgwoo_document_issued', $hooks );
+		$this->assertContains( 'oblio_fgwoo_document_deleted', $hooks );
 	}
 
 	public function test_an_invoice_that_discharged_stock_invalidates_the_cached_map(): void {
@@ -254,6 +255,34 @@ final class StockReservationsTest extends TestCase {
 		$order  = new WC_Order( 1 );
 		$result = new DocumentResult( OrderMeta::TYPE_PROFORMA, 'S', '1', 'https://example.test/doc' );
 		$this->reservations->on_document_issued( $order, $result, array( 'use_stock' => true ) );
+
+		$this->reservations->map();
+
+		$this->assertCount( 1, $GLOBALS['wpdb']->get_results_calls );
+	}
+
+	/**
+	 * Deleting a stock-deducting invoice leaves the order uninvoiced again -
+	 * without this, a cached map built while the invoice still existed would
+	 * keep excluding it (see OrderMeta::clear()'s use_stock cleanup, which
+	 * fixes the order's own meta but not an already-cached map).
+	 */
+	public function test_a_deleted_invoice_invalidates_the_cached_map(): void {
+		$this->reservations->map();
+
+		$order = new WC_Order( 1 );
+		$this->reservations->on_document_deleted( $order, OrderMeta::TYPE_INVOICE );
+
+		$this->reservations->map();
+
+		$this->assertCount( 2, $GLOBALS['wpdb']->get_results_calls );
+	}
+
+	public function test_a_deleted_non_invoice_document_does_not_invalidate_the_cached_map(): void {
+		$this->reservations->map();
+
+		$order = new WC_Order( 1 );
+		$this->reservations->on_document_deleted( $order, OrderMeta::TYPE_PROFORMA );
 
 		$this->reservations->map();
 

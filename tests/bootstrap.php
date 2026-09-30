@@ -152,6 +152,43 @@ if ( ! function_exists( 'esc_html_e' ) ) {
 		echo htmlspecialchars( (string) $text, ENT_QUOTES );
 	}
 }
+if ( ! function_exists( 'is_email' ) ) {
+	function is_email( $email ) {
+		return false !== filter_var( (string) $email, FILTER_VALIDATE_EMAIL );
+	}
+}
+if ( ! function_exists( 'esc_url' ) ) {
+	function esc_url( $url ) {
+		return htmlspecialchars( (string) $url, ENT_QUOTES );
+	}
+}
+if ( ! function_exists( 'wp_strip_all_tags' ) ) {
+	function wp_strip_all_tags( $text, $remove_breaks = false ) {
+		$text = (string) preg_replace( '#<(script|style)[^>]*?>.*?</\1>#si', '', (string) $text );
+		$text = trim( strip_tags( $text ) );
+		if ( $remove_breaks ) {
+			$text = (string) preg_replace( '/[\r\n\t ]+/', ' ', $text );
+		}
+		return $text;
+	}
+}
+/**
+ * Records every wp_mail() call instead of actually sending - a test controls
+ * success/failure via $GLOBALS['oblio_test_mail_result'].
+ */
+$GLOBALS['oblio_test_mail_calls']  = array();
+$GLOBALS['oblio_test_mail_result'] = true;
+if ( ! function_exists( 'wp_mail' ) ) {
+	function wp_mail( $to, $subject, $message, $headers = '', $attachments = array() ) {
+		$GLOBALS['oblio_test_mail_calls'][] = array(
+			'to'      => $to,
+			'subject' => $subject,
+			'message' => $message,
+			'headers' => $headers,
+		);
+		return $GLOBALS['oblio_test_mail_result'];
+	}
+}
 if ( ! function_exists( 'apply_filters' ) ) {
 	function apply_filters( $tag, $value, ...$args ) {
 		if ( array_key_exists( $tag, $GLOBALS['oblio_test_filter_overrides'] ) ) {
@@ -334,6 +371,22 @@ if ( ! function_exists( 'as_schedule_recurring_action' ) ) {
 			return 0;
 		}
 		return $GLOBALS['oblio_test_as_next_id']++;
+	}
+}
+
+/**
+ * QueueStatus references these status constants directly when building its
+ * query args, before its own class_exists() availability check runs - so the
+ * constants must exist even though the real \ActionScheduler class (and a
+ * working store()) deliberately isn't stubbed here, which keeps available()
+ * false and every count() a plain 0 rather than needing a fake AS store.
+ */
+if ( ! class_exists( 'ActionScheduler_Store' ) ) {
+	class ActionScheduler_Store {
+		const STATUS_PENDING  = 'pending';
+		const STATUS_RUNNING  = 'in-progress';
+		const STATUS_FAILED   = 'failed';
+		const STATUS_COMPLETE = 'complete';
 	}
 }
 
@@ -625,6 +678,10 @@ if ( ! class_exists( 'WC_Order' ) ) {
 
 		public function get_total() {
 			return $this->total;
+		}
+
+		public function get_formatted_order_total(): string {
+			return number_format( (float) $this->total, 2 ) . ' ' . $this->currency;
 		}
 
 		public function set_currency( string $value ): void {
@@ -1011,5 +1068,7 @@ function oblio_test_reset(): void {
 	$GLOBALS['oblio_test_post_meta']           = array();
 	$GLOBALS['oblio_test_http_responses']      = array();
 	$GLOBALS['oblio_test_http_calls']          = array();
+	$GLOBALS['oblio_test_mail_calls']          = array();
+	$GLOBALS['oblio_test_mail_result']         = true;
 	$_POST                                     = array();
 }

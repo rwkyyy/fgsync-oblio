@@ -286,6 +286,28 @@ final class SchedulerTest extends TestCase {
 		$this->assertFalse( $this->scheduler->renew_pending_refund( 1, 5, 'wrong-owner' ) );
 	}
 
+	public function test_pending_document_owner_is_null_when_nothing_is_claimed(): void {
+		$this->assertNull( $this->scheduler->pending_document_owner( 1, 'invoice' ) );
+	}
+
+	public function test_pending_document_owner_reflects_the_current_claimant(): void {
+		$this->scheduler->enqueue_document( 1, 'invoice', array(), 1, 0 );
+		$owner = $GLOBALS['oblio_test_as_calls'][0]['args'][0]['pending_owner'];
+
+		$this->assertSame( $owner, $this->scheduler->pending_document_owner( 1, 'invoice' ) );
+	}
+
+	public function test_pending_refund_owner_is_null_when_nothing_is_claimed(): void {
+		$this->assertNull( $this->scheduler->pending_refund_owner( 1, 5 ) );
+	}
+
+	public function test_pending_refund_owner_reflects_the_current_claimant(): void {
+		$this->scheduler->enqueue_refund( 1, 5, 1, 0 );
+		$owner = $GLOBALS['oblio_test_as_calls'][0]['args'][0]['pending_owner'];
+
+		$this->assertSame( $owner, $this->scheduler->pending_refund_owner( 1, 5 ) );
+	}
+
 	public function test_backoff_grows_and_stays_within_the_hourly_cap(): void {
 		$first = $this->scheduler->backoff( 1 );
 		$later = $this->scheduler->backoff( 10 );

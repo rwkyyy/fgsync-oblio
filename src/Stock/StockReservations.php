@@ -65,6 +65,7 @@ final class StockReservations {
 	public function register(): void {
 		add_action( 'woocommerce_order_status_changed', array( $this, 'reset' ) );
 		add_action( 'oblio_fgwoo_document_issued', array( $this, 'on_document_issued' ), 10, 3 );
+		add_action( 'oblio_fgwoo_document_deleted', array( $this, 'on_document_deleted' ), 10, 2 );
 	}
 
 	/**
@@ -75,6 +76,20 @@ final class StockReservations {
 	public function on_document_issued( WC_Order $order, DocumentResult $result, array $options ): void {
 		unset( $order );
 		if ( OrderMeta::TYPE_INVOICE === $result->doc_type && ! empty( $options['use_stock'] ) ) {
+			$this->reset();
+		}
+	}
+
+	/**
+	 * The cached map would otherwise keep excluding this now-uninvoiced order
+	 * until it expires on its own (up to an hour) - reset it immediately.
+	 *
+	 * @param WC_Order $order    Unused, only the doc type matters.
+	 * @param string   $doc_type Deleted document type.
+	 */
+	public function on_document_deleted( WC_Order $order, string $doc_type ): void {
+		unset( $order );
+		if ( OrderMeta::TYPE_INVOICE === $doc_type ) {
 			$this->reset();
 		}
 	}

@@ -61,8 +61,18 @@ final class GenerateDocumentTest extends TestCase {
 		);
 	}
 
+	/**
+	 * 'owner-a' stands in for a marker genuinely claimed at enqueue time - only
+	 * seeded when a test hasn't already set up its own marker state (the
+	 * stolen/missing-marker tests deliberately set the option themselves
+	 * before calling this, so it must not clobber that).
+	 */
 	private function run_job( WC_Order $order, int $attempt = 1 ): void {
 		$GLOBALS['oblio_test_orders'][ $order->get_id() ] = $order;
+		$key = 'oblio_fgwoo_pending_doc_' . OrderMeta::TYPE_INVOICE . '_' . $order->get_id();
+		if ( ! array_key_exists( $key, $GLOBALS['oblio_test_options'] ) ) {
+			$GLOBALS['oblio_test_options'][ $key ] = ( time() + 3600 ) . '|owner-a';
+		}
 		$this->job->run(
 			array(
 				'order_id'      => $order->get_id(),
@@ -149,11 +159,11 @@ final class GenerateDocumentTest extends TestCase {
 	}
 
 	/**
-	 * A stolen/expired-and-reclaimed marker must not crash the job or stop it
-	 * from completing - it's logged so the gap is visible, but the document
-	 * still gets issued.
+	 * A stolen/expired-and-reclaimed marker means a newer chain now owns it -
+	 * this stale chain must abort instead of racing it with outdated options,
+	 * even though the newer chain's own eventual run will still issue it.
 	 */
-	public function test_a_stolen_pending_marker_logs_a_warning_but_the_job_still_proceeds(): void {
+	public function test_a_stolen_pending_marker_logs_a_warning_and_aborts_the_job(): void {
 		$order = new WC_Order( 1 );
 		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'failed' ), 'old reason' );
 		$GLOBALS['oblio_test_options']['oblio_fgwoo_pending_doc_invoice_1'] = ( time() + 3600 ) . '|someone-else';
@@ -163,10 +173,38 @@ final class GenerateDocumentTest extends TestCase {
 		$messages = array_column( $GLOBALS['oblio_test_wc_logs'], 'message' );
 		$matches  = array_filter(
 			$messages,
-			static fn ( string $message ): bool => false !== strpos( $message, 'could not renew the pending marker' )
+			static fn ( string $message ): bool => false !== strpos( $message, 'owned by a newer chain' )
 		);
 		$this->assertNotEmpty( $matches );
 		$this->assertSame( 'warning', $GLOBALS['oblio_test_wc_logs'][0]['level'] );
-		$this->assertSame( '', (string) $order->get_meta( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'failed' ) ) );
+		// Aborted before touching the order at all - the stale reason is untouched.
+		$this->assertSame( 'old reason', (string) $order->get_meta( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'failed' ) ) );
+	}
+
+	/**
+	 * A marker that's simply gone (already released, or wiped by an external
+	 * force-release) is just as stale as one reclaimed by someone else - this
+	 * chain must not proceed on the assumption it's still the sole owner.
+	 */
+	public function test_a_missing_pending_marker_logs_a_warning_and_aborts_the_job(): void {
+		$order = new WC_Order( 1 );
+		$GLOBALS['oblio_test_orders'][1] = $order;
+
+		$this->job->run(
+			array(
+				'order_id'      => 1,
+				'doc_type'      => OrderMeta::TYPE_INVOICE,
+				'attempt'       => 1,
+				'pending_owner' => 'owner-a',
+			)
+		);
+
+		$messages = array_column( $GLOBALS['oblio_test_wc_logs'], 'message' );
+		$matches  = array_filter(
+			$messages,
+			static fn ( string $message ): bool => false !== strpos( $message, 'is gone, aborting this stale job' )
+		);
+		$this->assertNotEmpty( $matches );
+		$this->assertSame( '', (string) $order->get_meta( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'link' ) ) );
 	}
 }
