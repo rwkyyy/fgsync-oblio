@@ -104,6 +104,13 @@ final class Settings {
 	}
 
 	/**
+	 * @return array<int,string>
+	 */
+	public function all_keys(): array {
+		return array_keys( self::DEFAULTS );
+	}
+
+	/**
 	 * The reconciliation watchdog covers both invoices and stornos in one
 	 * recurring run (see Queue\Reconciler) - it must stay scheduled whenever
 	 * either autogen feature is on, not just invoice_autogen, or a store with

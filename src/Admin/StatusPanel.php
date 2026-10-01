@@ -9,11 +9,34 @@ declare( strict_types=1 );
 
 namespace FGSyncOblio\Admin;
 
+use FGSyncOblio\Compat\OrderStore;
 use FGSyncOblio\Extensibility\HookInspector;
 use FGSyncOblio\Queue\Scheduler;
 use FGSyncOblio\Stock\StockSyncCoordinator;
+use FGSyncOblio\Support\ConnectionHealth;
 use FGSyncOblio\Support\Settings;
 final class StatusPanel {
+
+	/**
+	 * Settings never allowed into the diagnostics dump - personal/business
+	 * identifying data (account email, API secret, company tax ID, named
+	 * individuals and their ID documents). The dump is meant to be pasted
+	 * into a public support ticket, so these are omitted outright rather
+	 * than masked.
+	 */
+	private const OMIT_FROM_DUMP = array(
+		'email',
+		'secret',
+		'cif',
+		'email_from',
+		'email_cc',
+		'invoice_issuer_name',
+		'invoice_issuer_id',
+		'invoice_deputy_name',
+		'invoice_deputy_identity_card',
+		'invoice_deputy_auto',
+		'invoice_seles_agent',
+	);
 
 	private Settings $settings;
 
@@ -25,12 +48,18 @@ final class StatusPanel {
 
 	private HookInspector $hooks;
 
-	public function __construct( Settings $settings, LogReader $log, QueueStatus $queue, UpdateChecker $update, HookInspector $hooks ) {
+	private ConnectionHealth $health;
+
+	private OrderStore $orders;
+
+	public function __construct( Settings $settings, LogReader $log, QueueStatus $queue, UpdateChecker $update, HookInspector $hooks, ConnectionHealth $health, OrderStore $orders ) {
 		$this->settings = $settings;
 		$this->log      = $log;
 		$this->queue    = $queue;
 		$this->update   = $update;
 		$this->hooks    = $hooks;
+		$this->health   = $health;
+		$this->orders   = $orders;
 	}
 
 	public function render(): void {
@@ -50,7 +79,9 @@ final class StatusPanel {
 		$this->queue_card( $totals, $by_hook );
 		$this->update_card();
 		$this->hooks_card( $overrides );
-		echo '</div></div></div>';
+		echo '</div></div>';
+		$this->config_card( $totals, $by_hook );
+		echo '</div>';
 	}
 
 	private function admin_bar_toggle(): void {
@@ -194,6 +225,215 @@ final class StatusPanel {
 		}
 
 		echo '<div class="oblio-fgwoo-hooknote">' . esc_html__( 'Suprascrierile sunt permise, listate aici ca să nu fie niciodată tăcute.', 'fgsync-oblio' ) . '</div></div>';
+	}
+
+	/**
+	 * @param array<string,int>               $totals  Pending/in-progress/failed counts.
+	 * @param array<string,array<string,int>> $by_hook Pending/failed counts per queue job.
+	 */
+	private function config_card( array $totals, array $by_hook ): void {
+		echo '<div class="oblio-fgwoo-card oblio-fgwoo-config-card"><div class="oblio-fgwoo-card-h"><h2>' . esc_html__( 'Diagnoză rapidă', 'fgsync-oblio' ) . '</h2>';
+		echo '<span class="oblio-fgwoo-spacer"></span>';
+		echo '<button type="button" class="button oblio-fgwoo-config-copy" data-label="' . esc_attr__( 'Copiază', 'fgsync-oblio' ) . '" data-copied="' . esc_attr__( 'Copiat ✓', 'fgsync-oblio' ) . '">' . esc_html__( 'Copiază', 'fgsync-oblio' ) . '</button></div>';
+		echo '<pre class="oblio-fgwoo-config-dump" id="oblio-fgwoo-config-dump">' . esc_html( $this->build_diagnostics_dump( $totals, $by_hook ) ) . '</pre>';
+		echo '<div class="oblio-fgwoo-hooknote">' . sprintf(
+			/* translators: %s: link to the GitHub new-issue page */
+			esc_html__( 'Nu include cheia API, emailul contului, CIF-ul sau alte date cu caracter personal. Trimite-ne acest text când %s.', 'fgsync-oblio' ),
+			'<a href="https://github.com/rwkyyy/fgsync-oblio/issues/new" target="_blank" rel="noopener noreferrer" class="oblio-fgwoo-link">' . esc_html__( 'deschizi un raport nou pe GitHub ↗', 'fgsync-oblio' ) . '</a>'
+		) . '</div></div>';
+	}
+
+	/**
+	 * Markdown, wrapped in a collapsed <details> block - this is meant to be
+	 * pasted directly into a GitHub issue, where it renders as a table
+	 * instead of a wall of text and stays out of the way until expanded.
+	 *
+	 * @param array<string,int>               $totals  Pending/in-progress/failed counts.
+	 * @param array<string,array<string,int>> $by_hook Pending/failed counts per queue job.
+	 */
+	private function build_diagnostics_dump( array $totals, array $by_hook ): string {
+		global $wp_version;
+
+		$lines   = array();
+		$lines[] = '<details>';
+		$lines[] = '<summary>Store debug info · FGSync pentru Oblio</summary>';
+		$lines[] = '';
+		$lines[] = sprintf(
+			'FGSync pentru Oblio %s · WordPress %s · WooCommerce %s · PHP %s',
+			FGSYNC_OBLIO_VERSION,
+			isset( $wp_version ) ? $wp_version : '—',
+			defined( 'WC_VERSION' ) ? WC_VERSION : '—',
+			PHP_VERSION
+		);
+		$lines[] = '';
+		$lines[] = '**Mediu**';
+		$lines[] = '';
+		array_push( $lines, ...$this->markdown_table( $this->environment_rows() ) );
+		$lines[] = '';
+		$lines[] = '**WooCommerce**';
+		$lines[] = '';
+		array_push( $lines, ...$this->markdown_table( $this->woocommerce_rows() ) );
+		$lines[] = '';
+		$lines[] = '**Coadă Oblio (Action Scheduler)**';
+		$lines[] = '';
+		array_push( $lines, ...$this->markdown_table( $this->queue_rows( $totals, $by_hook ) ) );
+		$lines[] = '';
+		$lines[] = '**Conexiune Oblio**';
+		$lines[] = '';
+		array_push( $lines, ...$this->markdown_table( $this->connection_rows() ) );
+		$lines[] = '';
+		$lines[] = '**Setări plugin**';
+		$lines[] = '';
+		array_push( $lines, ...$this->markdown_table( $this->settings_rows() ) );
+		$lines[] = '';
+		$lines[] = '</details>';
+
+		return implode( "\n", $lines );
+	}
+
+	/**
+	 * @param array<string,string> $rows Label => value pairs for one section.
+	 * @return array<int,string>
+	 */
+	private function markdown_table( array $rows ): array {
+		$lines   = array();
+		$lines[] = '| Cheie | Valoare |';
+		$lines[] = '|---|---|';
+		foreach ( $rows as $key => $value ) {
+			$lines[] = sprintf( '| %s | %s |', $this->table_cell( (string) $key ), $this->table_cell( $value ) );
+		}
+		return $lines;
+	}
+
+	/**
+	 * Escapes a value for a Markdown table cell - pipes would otherwise
+	 * split into extra columns, and raw newlines (e.g. the multi-line email
+	 * template settings) would break the row entirely.
+	 *
+	 * @param string $value Raw cell content.
+	 */
+	private function table_cell( string $value ): string {
+		$value = str_replace( '|', '\\|', $value );
+		return str_replace( array( "\r\n", "\n" ), '<br>', $value );
+	}
+
+	/**
+	 * @return array<string,string>
+	 */
+	private function environment_rows(): array {
+		return array(
+			'hpos'                    => $this->yn( $this->orders->is_hpos() ),
+			'multisite'               => $this->yn( is_multisite() ),
+			'wp_debug'                => $this->yn( defined( 'WP_DEBUG' ) && WP_DEBUG ),
+			'wp_cron'                 => defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON ? 'dezactivat (necesită cron real)' : 'activ',
+			'php_memory_limit'        => $this->ini( 'memory_limit' ),
+			'php_max_execution_time'  => $this->ini( 'max_execution_time' ) . 's',
+			'php_post_max_size'       => $this->ini( 'post_max_size' ),
+			'php_upload_max_filesize' => $this->ini( 'upload_max_filesize' ),
+		);
+	}
+
+	/**
+	 * @return array<string,string>
+	 */
+	private function woocommerce_rows(): array {
+		$classes = array( 'Standard' );
+		if ( class_exists( \WC_Tax::class ) ) {
+			array_push( $classes, ...\WC_Tax::get_tax_classes() );
+		}
+
+		return array(
+			'moneda'                  => function_exists( 'get_woocommerce_currency' ) ? get_woocommerce_currency() : '—',
+			'taxe_active'             => $this->yn( function_exists( 'wc_tax_enabled' ) && wc_tax_enabled() ),
+			'taxe_calculate_dupa'     => $this->tax_based_on_label( (string) get_option( 'woocommerce_tax_based_on', 'shipping' ) ),
+			'preturi_cu_taxe_incluse' => $this->yn( function_exists( 'wc_prices_include_tax' ) && wc_prices_include_tax() ),
+			'clase_taxe'              => implode( ', ', $classes ),
+		);
+	}
+
+	/**
+	 * Translates WooCommerce's internal woocommerce_tax_based_on values
+	 * (shipping/billing/base) - raw, they read as meaningless jargon outside
+	 * WooCommerce's own tax settings screen.
+	 *
+	 * @param string $value Raw woocommerce_tax_based_on option value.
+	 */
+	private function tax_based_on_label( string $value ): string {
+		switch ( $value ) {
+			case 'billing':
+				return 'adresa de facturare';
+			case 'base':
+				return 'adresa magazinului';
+			case 'shipping':
+				return 'adresa de livrare';
+			default:
+				return $value;
+		}
+	}
+
+	/**
+	 * @param array<string,int>               $totals  Pending/in-progress/failed counts.
+	 * @param array<string,array<string,int>> $by_hook Pending/failed counts per queue job.
+	 * @return array<string,string>
+	 */
+	private function queue_rows( array $totals, array $by_hook ): array {
+		$rows                                = array();
+		$rows['action_scheduler_disponibil'] = $this->yn( $this->queue->available() );
+		$rows['total']                       = sprintf( '%d în așteptare, %d active, %d eșuate', (int) $totals['pending'], (int) $totals['in-progress'], (int) $totals['failed'] );
+		foreach ( $by_hook as $label => $counts ) {
+			$rows[ $label ] = sprintf( '%d în așteptare, %d eșuate', (int) $counts['pending'], (int) $counts['failed'] );
+		}
+		return $rows;
+	}
+
+	/**
+	 * @return array<string,string>
+	 */
+	private function connection_rows(): array {
+		$rows                       = array();
+		$rows['credentiale_setate'] = $this->yn( $this->settings->has_credentials() );
+		$rows['stare']              = $this->health->is_healthy() ? 'ok' : 'eroare';
+		if ( ! $this->health->is_healthy() && '' !== $this->health->last_error() ) {
+			$rows['ultima_eroare'] = $this->health->last_error();
+		}
+		$checked                   = $this->health->last_checked();
+		$rows['ultima_verificare'] = $checked ? human_time_diff( $checked ) . ' în urmă' : 'niciodată';
+		return $rows;
+	}
+
+	/**
+	 * @return array<string,string>
+	 */
+	private function settings_rows(): array {
+		$rows = array();
+		foreach ( $this->settings->all_keys() as $key ) {
+			if ( in_array( $key, self::OMIT_FROM_DUMP, true ) ) {
+				continue;
+			}
+			$rows[ $key ] = $this->format_setting_value( $this->settings->get( $key ) );
+		}
+		return $rows;
+	}
+
+	private function yn( bool $value ): string {
+		return $value ? 'da' : 'nu';
+	}
+
+	private function ini( string $key ): string {
+		$value = ini_get( $key );
+		return false !== $value && '' !== $value ? $value : '—';
+	}
+
+	/**
+	 * @param mixed $value Raw option value as returned by Settings::get().
+	 */
+	private function format_setting_value( $value ): string {
+		if ( is_array( $value ) ) {
+			return empty( $value ) ? '—' : implode( ', ', array_map( 'strval', $value ) );
+		}
+
+		$value = (string) $value;
+		return '' !== $value ? $value : '—';
 	}
 
 	private function short_path( string $file ): string {

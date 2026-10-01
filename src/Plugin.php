@@ -324,7 +324,9 @@ final class Plugin {
 				$container->get( LogReader::class ),
 				$container->get( QueueStatus::class ),
 				$container->get( UpdateChecker::class ),
-				$container->get( HookInspector::class )
+				$container->get( HookInspector::class ),
+				$container->get( ConnectionHealth::class ),
+				$container->get( OrderStore::class )
 			)
 		);
 

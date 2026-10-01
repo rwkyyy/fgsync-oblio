@@ -109,6 +109,11 @@ if ( ! function_exists( 'wp_cache_delete' ) ) {
 		return true;
 	}
 }
+if ( ! function_exists( 'is_multisite' ) ) {
+	function is_multisite() {
+		return false;
+	}
+}
 if ( ! function_exists( 'site_url' ) ) {
 	function site_url( $path = '', $scheme = null ) {
 		return 'https://example.test' . $path;

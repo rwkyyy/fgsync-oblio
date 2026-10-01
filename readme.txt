@@ -4,7 +4,7 @@ Tags: woocommerce, invoicing, oblio, invoice, romania
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.3.3
+Stable tag: 1.3.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -131,6 +131,10 @@ Under Email, pick a mode. "Standalone" sends a separate message from the plugin 
 Yes. A few examples: `oblio_fgwoo_stock_quantity` and `oblio_fgwoo_stock_price` adjust a value right before it's written during stock sync, `oblio_fgwoo_document_currency` and `oblio_fgwoo_document_language` override those per order, and `oblio_fgwoo_email_button_issue` (see above) controls the email button's inline-issue behavior. See the plugin's GitHub repository for the current list.
 
 == Changelog ==
+
+= 1.3.4 =
+* Added a "Diagnoză rapidă" panel to the Status page: one click copies a ready-to-paste, Markdown-formatted report (collapsible, with tables) covering the server environment, WooCommerce tax/currency settings, the processing queue, Oblio connection health, and plugin settings — meant for opening a GitHub issue. It never includes the API key, account email, company tax ID (CIF), or any named individual's data.
+* Added a link to the project's presentation page (rwkyyy.github.io/fgsync-oblio) in the plugin's admin notice and the development README.
 
 = 1.3.3 =
 * Fixed opening an order that already has an invoice, delivery note or credit note being very slow (and slowing down the rest of the site with it) on stores with a large order history; checking whether that document can still be deleted is now instant.

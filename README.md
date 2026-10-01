@@ -20,7 +20,8 @@ serviciu terț, este necesar un cont Oblio activ.
 Acesta este repository-ul de dezvoltare. Pluginul este publicat pe WordPress.org la
 **[ro.wordpress.org/plugins/fgsync-oblio](https://ro.wordpress.org/plugins/fgsync-oblio/)** - acolo găsiți
 versiunea stabilă de instalat. Descrierea completă și changelog-ul publicate pe WordPress.org se află în
-[`readme.txt`](readme.txt).
+[`readme.txt`](readme.txt). Pagina de prezentare a proiectului (funcționalități, comparație, FAQ) e la
+**[rwkyyy.github.io/fgsync-oblio](https://rwkyyy.github.io/fgsync-oblio/)**.
 
 ## Funcționalități
 

@@ -397,6 +397,47 @@
 	} );
 
 	$( function () {
+		var $copy = $( '.oblio-fgwoo-config-copy' );
+		var $dump = $( '#oblio-fgwoo-config-dump' );
+		if ( ! $copy.length || ! $dump.length ) {
+			return;
+		}
+
+		function flash( ok ) {
+			var label = $copy.data( ok ? 'copied' : 'label' );
+			$copy.text( label ).prop( 'disabled', true );
+			setTimeout( function () {
+				$copy.text( $copy.data( 'label' ) ).prop( 'disabled', false );
+			}, 1500 );
+		}
+
+		$copy.on( 'click', function () {
+			var text = $dump.text();
+
+			if ( navigator.clipboard && navigator.clipboard.writeText ) {
+				navigator.clipboard.writeText( text ).then( function () {
+					flash( true );
+				} ).catch( function () {
+					flash( false );
+				} );
+				return;
+			}
+
+			var $temp = $( '<textarea readonly></textarea>' )
+				.val( text )
+				.css( { position: 'fixed', top: 0, left: 0, opacity: 0 } )
+				.appendTo( 'body' );
+			$temp[ 0 ].select();
+			try {
+				flash( document.execCommand( 'copy' ) );
+			} catch ( e ) {
+				flash( false );
+			}
+			$temp.remove();
+		} );
+	} );
+
+	$( function () {
 		$( '#oblio-fgwoo-adminbar-toggle' ).on( 'change', function () {
 			var $toggle = $( this );
 			$.post( fgsyncOblio.ajaxUrl, {

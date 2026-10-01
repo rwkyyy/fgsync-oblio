@@ -145,9 +145,10 @@ final class SettingsPage {
 
 			<p class="oblio-fgwoo-disclosure">
 				<?php
-				esc_html_e(
-					'FGSync pentru Oblio este o integrare open-source independentă. Nu este dezvoltată, aprobată, întreținută sau susținută de Oblio.eu; Oblio este un serviciu terț, fiind necesar un cont Oblio activ.',
-					'fgsync-oblio'
+				printf(
+					/* translators: %s: link to the FGSync for Oblio project page */
+					esc_html__( 'Facturare Gestiune Sincronizare (FGSync) pentru Oblio este o integrare open-source independentă. Nu este dezvoltată, aprobată, întreținută sau susținută de Oblio.eu. Detalii complete pe %s.', 'fgsync-oblio' ),
+					'<a href="https://rwkyyy.github.io/fgsync-oblio/" target="_blank" rel="noopener noreferrer" class="oblio-fgwoo-link">' . esc_html__( 'pagina proiectului ↗', 'fgsync-oblio' ) . '</a>'
 				);
 				?>
 			</p>
