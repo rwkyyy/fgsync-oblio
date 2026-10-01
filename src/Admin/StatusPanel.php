@@ -167,7 +167,7 @@ final class StatusPanel {
 			printf( esc_html__( 'Verificat %s în urmă.', 'fgsync-oblio' ), esc_html( human_time_diff( $checked ) ) );
 		}
 		echo ' <a class="oblio-fgwoo-link" href="' . esc_url( $this->update->check_now_url() ) . '">' . esc_html__( 'Verifică acum', 'fgsync-oblio' ) . '</a></div>';
-		echo '<div class="note">' . esc_html__( 'Livrată prin WordPress.org, fără updater propriu.', 'fgsync-oblio' ) . '</div>';
+		echo '<div class="note">' . esc_html__( 'Actualizările sunt verificate și livrate prin WordPress.org.', 'fgsync-oblio' ) . '</div>';
 		echo '</div></div>';
 	}
 

@@ -49,6 +49,7 @@ use FGSyncOblio\Queue\AutoIssue;
 use FGSyncOblio\Queue\Jobs\GenerateDocument;
 use FGSyncOblio\Queue\Jobs\GenerateRefund;
 use FGSyncOblio\Queue\Reconciler;
+use FGSyncOblio\Queue\ScheduleGuard;
 use FGSyncOblio\Queue\Scheduler;
 use FGSyncOblio\Queue\Jobs\StockSyncBatch;
 use FGSyncOblio\Refund\RefundAutoIssue;
@@ -210,6 +211,15 @@ final class Plugin {
 				$container->get( Settings::class ),
 				$container->get( Scheduler::class ),
 				$container->get( OrderStore::class ),
+				$container->get( Logger::class )
+			)
+		);
+
+		$container->set(
+			ScheduleGuard::class,
+			static fn ( Container $container ): ScheduleGuard => new ScheduleGuard(
+				$container->get( Settings::class ),
+				$container->get( Scheduler::class ),
 				$container->get( Logger::class )
 			)
 		);
@@ -418,29 +428,7 @@ final class Plugin {
 		$this->get( EmailButton::class )->register();
 		$this->get( ClientFactory::class )->register();
 		$this->get( AdminBarStatus::class )->register();
-
-		$settings = $this->get( Settings::class );
-
-		if ( false === get_transient( Scheduler::SCHEDULE_CHECK ) ) {
-			$scheduler = $this->get( Scheduler::class );
-			$logger    = $this->get( Logger::class );
-
-			if ( ! $scheduler->ensure_reconcile_scheduled(
-				$settings->reconcile_watchdog_enabled(),
-				'batch' === (string) $settings->get( 'invoice_generation', 'event' )
-					? (string) $settings->get( 'invoice_batch_interval', 'hourly' )
-					: 'hourly'
-			) ) {
-				$logger->error( 'Could not (re)schedule the reconciliation watchdog; will retry within the hour' );
-			}
-			if ( ! $scheduler->ensure_stock_scheduled(
-				$settings->stock_schedule_enabled(),
-				(string) $settings->get( 'stock_interval', 'hourly' )
-			) ) {
-				$logger->error( 'Could not (re)schedule stock sync; will retry within the hour' );
-			}
-			set_transient( Scheduler::SCHEDULE_CHECK, 1, HOUR_IN_SECONDS );
-		}
+		$this->get( ScheduleGuard::class )->register();
 
 		$this->get( NomenclatureCache::class )->register();
 

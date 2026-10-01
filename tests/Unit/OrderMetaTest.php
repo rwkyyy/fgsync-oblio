@@ -7,6 +7,7 @@ declare( strict_types=1 );
 
 namespace FGSyncOblio\Tests\Unit;
 
+use FGSyncOblio\Document\DocumentResult;
 use FGSyncOblio\Order\OrderMeta;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -14,6 +15,71 @@ use WC_Order;
 
 #[CoversClass( \FGSyncOblio\Order\OrderMeta::class )]
 final class OrderMetaTest extends TestCase {
+
+	protected function setUp(): void {
+		oblio_test_reset();
+	}
+
+	/**
+	 * Unknown state (nothing in this series has been issued since the
+	 * latest-number tracking was added, e.g. a fresh series or pre-migration
+	 * legacy data) falls back to "assume last" - Oblio's own API is the real
+	 * guard against an invalid delete, so this only ever risks a rejected
+	 * attempt, never an unsafe one.
+	 */
+	public function test_is_last_document_assumes_true_when_the_series_has_no_tracked_latest_number(): void {
+		$order = new WC_Order();
+		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_NOTICE, 'series' ), 'AV' );
+		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_NOTICE, 'number' ), '42' );
+		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_NOTICE, 'link' ), 'https://example.test/av-42' );
+
+		$this->assertTrue( OrderMeta::is_last_document( $order, OrderMeta::TYPE_NOTICE ) );
+	}
+
+	/**
+	 * save() bumps a per-series/type running high-water mark - is_last_document()
+	 * reads it back as an O(1) comparison instead of a live "does any order have
+	 * a higher number" query (which took down an order screen on a large store).
+	 */
+	public function test_save_bumps_the_latest_number_and_is_last_document_compares_against_it(): void {
+		$newest = new WC_Order();
+		OrderMeta::save( $newest, new DocumentResult( OrderMeta::TYPE_INVOICE, 'FV', '100', 'https://example.test/fv-100' ) );
+
+		$older = new WC_Order();
+		$older->update_meta_data( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'series' ), 'FV' );
+		$older->update_meta_data( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'number' ), '99' );
+		$older->update_meta_data( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'link' ), 'https://example.test/fv-99' );
+
+		$this->assertTrue( OrderMeta::is_last_document( $newest, OrderMeta::TYPE_INVOICE ) );
+		$this->assertFalse( OrderMeta::is_last_document( $older, OrderMeta::TYPE_INVOICE ) );
+	}
+
+	/**
+	 * A lower number saved after a higher one (e.g. a different order's
+	 * issuance completing out of order) must not drag the cached max down.
+	 */
+	public function test_bumping_a_lower_number_after_a_higher_one_does_not_lower_the_cache(): void {
+		$order = new WC_Order();
+		OrderMeta::save( $order, new DocumentResult( OrderMeta::TYPE_INVOICE, 'FV', '100', 'https://example.test/fv-100' ) );
+		OrderMeta::save( $order, new DocumentResult( OrderMeta::TYPE_INVOICE, 'FV', '50', 'https://example.test/fv-50' ) );
+
+		$this->assertSame( 100, (int) get_option( 'oblio_fgwoo_latest_number_invoice_fv' ) );
+	}
+
+	/**
+	 * Deleting is only ever allowed on the series' true latest number, so the
+	 * cache is now stale - clear() resets it to "unknown" instead of guessing,
+	 * sending is_last_document() back to its conservative default rather than
+	 * wrongly blocking the real new-latest order's own future delete.
+	 */
+	public function test_clear_resets_the_latest_number_cache_for_that_series(): void {
+		$order = new WC_Order();
+		OrderMeta::save( $order, new DocumentResult( OrderMeta::TYPE_INVOICE, 'FV', '100', 'https://example.test/fv-100' ) );
+
+		OrderMeta::clear( $order, OrderMeta::TYPE_INVOICE );
+
+		$this->assertFalse( get_option( 'oblio_fgwoo_latest_number_invoice_fv' ) );
+	}
 
 	public function test_fresh_order_is_not_marked_as_stock_discharging(): void {
 		$this->assertFalse( OrderMeta::invoice_used_stock( new WC_Order() ) );

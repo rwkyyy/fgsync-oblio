@@ -90,6 +90,8 @@ final class OrderMeta {
 		$order->update_meta_data( self::key( $type, 'link' ), $result->link );
 		$order->update_meta_data( self::key( $type, 'date' ), '' !== $result->date ? $result->date : current_time( 'Y-m-d' ) );
 		$order->save();
+
+		self::bump_latest_number( $type, $result->series_name, $result->number );
 	}
 
 	public static function record_invoice_stock_usage( WC_Order $order, bool $used ): void {
@@ -100,6 +102,23 @@ final class OrderMeta {
 		return '1' === (string) $order->get_meta( self::key( self::TYPE_INVOICE, 'use_stock' ) );
 	}
 
+	/**
+	 * Used to gate manual deletion (Oblio only allows deleting the most
+	 * recently issued document in a series). Answered from the
+	 * latest-number-per-series option bumped by save()/cleared by clear() -
+	 * an O(1) lookup - rather than a live "does any order have a higher
+	 * number" query, which on a store with a large order history has no way
+	 * to short-circuit and can turn into a full scan (this previously took
+	 * down an order screen on a ~9.5k-order store). Falls back to assuming
+	 * "last" (allow the attempt) when the cache hasn't been populated yet -
+	 * e.g. a series that hasn't issued anything since this tracking was
+	 * added, or legacy pre-migration documents - the same conservative
+	 * default already used below for an order with no document at all.
+	 * Oblio's own API still rejects the actual delete if this is wrong.
+	 *
+	 * @param WC_Order $order Order to check.
+	 * @param string   $type  Document type.
+	 */
 	public static function is_last_document( WC_Order $order, string $type ): bool {
 		if ( self::TYPE_PROFORMA === $type ) {
 			return true;
@@ -109,58 +128,34 @@ final class OrderMeta {
 		if ( null === $doc || '' === $doc['number'] || '' === $doc['series'] ) {
 			return true;
 		}
-		if ( ! function_exists( 'wc_get_orders' ) ) {
-			return true;
+
+		$latest = (int) get_option( self::latest_number_option( $type, $doc['series'] ), 0 );
+
+		return 0 === $latest || (int) $doc['number'] >= $latest;
+	}
+
+	private static function latest_number_option( string $type, string $series ): string {
+		return self::PREFIX . 'latest_number_' . $type . '_' . sanitize_key( $series );
+	}
+
+	/**
+	 * Monotonic high-water mark, never lowered here - only clear() (on
+	 * delete) resets it, forcing the next check back to the conservative
+	 * "unknown" default until a subsequent save() re-seeds it.
+	 *
+	 * @param string $type   Document type.
+	 * @param string $series Series name.
+	 * @param string $number Newly issued document number.
+	 */
+	private static function bump_latest_number( string $type, string $series, string $number ): void {
+		if ( '' === $series || '' === $number ) {
+			return;
 		}
-
-		$branch = array(
-			'relation' => 'AND',
-			array(
-				'key'     => self::key( $type, 'series' ),
-				'value'   => $doc['series'],
-				'compare' => '=',
-			),
-			array(
-				'key'     => self::key( $type, 'number' ),
-				'value'   => (int) $doc['number'],
-				'compare' => '>',
-				'type'    => 'NUMERIC',
-			),
-		);
-
-		if ( in_array( $type, array( self::TYPE_INVOICE, self::TYPE_PROFORMA ), true ) ) {
-			$meta_query = array(
-				'relation' => 'OR',
-				$branch,
-				array(
-					'relation' => 'AND',
-					array(
-						'key'     => 'oblio_' . $type . '_series_name',
-						'value'   => $doc['series'],
-						'compare' => '=',
-					),
-					array(
-						'key'     => 'oblio_' . $type . '_number',
-						'value'   => (int) $doc['number'],
-						'compare' => '>',
-						'type'    => 'NUMERIC',
-					),
-				),
-			);
-		} else {
-			$meta_query = $branch;
+		$option = self::latest_number_option( $type, $series );
+		$number = (int) $number;
+		if ( $number > (int) get_option( $option, 0 ) ) {
+			update_option( $option, $number, false );
 		}
-
-		$higher = wc_get_orders(
-			array(
-				'limit'      => 1,
-				'return'     => 'ids',
-				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- one-off admin check, indexed doc meta.
-				'meta_query' => $meta_query,
-			)
-		);
-
-		return empty( $higher );
 	}
 
 	public static function persisted_idempotency_key( WC_Order $order, string $meta_key, string $fresh ): string {
@@ -174,6 +169,8 @@ final class OrderMeta {
 	}
 
 	public static function clear( WC_Order $order, string $type ): void {
+		$series = (string) $order->get_meta( self::key( $type, 'series' ) );
+
 		foreach ( array( 'series', 'number', 'link', 'date' ) as $field ) {
 			$order->delete_meta_data( self::key( $type, $field ) );
 		}
@@ -187,5 +184,13 @@ final class OrderMeta {
 			}
 		}
 		$order->save();
+
+		// Deleting is only ever allowed on the series' true latest number, so
+		// the cached high-water mark is now stale - reset it to "unknown"
+		// rather than guess the new latest (is_last_document() falls back to
+		// allowing the next attempt; a subsequent save() re-seeds it).
+		if ( '' !== $series ) {
+			delete_option( self::latest_number_option( $type, $series ) );
+		}
 	}
 }

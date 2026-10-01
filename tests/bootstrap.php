@@ -152,6 +152,30 @@ if ( ! function_exists( 'esc_html_e' ) ) {
 		echo htmlspecialchars( (string) $text, ENT_QUOTES );
 	}
 }
+if ( ! function_exists( 'esc_attr__' ) ) {
+	function esc_attr__( $text, $domain = null ) {
+		return htmlspecialchars( (string) $text, ENT_QUOTES );
+	}
+}
+if ( ! function_exists( 'esc_attr' ) ) {
+	function esc_attr( $text ) {
+		return htmlspecialchars( (string) $text, ENT_QUOTES );
+	}
+}
+if ( ! function_exists( 'esc_attr_e' ) ) {
+	function esc_attr_e( $text, $domain = null ) {
+		echo htmlspecialchars( (string) $text, ENT_QUOTES );
+	}
+}
+if ( ! function_exists( 'selected' ) ) {
+	function selected( $a, $b, $echo = true ) {
+		$result = (string) $a === (string) $b ? ' selected="selected"' : '';
+		if ( $echo ) {
+			echo $result;
+		}
+		return $result;
+	}
+}
 if ( ! function_exists( 'is_email' ) ) {
 	function is_email( $email ) {
 		return false !== filter_var( (string) $email, FILTER_VALIDATE_EMAIL );
