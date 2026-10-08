@@ -15,12 +15,16 @@ use FGSyncOblio\Compat\OrderStore;
 use FGSyncOblio\Document\BuildContext;
 use FGSyncOblio\Document\DocumentException;
 use FGSyncOblio\Document\DocumentResult;
+use FGSyncOblio\Document\Mapper\LineItemMapper;
+use FGSyncOblio\Document\Mapper\ShippingFeeMapper;
 use FGSyncOblio\Order\OrderMeta;
 use FGSyncOblio\Support\Logger;
 use FGSyncOblio\Support\OrderLock;
 use FGSyncOblio\Support\Settings;
 use RuntimeException;
 use WC_Order;
+use WC_Order_Item_Fee;
+use WC_Order_Item_Product;
 use WC_Order_Refund;
 final class RefundService implements RefundIssuer {
 
@@ -32,11 +36,17 @@ final class RefundService implements RefundIssuer {
 
 	private Logger $logger;
 
-	public function __construct( Settings $settings, ClientFactory $factory, OrderStore $orders, Logger $logger ) {
-		$this->settings = $settings;
-		$this->factory  = $factory;
-		$this->orders   = $orders;
-		$this->logger   = $logger;
+	private LineItemMapper $line_mapper;
+
+	private ShippingFeeMapper $shipping_mapper;
+
+	public function __construct( Settings $settings, ClientFactory $factory, OrderStore $orders, Logger $logger, LineItemMapper $line_mapper, ShippingFeeMapper $shipping_mapper ) {
+		$this->settings        = $settings;
+		$this->factory         = $factory;
+		$this->orders          = $orders;
+		$this->logger          = $logger;
+		$this->line_mapper     = $line_mapper;
+		$this->shipping_mapper = $shipping_mapper;
 	}
 
 	public function issue_for_refund( int $order_id, int $refund_id, bool $fail_fast = false ): ?DocumentResult {
@@ -221,9 +231,11 @@ final class RefundService implements RefundIssuer {
 	}
 
 	private function build_storno( WC_Order $order, array $invoice, WC_Order_Refund $refund, bool $is_full, int $refund_id ): array {
+		$ctx     = BuildContext::for_order( $this->settings, $order );
 		$payload = array(
 			'cif'               => (string) $this->settings->get( 'cif' ),
 			'seriesName'        => (string) $this->settings->get( 'series_invoice' ),
+			'language'          => $ctx->language,
 			'referenceDocument' => array(
 				'type'       => 'Factura',
 
@@ -236,12 +248,12 @@ final class RefundService implements RefundIssuer {
 
 		if ( ! $is_full ) {
 
-			$products = $this->refund_products( $order, $refund );
+			$products = $this->refund_products( $refund, $ctx );
 			if ( empty( $products ) ) {
 
-				$products = $this->amount_only_line( $order, $refund );
+				$products = $this->amount_only_line( $refund, $ctx );
 			}
-			$payload['products'] = $this->reconcile_products( $products, $order, $refund );
+			$payload['products'] = $this->reconcile_products( $products, $refund, $ctx );
 		}
 
 		return (array) apply_filters( 'oblio_fgwoo_storno_data', $payload, $order, $refund, $is_full );
@@ -279,110 +291,49 @@ final class RefundService implements RefundIssuer {
 		return substr( md5( site_url() . '|' . (string) $this->settings->get( 'cif' ) ), 0, 12 );
 	}
 
-	private function order_currency( WC_Order $order ): string {
-		$currency = substr( (string) $order->get_currency(), 0, 3 );
-		return 'lei' === strtolower( $currency ) ? 'RON' : $currency;
-	}
-
-	private function refund_products( WC_Order $order, WC_Order_Refund $refund ): array {
-		$currency = $this->order_currency( $order );
-		$ctx      = BuildContext::from_settings( $this->settings, $currency );
-
+	private function refund_products( WC_Order_Refund $refund, BuildContext $ctx ): array {
 		$products = array();
 
 		foreach ( $refund->get_items() as $item ) {
-			$qty   = abs( (float) $item->get_quantity() );
-			$total = abs( (float) $item->get_total() );
-			$tax   = abs( (float) $item->get_total_tax() );
-			$value = $total + $tax;
-			if ( $value <= 0 ) {
+			if ( ! $item instanceof WC_Order_Item_Product ) {
 				continue;
 			}
-			$unit_qty = $qty > 0 ? $qty : 1;
-			$product  = $item->get_product();
-
-			$products[] = array(
-				'name'          => $item->get_name(),
-				'code'          => $product ? (string) $product->get_sku() : '',
-				'price'         => round( $value / $unit_qty, $ctx->precision + 2 ),
-				'measuringUnit' => $ctx->measuring_unit,
-				'currency'      => $currency,
-				'vatName'       => $ctx->calc_taxes ? ( $tax > 0 ? '' : 'SDD' ) : '',
-				'vatPercentage' => $ctx->calc_taxes ? ( $tax > 0 && $total > 0 ? (int) round( $tax / $total * 100 ) : 0 ) : null,
-				'vatIncluded'   => true,
-				'quantity'      => -$unit_qty,
-				'productType'   => $ctx->product_type,
-			);
+			$line = $this->line_mapper->storno_line( $item, $ctx );
+			if ( null !== $line ) {
+				$products[] = $line;
+			}
 		}
 
 		foreach ( $refund->get_items( 'fee' ) as $fee ) {
-			$total = abs( (float) $fee->get_total() );
-			$tax   = abs( (float) $fee->get_total_tax() );
-			$value = $total + $tax;
-			if ( $value <= 0 ) {
+			if ( ! $fee instanceof WC_Order_Item_Fee ) {
 				continue;
 			}
-			$products[] = array(
-				'name'          => $fee->get_name(),
-				'code'          => '',
-				'price'         => $value,
-				'measuringUnit' => $ctx->measuring_unit,
-				'currency'      => $currency,
-				'vatName'       => $ctx->calc_taxes ? ( $tax > 0 ? '' : 'SDD' ) : '',
-				'vatPercentage' => $ctx->calc_taxes ? ( $tax > 0 && $total > 0 ? (int) round( $tax / $total * 100 ) : 0 ) : null,
-				'vatIncluded'   => true,
-				'quantity'      => -1,
-				'productType'   => 'Serviciu',
-			);
+			$net = abs( (float) $fee->get_total() );
+			$tax = abs( (float) $fee->get_total_tax() );
+			if ( $net + $tax > 0 ) {
+				$products[] = $this->shipping_mapper->service_line( $fee->get_name(), $net + $tax, $net, $tax, $ctx, -1 );
+			}
 		}
 
-		$shipping = abs( (float) $refund->get_shipping_total() );
-		$ship_tax = abs( (float) $refund->get_shipping_tax() );
-		if ( $shipping + $ship_tax > 0 ) {
-			$products[] = array(
-				'name'          => __( 'Transport', 'fgsync-oblio' ),
-				'code'          => '',
-				'price'         => $shipping + $ship_tax,
-				'measuringUnit' => $ctx->measuring_unit,
-				'currency'      => $currency,
-				'vatName'       => $ctx->calc_taxes ? ( $ship_tax > 0 ? '' : 'SDD' ) : '',
-				'vatPercentage' => $ctx->calc_taxes ? ( $ship_tax > 0 && $shipping > 0 ? (int) round( $ship_tax / $shipping * 100 ) : 0 ) : null,
-				'vatIncluded'   => true,
-				'quantity'      => -1,
-				'productType'   => 'Serviciu',
-			);
+		foreach ( $this->shipping_mapper->shipping_lines( $refund, $ctx, -1 ) as $line ) {
+			$products[] = $line;
 		}
 
 		return $products;
 	}
 
-	private function amount_only_line( WC_Order $order, WC_Order_Refund $refund ): array {
+	private function amount_only_line( WC_Order_Refund $refund, BuildContext $ctx ): array {
 		$amount = abs( (float) $refund->get_amount() );
 		if ( $amount <= 0 ) {
 			return array();
 		}
 
-		$currency = $this->order_currency( $order );
-		$ctx      = BuildContext::from_settings( $this->settings, $currency );
-		$reason   = trim( (string) $refund->get_reason() );
+		$reason = trim( (string) $refund->get_reason() );
 
-		return array(
-			array(
-				'name'          => '' !== $reason ? $reason : __( 'Rambursare', 'fgsync-oblio' ),
-				'code'          => '',
-				'price'         => round( $amount, $ctx->precision + 2 ),
-				'measuringUnit' => $ctx->measuring_unit,
-				'currency'      => $currency,
-				'vatName'       => '',
-				'vatPercentage' => null,
-				'vatIncluded'   => true,
-				'quantity'      => -1,
-				'productType'   => 'Serviciu',
-			),
-		);
+		return array( $this->untaxed_service_line( '' !== $reason ? $reason : __( 'Rambursare', 'fgsync-oblio' ), round( $amount, $ctx->precision + 2 ), -1, $ctx ) );
 	}
 
-	private function reconcile_products( array $products, WC_Order $order, WC_Order_Refund $refund ): array {
+	private function reconcile_products( array $products, WC_Order_Refund $refund, BuildContext $ctx ): array {
 		$target = round( abs( (float) $refund->get_amount() ), 2 );
 		if ( $target <= 0 || empty( $products ) ) {
 			return $products;
@@ -399,23 +350,32 @@ final class RefundService implements RefundIssuer {
 			return $products;
 		}
 
-		$currency = $this->order_currency( $order );
-		$ctx      = BuildContext::from_settings( $this->settings, $currency );
-
-		$products[] = array(
-			'name'          => __( 'Ajustare storno', 'fgsync-oblio' ),
-			'code'          => '',
-			'price'         => $adjustment['price'],
-			'measuringUnit' => $ctx->measuring_unit,
-			'currency'      => $currency,
-			'vatName'       => '',
-			'vatPercentage' => null,
-			'vatIncluded'   => true,
-			'quantity'      => $adjustment['quantity'],
-			'productType'   => 'Serviciu',
-		);
+		$products[] = $this->untaxed_service_line( __( 'Ajustare storno', 'fgsync-oblio' ), $adjustment['price'], $adjustment['quantity'], $ctx );
 
 		return $products;
+	}
+
+	/**
+	 * @param string       $name     Line name.
+	 * @param float        $price    Gross unit price.
+	 * @param int          $quantity Signed quantity.
+	 * @param BuildContext $ctx      Document context.
+	 * @return array<string,mixed>
+	 */
+	private function untaxed_service_line( string $name, float $price, int $quantity, BuildContext $ctx ): array {
+		return array(
+			'name'                     => $name,
+			'code'                     => '',
+			'price'                    => $price,
+			'measuringUnit'            => $ctx->measuring_unit,
+			'measuringUnitTranslation' => $ctx->measuring_unit_translation,
+			'currency'                 => $ctx->currency,
+			'vatName'                  => '',
+			'vatPercentage'            => null,
+			'vatIncluded'              => true,
+			'quantity'                 => $quantity,
+			'productType'              => 'Serviciu',
+		);
 	}
 
 	public static function storno_adjustment( float $target, float $magnitude ): ?array {

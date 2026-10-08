@@ -13,6 +13,9 @@ use FGSyncOblio\Support\Settings;
 use WC_Order;
 final class CollectMapper {
 
+	// Gateways (or none, for admin/free orders) where no card payment was taken.
+	private const OFFLINE_GATEWAYS = array( '', 'bacs', 'cod', 'cheque' );
+
 	private Settings $settings;
 
 	public function __construct( Settings $settings ) {
@@ -26,7 +29,7 @@ final class CollectMapper {
 
 		return array(
 			'type'           => $this->collect_type( $order ),
-			'documentNumber' => '#' . $order->get_id(),
+			'documentNumber' => '#' . $order->get_order_number(),
 		);
 	}
 
@@ -45,7 +48,7 @@ final class CollectMapper {
 				$decision = in_array( $gateway, $selected, true ) && ! in_array( $gateway, $exceptions, true );
 				break;
 			case 'card':
-				$decision = ! in_array( $gateway, array( 'bacs', 'cod' ), true );
+				$decision = ! in_array( $gateway, self::OFFLINE_GATEWAYS, true );
 				break;
 			case 'off':
 			default:

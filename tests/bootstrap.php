@@ -27,6 +27,7 @@ define( 'FGSYNC_OBLIO_BASENAME', 'fgsync-oblio/fgsync-oblio.php' );
 define( 'MINUTE_IN_SECONDS', 60 );
 define( 'HOUR_IN_SECONDS', 3600 );
 define( 'DAY_IN_SECONDS', 86400 );
+define( 'WEEK_IN_SECONDS', 604800 );
 define( 'OBJECT', 'OBJECT' );
 define( 'ARRAY_A', 'ARRAY_A' );
 define( 'ARRAY_N', 'ARRAY_N' );
@@ -117,6 +118,11 @@ if ( ! function_exists( 'is_multisite' ) ) {
 if ( ! function_exists( 'site_url' ) ) {
 	function site_url( $path = '', $scheme = null ) {
 		return 'https://example.test' . $path;
+	}
+}
+if ( ! function_exists( 'admin_url' ) ) {
+	function admin_url( $path = '', $scheme = 'admin' ) {
+		return 'https://example.test/wp-admin/' . $path;
 	}
 }
 if ( ! function_exists( 'current_time' ) ) {
@@ -250,6 +256,16 @@ if ( ! function_exists( 'add_action' ) ) {
 		return true;
 	}
 }
+if ( ! function_exists( 'wp_kses_post' ) ) {
+	function wp_kses_post( $data ) {
+		return (string) $data;
+	}
+}
+if ( ! function_exists( 'add_filter' ) ) {
+	function add_filter( $hook, $callback, $priority = 10, $accepted_args = 1 ) {
+		return add_action( $hook, $callback, $priority, $accepted_args );
+	}
+}
 
 /**
  * Fake WC_Logger recording every call, so Support\Logger (which no-ops
@@ -314,6 +330,21 @@ if ( ! function_exists( 'wp_send_json_error' ) ) {
 if ( ! function_exists( 'absint' ) ) {
 	function absint( $value ) {
 		return abs( (int) $value );
+	}
+}
+if ( ! function_exists( 'sanitize_text_field' ) ) {
+	function sanitize_text_field( $str ) {
+		return trim( strip_tags( (string) $str ) );
+	}
+}
+if ( ! function_exists( 'wp_verify_nonce' ) ) {
+	function wp_verify_nonce( $nonce, $action = -1 ) {
+		return 'valid-nonce' === $nonce ? 1 : false;
+	}
+}
+if ( ! function_exists( 'wp_get_post_parent_id' ) ) {
+	function wp_get_post_parent_id( $post_id ) {
+		return 0;
 	}
 }
 if ( ! function_exists( 'sanitize_key' ) ) {
@@ -551,8 +582,12 @@ if ( ! class_exists( 'WC_Meta_Data' ) ) {
 	}
 }
 
+if ( ! class_exists( 'WC_Abstract_Order' ) ) {
+	abstract class WC_Abstract_Order {}
+}
+
 if ( ! class_exists( 'WC_Order' ) ) {
-	class WC_Order {
+	class WC_Order extends WC_Abstract_Order {
 		private int $id;
 
 		private array $meta = array();
@@ -591,6 +626,13 @@ if ( ! class_exists( 'WC_Order' ) ) {
 		private string $payment_method = '';
 
 		private ?\DateTime $date_created = null;
+
+		private bool $prices_include_tax = true;
+
+		private string $order_number = '';
+
+		/** @var array<int,WC_Order_Item_Shipping> */
+		private array $shipping_items = array();
 
 		public function __construct( int $id = 0 ) {
 			$this->id = $id;
@@ -641,9 +683,17 @@ if ( ! class_exists( 'WC_Order' ) ) {
 			$this->items = $items;
 		}
 
-		/** @return array<int,WC_Order_Item_Product> */
+		/** @return array<int,WC_Order_Item_Product|WC_Order_Item_Fee> */
 		public function get_items( $type = 'line_item' ) {
-			return $this->items;
+			if ( 'shipping' === $type ) {
+				return $this->shipping_items;
+			}
+			return 'fee' === $type ? $this->fees : $this->items;
+		}
+
+		/** @param array<int,WC_Order_Item_Shipping> $items */
+		public function set_shipping_items( array $items ): void {
+			$this->shipping_items = $items;
 		}
 
 		/** @param array<int,WC_Order_Item_Fee> $fees */
@@ -752,6 +802,22 @@ if ( ! class_exists( 'WC_Order' ) ) {
 		public function get_date_created(): ?\DateTime {
 			return $this->date_created;
 		}
+
+		public function set_order_number( string $value ): void {
+			$this->order_number = $value;
+		}
+
+		public function get_order_number(): string {
+			return '' !== $this->order_number ? $this->order_number : (string) $this->id;
+		}
+
+		public function set_prices_include_tax( bool $value ): void {
+			$this->prices_include_tax = $value;
+		}
+
+		public function get_prices_include_tax(): bool {
+			return $this->prices_include_tax;
+		}
 	}
 }
 
@@ -767,6 +833,9 @@ if ( ! class_exists( 'WC_Order_Item_Product' ) ) {
 		private array $data;
 
 		private $product;
+
+		/** @var array<string,mixed> */
+		private array $meta = array();
 
 		/**
 		 * @param array<string,mixed> $data
@@ -825,6 +894,59 @@ if ( ! class_exists( 'WC_Order_Item_Product' ) ) {
 		public function get_product() {
 			return $this->product;
 		}
+
+		public function get_meta( $key ) {
+			return $this->meta[ $key ] ?? '';
+		}
+
+		public function add_meta_data( $key, $value, $unique = false ): void {
+			$this->meta[ $key ] = $value;
+		}
+
+		/** Like WC with an empty hide prefix: every meta row, underscore keys included. */
+		public function get_all_formatted_meta_data( $hideprefix = '_' ): array {
+			$rows = array();
+			foreach ( $this->meta as $key => $value ) {
+				$rows[] = (object) array(
+					'key'           => $key,
+					'display_key'   => $key,
+					'display_value' => (string) $value,
+				);
+			}
+			return $rows;
+		}
+	}
+}
+
+if ( ! class_exists( 'WC_Order_Item_Shipping' ) ) {
+	class WC_Order_Item_Shipping {
+
+		/** @var array<string,mixed> */
+		private array $data;
+
+		/** @param array<string,mixed> $data */
+		public function __construct( array $data = array() ) {
+			$this->data = array_merge(
+				array(
+					'name'      => 'Flat rate',
+					'total'     => 0.0,
+					'total_tax' => 0.0,
+				),
+				$data
+			);
+		}
+
+		public function get_name(): string {
+			return (string) $this->data['name'];
+		}
+
+		public function get_total() {
+			return $this->data['total'];
+		}
+
+		public function get_total_tax() {
+			return $this->data['total_tax'];
+		}
 	}
 }
 
@@ -870,20 +992,98 @@ if ( ! class_exists( 'WC_Product' ) ) {
 		public function __construct( array $data = array() ) {
 			$this->data = array_merge(
 				array(
-					'sku'           => '',
-					'regular_price' => '',
-					'price'         => '',
-					'type'          => 'simple',
+					'id'                => 0,
+					'parent_id'         => 0,
+					'sku'               => '',
+					'regular_price'     => '',
+					'sale_price'        => '',
+					'date_on_sale_from' => null,
+					'price'             => '',
+					'type'              => 'simple',
+					'manage_stock'      => false,
+					'stock_quantity'    => null,
+					'stock_status'      => 'instock',
+					'backorders'        => 'no',
 				),
 				$data
 			);
+		}
+
+		public int $saves = 0;
+
+		/** @var array<string,mixed> */
+		public array $meta = array();
+
+		public function update_meta_data( $key, $value ): void {
+			$this->meta[ $key ] = $value;
+		}
+
+		public function get_id(): int {
+			return (int) $this->data['id'];
+		}
+
+		public function get_parent_id(): int {
+			return (int) $this->data['parent_id'];
+		}
+
+		public function get_sale_price( $context = 'view' ) {
+			return $this->data['sale_price'];
+		}
+
+		public function set_regular_price( $price ): void {
+			$this->data['regular_price'] = $price;
+		}
+
+		public function set_sale_price( $price ): void {
+			$this->data['sale_price'] = $price;
+		}
+
+		public function set_price( $price ): void {
+			$this->data['price'] = $price;
+		}
+
+		/** Mirrors WC: a sale counts only below the regular price and once its start date has passed. */
+		public function is_on_sale( $context = 'view' ): bool {
+			if ( '' === (string) $this->data['sale_price'] || (float) $this->data['regular_price'] <= (float) $this->data['sale_price'] ) {
+				return false;
+			}
+			return null === $this->data['date_on_sale_from'] || $this->data['date_on_sale_from'] <= time();
+		}
+
+		public function get_manage_stock(): bool {
+			return (bool) $this->data['manage_stock'];
+		}
+
+		public function get_stock_quantity() {
+			return $this->data['stock_quantity'];
+		}
+
+		public function set_stock_quantity( $quantity ): void {
+			$this->data['stock_quantity'] = $quantity;
+		}
+
+		public function get_stock_status(): string {
+			return (string) $this->data['stock_status'];
+		}
+
+		public function set_stock_status( $status ): void {
+			$this->data['stock_status'] = $status;
+		}
+
+		public function get_backorders(): string {
+			return (string) $this->data['backorders'];
+		}
+
+		public function save(): int {
+			++$this->saves;
+			return $this->get_id();
 		}
 
 		public function get_sku(): string {
 			return (string) $this->data['sku'];
 		}
 
-		public function get_regular_price() {
+		public function get_regular_price( $context = 'view' ) {
 			return $this->data['regular_price'];
 		}
 
@@ -986,6 +1186,21 @@ if ( ! function_exists( 'wp_remote_post' ) ) {
  * LineItemMapper::regular_price() when an item carries a variation_id.
  */
 $GLOBALS['oblio_test_products'] = array();
+if ( ! function_exists( 'wc_get_price_decimals' ) ) {
+	function wc_get_price_decimals() {
+		return absint( apply_filters( 'wc_get_price_decimals', get_option( 'woocommerce_price_num_decimals', 2 ) ) );
+	}
+}
+if ( ! function_exists( 'wc_prices_include_tax' ) ) {
+	function wc_prices_include_tax() {
+		return 'yes' === get_option( 'woocommerce_prices_include_tax' );
+	}
+}
+if ( ! function_exists( 'get_woocommerce_currency' ) ) {
+	function get_woocommerce_currency() {
+		return (string) get_option( 'woocommerce_currency', 'RON' );
+	}
+}
 if ( ! function_exists( 'wc_get_product' ) ) {
 	function wc_get_product( $product_id ) {
 		return $GLOBALS['oblio_test_products'][ $product_id ] ?? false;

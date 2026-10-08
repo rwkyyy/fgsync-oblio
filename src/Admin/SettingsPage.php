@@ -569,7 +569,7 @@ final class SettingsPage {
 				'id'      => $opt( 'collect_mode' ),
 				'options' => array(
 					'off'      => __( 'Dezactivat', 'fgsync-oblio' ),
-					'card'     => __( 'Doar plăți cu cardul (nu ramburs / transfer)', 'fgsync-oblio' ),
+					'card'     => __( 'Doar plăți cu cardul (nu ramburs / transfer / cec)', 'fgsync-oblio' ),
 					'all'      => __( 'Toate metodele (cu excepții)', 'fgsync-oblio' ),
 					'selected' => __( 'Doar metodele selectate', 'fgsync-oblio' ),
 				),
@@ -635,7 +635,7 @@ final class SettingsPage {
 				'title' => __( 'Actualizează prețul la sincronizare', 'fgsync-oblio' ),
 				'type'  => 'checkbox',
 				'id'    => $opt( 'stock_update_price' ),
-				'desc'  => __( 'Preia prețul produsului din Oblio.', 'fgsync-oblio' ),
+				'desc'  => __( 'Preia prețul produsului din Oblio ca preț normal. Prețul promoțional se păstrează, cu excepția cazului în care devine mai mare sau egal cu noul preț.', 'fgsync-oblio' ),
 			),
 			array(
 				'title' => __( 'Rezervă stoc pentru comenzi nefacturate', 'fgsync-oblio' ),
@@ -819,15 +819,18 @@ final class SettingsPage {
 				),
 			),
 			array(
-				'title'   => __( 'Produse pachet (Bundles)', 'fgsync-oblio' ),
-				'type'    => 'select',
-				'id'      => $opt( 'bundle_line_mode' ),
-				'default' => 'skip',
-				'options' => array(
+				'title'             => __( 'Produse pachet (Bundles)', 'fgsync-oblio' ),
+				'type'              => 'select',
+				'id'                => $opt( 'bundle_line_mode' ),
+				'default'           => 'skip',
+				'options'           => array(
 					'skip'    => __( 'OMITE linia pachetului (recomandat)', 'fgsync-oblio' ),
 					'include' => __( 'INCLUDE linia pachetului (trebuie să aibă stoc)', 'fgsync-oblio' ),
 				),
-				'desc'    => __( 'Doar componentele sunt facturate și scad din stoc; linia pachetului nu are cod propriu în Oblio. Dacă nu descarci stoc prin Oblio, „Include” poate fi mai clar pe factură.', 'fgsync-oblio' ),
+				'custom_attributes' => $this->has_bundle_product_type() ? array() : array( 'disabled' => 'disabled' ),
+				'desc'              => $this->has_bundle_product_type()
+					? __( 'Doar componentele sunt facturate și scad din stoc; linia pachetului nu are cod propriu în Oblio. Dacă nu descarci stoc prin Oblio, „Include” poate fi mai clar pe factură.', 'fgsync-oblio' )
+					: __( 'Necesită plugin-ul WooCommerce Product Bundles (tipul de produs „bundle” nu este disponibil).', 'fgsync-oblio' ),
 			),
 			array(
 				'title' => __( 'Jurnalizare / debug', 'fgsync-oblio' ),
@@ -935,6 +938,10 @@ final class SettingsPage {
 			'DE' => 'Germană',
 			'BG' => 'Bulgară',
 		);
+	}
+
+	private function has_bundle_product_type(): bool {
+		return class_exists( 'WC_Product_Bundle' );
 	}
 
 	private function product_type_options(): array {

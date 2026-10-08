@@ -29,13 +29,13 @@ final class ClientMapper {
 		$client = array(
 			'cif'          => $this->field( $order, 'cif', '/(cif|cui|nif|company_details)$/i' ),
 			'name'         => '' !== $company ? $company : $contact,
-			'rc'           => $this->field( $order, 'rc', '/(regcom|reg_com|rc)$/i' ),
+			'rc'           => $this->field( $order, 'rc', '/(regcom|reg_com|(^|[_-])rc)$/i' ),
 			'address'      => $address,
 			'state'        => $state,
 			'city'         => $city,
 			'country'      => $this->resolve_country( $order ),
 			'iban'         => $this->field( $order, 'iban', '/(iban)$/i' ),
-			'bank'         => $this->field( $order, 'bank', '/(bank|bank_name|bank_details)$/i' ),
+			'bank'         => $this->field( $order, 'bank', '/(^|[_-])bank(_name|_details)?$/i' ),
 			'email'        => $order->get_billing_email(),
 			'phone'        => $order->get_billing_phone(),
 			'contact'      => $contact,
@@ -67,7 +67,7 @@ final class ClientMapper {
 	 *
 	 * @param WC_Order $order Order to read.
 	 * @param string   $field One of 'cif', 'rc', 'iban', 'bank'.
-	 * @return string|null Resolved value, or null when not found so the caller
+	 * @return string|null First non-empty value, or null when none so the caller
 	 *                      can fall through to the regex scan.
 	 */
 	private function legacy_checkout_value( WC_Order $order, string $field ): ?string {
@@ -79,20 +79,25 @@ final class ClientMapper {
 		$av_facturare = is_array( $av_facturare ) ? $av_facturare : array();
 		$curiero      = is_array( $curiero ) ? $curiero : array();
 
-		$value = 'cif' === $field
-			? ( $av_facturare['cui'] ?? $av_facturare['cnp'] ?? $curiero['cui'] ?? null )
-			: ( $av_facturare['nr_reg_com'] ?? $curiero['nr_reg_com'] ?? null );
+		$candidates = 'cif' === $field
+			? array( $av_facturare['cui'] ?? null, $av_facturare['cnp'] ?? null, $curiero['cui'] ?? null )
+			: array( $av_facturare['nr_reg_com'] ?? null, $curiero['nr_reg_com'] ?? null );
 
-		return ( null !== $value && is_scalar( $value ) ) ? (string) $value : null;
+		foreach ( $candidates as $value ) {
+			if ( is_scalar( $value ) && '' !== trim( (string) $value ) ) {
+				return trim( (string) $value );
+			}
+		}
+		return null;
 	}
 
 	private function find_meta_by_pattern( WC_Order $order, string $pattern ): string {
 		foreach ( $order->get_meta_data() as $meta ) {
-			$data = $meta->get_data();
-			$key  = (string) ( $data['key'] ?? '' );
-			if ( '' !== $key && preg_match( $pattern, $key ) ) {
-				$value = $data['value'] ?? '';
-				return is_scalar( $value ) ? (string) $value : '';
+			$data  = $meta->get_data();
+			$key   = (string) ( $data['key'] ?? '' );
+			$value = $data['value'] ?? '';
+			if ( '' !== $key && is_scalar( $value ) && '' !== trim( (string) $value ) && preg_match( $pattern, $key ) ) {
+				return trim( (string) $value );
 			}
 		}
 		return '';

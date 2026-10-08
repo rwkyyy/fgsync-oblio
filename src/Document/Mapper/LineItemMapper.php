@@ -12,6 +12,7 @@ namespace FGSyncOblio\Document\Mapper;
 use FGSyncOblio\Admin\ProductFields;
 use FGSyncOblio\Document\BuildContext;
 use FGSyncOblio\Document\DocumentException;
+use FGSyncOblio\Order\RegularPriceSnapshot;
 use FGSyncOblio\Support\Settings;
 use WC_Order;
 use WC_Order_Item_Product;
@@ -50,15 +51,6 @@ final class LineItemMapper {
 			$item_total     = (float) $item->get_total();
 			$item_total_tax = (float) $item->get_total_tax();
 
-			$vat_name    = '';
-			$is_taxable  = $item_total_tax > 0 && 0.0 !== $item_total;
-			$vat_percent = 0;
-			if ( $is_taxable ) {
-				$vat_percent = (int) round( $item_total_tax / $item_total * 100 );
-			} else {
-				$vat_name = 'SDD';
-			}
-
 			$subtotal = number_format(
 				round( (float) $item->get_subtotal() + (float) $item->get_subtotal_tax(), $ctx->price_decimals ) / $quantity,
 				4,
@@ -72,7 +64,7 @@ final class LineItemMapper {
 				''
 			);
 
-			$regular_price = $this->regular_price( $item, $product, $subtotal, $price );
+			$regular_price = $this->regular_price( $item, $product, $subtotal, $price, $ctx );
 
 			$product_price = $ctx->discount_in_product ? $price : $regular_price;
 			$total        += round( (float) $price * $quantity, $ctx->precision + 2 );
@@ -85,14 +77,14 @@ final class LineItemMapper {
 				'measuringUnit'            => $ctx->measuring_unit,
 				'measuringUnitTranslation' => $ctx->measuring_unit_translation,
 				'currency'                 => $ctx->currency,
-				'vatName'                  => $ctx->calc_taxes ? $vat_name : '',
-				'vatPercentage'            => $ctx->calc_taxes ? $vat_percent : null,
-				'vatIncluded'              => true,
-				'quantity'                 => round( $quantity * $package, $ctx->precision ),
-				'productType'              => $this->product_type( $item, $ctx->product_type ),
-				'management'               => $ctx->management,
-				'save'                     => $ctx->save_price,
-			);
+			)
+				+ $this->vat( $item_total, $item_total_tax, $ctx )
+				+ array(
+					'quantity'    => round( $quantity * $package, BuildContext::QUANTITY_DECIMALS ),
+					'productType' => $this->product_type( $item, $ctx->product_type ),
+					'management'  => $ctx->management,
+					'save'        => $ctx->save_price,
+				);
 
 			if ( ! $ctx->discount_in_product && number_format( (float) $regular_price, 4, '.', '' ) !== $price ) {
 				$discount = ( (float) $regular_price * $quantity ) - ( $item_total + $item_total_tax );
@@ -117,28 +109,105 @@ final class LineItemMapper {
 		);
 	}
 
-	private function regular_price( WC_Order_Item_Product $item, $product, string $subtotal, string $price ): string {
+	/**
+	 * Builds a storno line for a refunded item, using the same package, SKU,
+	 * product type and VAT rules as the invoice line.
+	 *
+	 * @param WC_Order_Item_Product $item Refund line item (negative amounts).
+	 * @param BuildContext          $ctx  Document context.
+	 * @return array<string,mixed>|null Null when the item refunds no value.
+	 */
+	public function storno_line( WC_Order_Item_Product $item, BuildContext $ctx ): ?array {
+		$net   = abs( (float) $item->get_total() );
+		$tax   = abs( (float) $item->get_total_tax() );
+		$value = $net + $tax;
+		if ( $value <= 0 ) {
+			return null;
+		}
+
+		$quantity = abs( (float) $item->get_quantity() );
+		$quantity = $quantity > 0 ? $quantity : 1.0;
+		$package  = $this->package_number( $item );
+
+		return array(
+			'name'                     => $item->get_name(),
+			'code'                     => $this->sku( $item, $item->get_product() ),
+			'price'                    => round( $value / $quantity / $package, $ctx->precision + 2 ),
+			'measuringUnit'            => $ctx->measuring_unit,
+			'measuringUnitTranslation' => $ctx->measuring_unit_translation,
+			'currency'                 => $ctx->currency,
+		)
+			+ $this->vat( $net, $tax, $ctx )
+			+ array(
+				'quantity'    => -round( $quantity * $package, BuildContext::QUANTITY_DECIMALS ),
+				'productType' => $this->product_type( $item, $ctx->product_type ),
+				'management'  => $ctx->management,
+			);
+	}
+
+	/**
+	 * @param float        $net Net amount.
+	 * @param float        $tax Tax amount.
+	 * @param BuildContext $ctx Document context.
+	 * @return array<string,mixed>
+	 */
+	private function vat( float $net, float $tax, BuildContext $ctx ): array {
+		if ( ! $ctx->calc_taxes ) {
+			return array(
+				'vatName'       => '',
+				'vatPercentage' => null,
+				'vatIncluded'   => true,
+			);
+		}
+
+		$is_taxable = 0.0 !== $net && $tax / $net > 0;
+
+		return array(
+			'vatName'       => $is_taxable ? '' : 'SDD',
+			'vatPercentage' => $is_taxable ? (int) round( $tax / $net * 100 ) : 0,
+			'vatIncluded'   => true,
+		);
+	}
+
+	/**
+	 * List price behind a sale discount: unit price paid x regular/active price
+	 * recorded at checkout (current product prices for older or admin orders).
+	 * Scaling the paid price keeps WooCommerce's tax handling intact, including
+	 * VAT-exempt customers and other-country rates.
+	 *
+	 * @param WC_Order_Item_Product $item     Order line item.
+	 * @param WC_Product|false|null $product  Line product.
+	 * @param string                $subtotal Gross unit subtotal (before coupons).
+	 * @param string                $price    Gross unit price paid.
+	 * @param BuildContext          $ctx      Document context.
+	 */
+	private function regular_price( WC_Order_Item_Product $item, $product, string $subtotal, string $price, BuildContext $ctx ): string {
 		if ( $subtotal !== $price || ! $product ) {
 			return $subtotal;
 		}
 
-		$regular = (string) $product->get_regular_price();
-
-		if ( $item->get_variation_id() > 0 ) {
-			$variation = wc_get_product( $item->get_variation_id() );
-			if ( $variation && $variation->exists() ) {
-				$regular = (string) $variation->get_regular_price();
+		$regular = (string) $item->get_meta( RegularPriceSnapshot::META_KEY );
+		$active  = (string) $item->get_meta( RegularPriceSnapshot::META_PRICE_KEY );
+		if ( '' === $regular || '' === $active ) {
+			$source = $product;
+			if ( $item->get_variation_id() > 0 ) {
+				$variation = wc_get_product( $item->get_variation_id() );
+				if ( $variation && $variation->exists() ) {
+					$source = $variation;
+				}
 			}
+			$regular = (string) $source->get_regular_price();
+			$active  = (string) $source->get_price();
 		}
 
-		if ( '0.00' === number_format( (float) $regular, 2, '.', '' ) ) {
-			$regular = (string) $product->get_price();
+		if ( (float) $regular <= 0 || (float) $active <= 0 ) {
+			return $price;
 		}
 
-		return $regular;
+		return (string) round( (float) $price * (float) $regular / (float) $active, $ctx->price_decimals );
 	}
 
-	private function package_number( WC_Order_Item_Product $item ): int {
+	private function package_number( WC_Order_Item_Product $item ): float {
 		$package = ProductFields::package_number( $item->get_product_id() );
 
 		if ( $item->get_variation_id() > 0 ) {
@@ -148,7 +217,7 @@ final class LineItemMapper {
 			}
 		}
 
-		return $package > 0 ? $package : 1;
+		return $package > 0 ? $package : 1.0;
 	}
 
 	private function product_type( WC_Order_Item_Product $item, string $default ): string {

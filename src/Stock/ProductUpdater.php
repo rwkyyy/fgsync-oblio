@@ -10,6 +10,7 @@ declare( strict_types=1 );
 namespace FGSyncOblio\Stock;
 
 use FGSyncOblio\Admin\ProductFields;
+use FGSyncOblio\Document\BuildContext;
 use FGSyncOblio\Support\Logger;
 use WC_Product;
 final class ProductUpdater {
@@ -57,7 +58,7 @@ final class ProductUpdater {
 		);
 
 		if ( $do_stock ) {
-			$quantity  = (int) floor( $agg['quantity'] / $package );
+			$quantity  = (int) floor( round( $agg['quantity'] / $package, BuildContext::QUANTITY_DECIMALS ) );
 			$reserved  = (int) ( $reservations[ $product_id ] ?? 0 );
 			$quantity -= $reserved;
 
@@ -86,25 +87,27 @@ final class ProductUpdater {
 
 			$price = (float) apply_filters( 'oblio_fgwoo_stock_price', $price, $product_id, $wc );
 
-			$price_from        = (float) $wc->get_regular_price();
-			$had_sale          = '' !== (string) $wc->get_sale_price();
+			$price_from        = (float) $wc->get_regular_price( 'edit' );
+			$sale_price        = (string) $wc->get_sale_price( 'edit' );
 			$movement['price'] = array(
 				'from' => $price_from,
 				'to'   => $price,
 			);
 
 			$regular_changed = abs( $price_from - $price ) > 0.00001;
+			$clear_sale      = '' !== $sale_price && (float) $sale_price >= $price;
 			if ( $regular_changed ) {
 				$wc->set_regular_price( (string) $price );
 				$changed = true;
 			}
-			if ( $had_sale ) {
+			if ( $clear_sale ) {
 				$wc->set_sale_price( '' );
-				$changed = true;
+				$movement['price']['sale_cleared'] = $sale_price;
+				$changed                           = true;
 			}
 
-			if ( $regular_changed || $had_sale ) {
-				$wc->set_price( (string) $price );
+			if ( $regular_changed || $clear_sale ) {
+				$wc->set_price( $wc->is_on_sale( 'edit' ) ? (string) $wc->get_sale_price( 'edit' ) : (string) $price );
 			}
 		}
 
@@ -154,7 +157,7 @@ final class ProductUpdater {
 		return $price;
 	}
 
-	private function package_number( WC_Product $wc ): int {
+	private function package_number( WC_Product $wc ): float {
 		$package = ProductFields::package_number( $wc->get_id() );
 
 		if ( $wc->is_type( 'variation' ) ) {
@@ -169,6 +172,6 @@ final class ProductUpdater {
 			}
 		}
 
-		return $package > 0 ? $package : 1;
+		return $package > 0 ? $package : 1.0;
 	}
 }

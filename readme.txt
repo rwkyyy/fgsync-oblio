@@ -4,7 +4,7 @@ Tags: woocommerce, invoicing, oblio, invoice, romania
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.3.4
+Stable tag: 1.3.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -131,6 +131,19 @@ Under Email, pick a mode. "Standalone" sends a separate message from the plugin 
 Yes. A few examples: `oblio_fgwoo_stock_quantity` and `oblio_fgwoo_stock_price` adjust a value right before it's written during stock sync, `oblio_fgwoo_document_currency` and `oblio_fgwoo_document_language` override those per order, and `oblio_fgwoo_email_button_issue` (see above) controls the email button's inline-issue behavior. See the plugin's GitHub repository for the current list.
 
 == Changelog ==
+
+= 1.3.5 =
+* Credit notes (storno) now match the original invoice: same package quantities, product type, currency (including EUR for OSS orders), document language, warehouse and unit-of-measure translation.
+* Quantities keep up to 4 decimals regardless of the shop's price decimals (1.5 kg no longer becomes 2 kg in a shop with 0 decimals), and the document precision sent to Oblio always stays within the 2-4 range Oblio accepts.
+* Sale discounts on invoices are now correct for shops that enter prices without VAT and for VAT-exempt (B2B) customers, and use the prices from the moment of the order, so a later price change no longer creates a discount line that never existed.
+* Stock sync with "Actualizează prețul la sincronizare" now keeps your sale prices, including scheduled sales. A sale price is removed only when it is no longer below the new regular price from Oblio.
+* "Bucăți pe pachet" accepts decimals (for example 2.5 m² per box) on products and variations, on invoices, credit notes and stock sync.
+* Orders with several shipping methods get one "Transport" line per method, each with its own VAT rate.
+* Negative lines with VAT (for example gift cards) keep their VAT rate instead of being sent as not subject to VAT.
+* "Doar plăți cu cardul" no longer marks cheque payments or orders without a payment method as paid by card.
+* The payment receipt now uses the order number your customers see, not the internal order ID.
+* Company code (CIF/CNP) and registration number are found even when a checkout plugin saved an empty field first, and unrelated order data is no longer picked up as the registration number or bank.
+* The "Produse pachet (Bundles)" setting is disabled, with an explanation, when WooCommerce Product Bundles is not installed.
 
 = 1.3.4 =
 * Added a "Diagnoză rapidă" panel to the Status page: one click copies a ready-to-paste, Markdown-formatted report (collapsible, with tables) covering the server environment, WooCommerce tax/currency settings, the processing queue, Oblio connection health, and plugin settings — meant for opening a GitHub issue. It never includes the API key, account email, company tax ID (CIF), or any named individual's data.

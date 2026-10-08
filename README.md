@@ -11,6 +11,8 @@
 [![HPOS](https://img.shields.io/badge/HPOS-compatibil-4c1)](fgsync-oblio.php)
 [![Licență](https://img.shields.io/badge/licen%C8%9B%C4%83-GPL--2.0--or--later-blue)](LICENSE)
 
+[![Testează live în WordPress Playground](https://img.shields.io/badge/WordPress%20Playground-Testeaz%C4%83%20live%2C%20f%C4%83r%C4%83%20instalare-0073aa?logo=wordpress&logoColor=white)](https://playground.wordpress.net/?blueprint-url=https://rwkyyy.github.io/fgsync-oblio/blueprint.json)
+
 Integrare independentă WooCommerce cu [Oblio.eu](https://www.oblio.eu): emitere automată de facturi,
 proforme, avize și storno, procesare pe cozi (queue) și sincronizare stoc pe mai multe gestiuni.
 

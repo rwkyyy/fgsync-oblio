@@ -53,6 +53,7 @@ use FGSyncOblio\Queue\ScheduleGuard;
 use FGSyncOblio\Queue\Scheduler;
 use FGSyncOblio\Queue\Jobs\StockSyncBatch;
 use FGSyncOblio\Refund\RefundAutoIssue;
+use FGSyncOblio\Order\RegularPriceSnapshot;
 use FGSyncOblio\Refund\RefundService;
 use FGSyncOblio\Returns\ReturnsIntegration;
 use FGSyncOblio\Stock\LocationAggregator;
@@ -230,7 +231,9 @@ final class Plugin {
 				$container->get( Settings::class ),
 				$container->get( ClientFactory::class ),
 				$container->get( OrderStore::class ),
-				$container->get( Logger::class )
+				$container->get( Logger::class ),
+				$container->get( LineItemMapper::class ),
+				$container->get( ShippingFeeMapper::class )
 			)
 		);
 
@@ -368,6 +371,7 @@ final class Plugin {
 		);
 		$container->set( OrderMetaBox::class, static fn ( Container $container ): OrderMetaBox => new OrderMetaBox( $container->get( Settings::class ) ) );
 		$container->set( ProductFields::class, static fn (): ProductFields => new ProductFields() );
+		$container->set( RegularPriceSnapshot::class, static fn (): RegularPriceSnapshot => new RegularPriceSnapshot() );
 		$container->set( OrderListColumn::class, static fn ( Container $container ): OrderListColumn => new OrderListColumn( $container->get( OrderStore::class ) ) );
 		$container->set( OrderListFilter::class, static fn (): OrderListFilter => new OrderListFilter() );
 		$container->set(
@@ -428,6 +432,7 @@ final class Plugin {
 		$this->get( AccountInvoices::class )->register();
 		$this->get( ReturnsIntegration::class )->register();
 		$this->get( EmailButton::class )->register();
+		$this->get( RegularPriceSnapshot::class )->register();
 		$this->get( ClientFactory::class )->register();
 		$this->get( AdminBarStatus::class )->register();
 		$this->get( ScheduleGuard::class )->register();

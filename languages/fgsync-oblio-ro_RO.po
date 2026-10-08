@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: FGSync for Oblio 1.3.2\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/fgsync-oblio\n"
-"POT-Creation-Date: 2026-10-01T20:01:54+00:00\n"
+"POT-Creation-Date: 2026-10-08T12:11:49+00:00\n"
 "PO-Revision-Date: 2026-09-30T00:00:00+00:00\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -326,11 +326,11 @@ msgstr ""
 "Oblio acts as the accounting service provider for this data; see Oblio's "
 "terms and privacy information at https://www.oblio.eu/terms."
 
-#: src/Admin/ProductFields.php:51
+#: src/Admin/ProductFields.php:52
 msgid "Tip produs Oblio"
 msgstr "Tip produs Oblio"
 
-#: src/Admin/ProductFields.php:53
+#: src/Admin/ProductFields.php:54
 msgid ""
 "Cum este trecut produsul pe documentele Oblio. Gol = valoarea implicită din "
 "setările Oblio."
@@ -338,23 +338,23 @@ msgstr ""
 "Cum este trecut produsul pe documentele Oblio. Gol = valoarea implicită din "
 "setările Oblio."
 
-#: src/Admin/ProductFields.php:54
+#: src/Admin/ProductFields.php:55
 msgid "Valoare implicită (din setări)"
 msgstr "Valoare implicită (din setări)"
 
-#: src/Admin/ProductFields.php:62
+#: src/Admin/ProductFields.php:63
 msgid "Bucăți pe pachet"
 msgstr "Bucăți pe pachet"
 
-#: src/Admin/ProductFields.php:64
+#: src/Admin/ProductFields.php:65
 msgid ""
-"Câte bucăți conține un pachet. La sincronizarea stocului împarte cantitatea "
-"și înmulțește prețul. Gol = 1."
+"Câte unități din Oblio conține un pachet (acceptă zecimale, ex. 2.5). La "
+"sincronizarea stocului împarte cantitatea și înmulțește prețul. Gol = 1."
 msgstr ""
-"Câte bucăți conține un pachet. La sincronizarea stocului împarte cantitatea "
-"și înmulțește prețul. Gol = 1."
+"Câte unități din Oblio conține un pachet (acceptă zecimale, ex. 2.5). La "
+"sincronizarea stocului împarte cantitatea și înmulțește prețul. Gol = 1."
 
-#: src/Admin/ProductFields.php:106
+#: src/Admin/ProductFields.php:107
 msgid "Bucăți pe pachet (Oblio)"
 msgstr "Bucăți pe pachet (Oblio)"
 
@@ -371,8 +371,8 @@ msgstr "Se testează…"
 msgid "Se sincronizează integral, poate dura…"
 msgstr "Se sincronizează integral, poate dura…"
 
-#: src/Admin/SettingsPage.php:108 src/Admin/SettingsPage.php:846
-#: src/Admin/SettingsPage.php:859
+#: src/Admin/SettingsPage.php:108 src/Admin/SettingsPage.php:849
+#: src/Admin/SettingsPage.php:862
 msgid "Selectează"
 msgstr "Selectează"
 
@@ -745,8 +745,8 @@ msgid "Dezactivat"
 msgstr "Dezactivat"
 
 #: src/Admin/SettingsPage.php:572
-msgid "Doar plăți cu cardul (nu ramburs / transfer)"
-msgstr "Doar plăți cu cardul (nu ramburs / transfer)"
+msgid "Doar plăți cu cardul (nu ramburs / transfer / cec)"
+msgstr "Doar plăți cu cardul (nu ramburs / transfer / cec)"
 
 #: src/Admin/SettingsPage.php:573
 msgid "Toate metodele (cu excepții)"
@@ -834,8 +834,12 @@ msgid "Actualizează prețul la sincronizare"
 msgstr "Actualizează prețul la sincronizare"
 
 #: src/Admin/SettingsPage.php:638
-msgid "Preia prețul produsului din Oblio."
-msgstr "Preia prețul produsului din Oblio."
+msgid ""
+"Preia prețul produsului din Oblio ca preț normal. Prețul promoțional se "
+"păstrează, cu excepția cazului în care devine mai mare sau egal cu noul preț."
+msgstr ""
+"Preia prețul produsului din Oblio ca preț normal. Prețul promoțional se "
+"păstrează, cu excepția cazului în care devine mai mare sau egal cu noul preț."
 
 #: src/Admin/SettingsPage.php:641
 msgid "Rezervă stoc pentru comenzi nefacturate"
@@ -1067,7 +1071,7 @@ msgstr "OMITE linia pachetului (recomandat)"
 msgid "INCLUDE linia pachetului (trebuie să aibă stoc)"
 msgstr "INCLUDE linia pachetului (trebuie să aibă stoc)"
 
-#: src/Admin/SettingsPage.php:830
+#: src/Admin/SettingsPage.php:832
 msgid ""
 "Doar componentele sunt facturate și scad din stoc; linia pachetului nu are "
 "cod propriu în Oblio. Dacă nu descarci stoc prin Oblio, „Include” poate fi "
@@ -1078,10 +1082,18 @@ msgstr ""
 "mai clar pe factură."
 
 #: src/Admin/SettingsPage.php:833
+msgid ""
+"Necesită plugin-ul WooCommerce Product Bundles (tipul de produs „bundle” nu "
+"este disponibil)."
+msgstr ""
+"Necesită plugin-ul WooCommerce Product Bundles (tipul de produs „bundle” nu "
+"este disponibil)."
+
+#: src/Admin/SettingsPage.php:836
 msgid "Jurnalizare / debug"
 msgstr "Jurnalizare / debug"
 
-#: src/Admin/SettingsPage.php:836
+#: src/Admin/SettingsPage.php:839
 msgid ""
 "Adaugă intrări detaliate în jurnalul WooCommerce, le poți vedea în secțiunea "
 "\"Stare\"."
@@ -1089,67 +1101,67 @@ msgstr ""
 "Adaugă intrări detaliate în jurnalul WooCommerce, le poți vedea în secțiunea "
 "\"Stare\"."
 
-#: src/Admin/SettingsPage.php:896 src/Admin/SettingsPage.php:909
+#: src/Admin/SettingsPage.php:899 src/Admin/SettingsPage.php:912
 msgid "La fiecare oră"
 msgstr "La fiecare oră"
 
-#: src/Admin/SettingsPage.php:897 src/Admin/SettingsPage.php:911
+#: src/Admin/SettingsPage.php:900 src/Admin/SettingsPage.php:914
 msgid "La fiecare 6 ore"
 msgstr "La fiecare 6 ore"
 
-#: src/Admin/SettingsPage.php:898 src/Admin/SettingsPage.php:912
+#: src/Admin/SettingsPage.php:901 src/Admin/SettingsPage.php:915
 msgid "La fiecare 12 ore"
 msgstr "La fiecare 12 ore"
 
-#: src/Admin/SettingsPage.php:899
+#: src/Admin/SettingsPage.php:902
 msgid "La fiecare 24 ore"
 msgstr "La fiecare 24 ore"
 
-#: src/Admin/SettingsPage.php:905
+#: src/Admin/SettingsPage.php:908
 msgid "La fiecare minut"
 msgstr "La fiecare minut"
 
-#: src/Admin/SettingsPage.php:906
+#: src/Admin/SettingsPage.php:909
 msgid "La fiecare 5 minute"
 msgstr "La fiecare 5 minute"
 
-#: src/Admin/SettingsPage.php:907
+#: src/Admin/SettingsPage.php:910
 msgid "La fiecare 15 minute"
 msgstr "La fiecare 15 minute"
 
-#: src/Admin/SettingsPage.php:908
+#: src/Admin/SettingsPage.php:911
 msgid "La fiecare 30 de minute"
 msgstr "La fiecare 30 de minute"
 
-#: src/Admin/SettingsPage.php:910
+#: src/Admin/SettingsPage.php:913
 msgid "La fiecare 3 ore"
 msgstr "La fiecare 3 ore"
 
-#: src/Admin/SettingsPage.php:958
+#: src/Admin/SettingsPage.php:965
 msgid "••••••••(setat, lasă gol pentru a păstra)"
 msgstr "••••••••(setat, lasă gol pentru a păstra)"
 
-#: src/Admin/SettingsPage.php:963
+#: src/Admin/SettingsPage.php:970
 msgid "API secret"
 msgstr "API secret"
 
-#: src/Admin/SettingsPage.php:981
+#: src/Admin/SettingsPage.php:988
 msgid "Preia ultimele date"
 msgstr "Preia ultimele date"
 
-#: src/Admin/SettingsPage.php:983
+#: src/Admin/SettingsPage.php:990
 msgid "Verifică datele de conectare și încarcă firma și seriile din Oblio."
 msgstr "Verifică datele de conectare și încarcă firma și seriile din Oblio."
 
-#: src/Admin/SettingsPage.php:997
+#: src/Admin/SettingsPage.php:1004
 msgid "Import din pluginul vechi"
 msgstr "Import din pluginul vechi"
 
-#: src/Admin/SettingsPage.php:1000
+#: src/Admin/SettingsPage.php:1007
 msgid "Importă setările"
 msgstr "Importă setările"
 
-#: src/Admin/SettingsPage.php:1002
+#: src/Admin/SettingsPage.php:1009
 msgid ""
 "Copiază setările din „WooCommerce Oblio”. Facturile deja emise se afișează "
 "automat."
@@ -1157,15 +1169,15 @@ msgstr ""
 "Copiază setările din „WooCommerce Oblio”. Facturile deja emise se afișează "
 "automat."
 
-#: src/Admin/SettingsPage.php:1015
+#: src/Admin/SettingsPage.php:1022
 msgid "Sincronizare manuală"
 msgstr "Sincronizare manuală"
 
-#: src/Admin/SettingsPage.php:1019
+#: src/Admin/SettingsPage.php:1026
 msgid "Sincronizează acum"
 msgstr "Sincronizează acum"
 
-#: src/Admin/SettingsPage.php:1021
+#: src/Admin/SettingsPage.php:1028
 msgid ""
 "Rulează sincronizare completă în fundal, prin pași succesivi; poate dura "
 "câteva minute pe cataloage mari. Poți părăsi pagina, sincronizarea continuă."
@@ -1173,7 +1185,7 @@ msgstr ""
 "Rulează sincronizare completă în fundal, prin pași succesivi; poate dura "
 "câteva minute pe cataloage mari. Poți părăsi pagina, sincronizarea continuă."
 
-#: src/Admin/SettingsPage.php:1024
+#: src/Admin/SettingsPage.php:1031
 msgid ""
 "O sincronizare pare blocată (probabil întreruptă de server înainte să "
 "termine). Dacă nu pornește din nou de la sine, o poți debloca manual:"
@@ -1181,17 +1193,17 @@ msgstr ""
 "O sincronizare pare blocată (probabil întreruptă de server înainte să "
 "termine). Dacă nu pornește din nou de la sine, o poți debloca manual:"
 
-#: src/Admin/SettingsPage.php:1025 src/Admin/StatusPanel.php:169
+#: src/Admin/SettingsPage.php:1032 src/Admin/StatusPanel.php:169
 msgid "Deblochează sincronizarea"
 msgstr "Deblochează sincronizarea"
 
 #. translators: %s: human time diff
-#: src/Admin/SettingsPage.php:1035
+#: src/Admin/SettingsPage.php:1042
 #, php-format
 msgid "<strong>Ultima sincronizare:</strong> %s în urmă."
 msgstr "<strong>Ultima sincronizare:</strong> %s în urmă."
 
-#: src/Admin/SettingsPage.php:1043
+#: src/Admin/SettingsPage.php:1050
 msgid ""
 "Alege un mod de declanșare mai sus (altul decât „Dezactivată”) pentru a "
 "putea sincroniza manual."
@@ -1412,14 +1424,14 @@ msgid "Email sau API secret lipsă."
 msgstr "Email sau API secret lipsă."
 
 #: src/Document/DocumentService.php:59 src/Document/DocumentService.php:118
-#: src/Refund/RefundService.php:65 src/Refund/RefundService.php:137
+#: src/Refund/RefundService.php:75 src/Refund/RefundService.php:147
 msgid ""
 "Un alt proces emite deja un document pentru comandă; se va reîncerca automat."
 msgstr ""
 "Un alt proces emite deja un document pentru comandă; se va reîncerca automat."
 
-#: src/Document/DocumentService.php:84 src/Refund/RefundService.php:96
-#: src/Refund/RefundService.php:183
+#: src/Document/DocumentService.php:84 src/Refund/RefundService.php:106
+#: src/Refund/RefundService.php:193
 msgid ""
 "Răspuns incomplet de la Oblio; se reîncearcă automat pentru a evita un "
 "document duplicat."
@@ -1459,7 +1471,7 @@ msgstr "Factura"
 msgid "Nu se poate emite proformă după ce a fost emisă factura."
 msgstr "Nu se poate emite proformă după ce a fost emisă factura."
 
-#: src/Document/Mapper/LineItemMapper.php:37
+#: src/Document/Mapper/LineItemMapper.php:38
 msgid ""
 "Comanda conține un pachet (Bundle) al cărui preț este pus pe linia "
 "principală, nu pe componente. Setarea curentă sare peste acea linie, ceea ce "
@@ -1471,8 +1483,7 @@ msgstr ""
 "ar pierde valoarea de pe factură. Schimbă \"Linia produsului tip pachet\" "
 "(Avansat) pe \"Include\" sau contactează suportul."
 
-#: src/Document/Mapper/ShippingFeeMapper.php:25
-#: src/Refund/RefundService.php:343
+#: src/Document/Mapper/ShippingFeeMapper.php:72
 msgid "Transport"
 msgstr "Transport"
 
@@ -1616,11 +1627,11 @@ msgstr "Nu s-a putut reprograma reîncercarea în coadă."
 msgid "Factura nu a fost emisă în timp util."
 msgstr "Factura nu a fost emisă în timp util."
 
-#: src/Refund/RefundService.php:81 src/Refund/RefundService.php:148
+#: src/Refund/RefundService.php:91 src/Refund/RefundService.php:158
 msgid "Nu există factură pentru care să se emită storno."
 msgstr "Nu există factură pentru care să se emită storno."
 
-#: src/Refund/RefundService.php:161
+#: src/Refund/RefundService.php:171
 msgid ""
 "Există deja un storno pentru această factură. Storneaz restul printr-o "
 "rambursare WooCommerce."
@@ -1628,11 +1639,11 @@ msgstr ""
 "Există deja un storno pentru această factură. Storneaz restul printr-o "
 "rambursare WooCommerce."
 
-#: src/Refund/RefundService.php:371
+#: src/Refund/RefundService.php:333
 msgid "Rambursare"
 msgstr "Rambursare"
 
-#: src/Refund/RefundService.php:406
+#: src/Refund/RefundService.php:353
 msgid "Ajustare storno"
 msgstr "Ajustare storno"
 
@@ -1651,6 +1662,19 @@ msgstr "Nu s-a putut programa sincronizarea în coadă."
 #: src/Support/RateLimiter.php:68
 msgid "Nu s-a putut rezerva un interval de emitere; se reîncearcă automat."
 msgstr "Nu s-a putut rezerva un interval de emitere; se reîncearcă automat."
+
+#~ msgid ""
+#~ "Câte bucăți conține un pachet. La sincronizarea stocului împarte "
+#~ "cantitatea și înmulțește prețul. Gol = 1."
+#~ msgstr ""
+#~ "Câte bucăți conține un pachet. La sincronizarea stocului împarte "
+#~ "cantitatea și înmulțește prețul. Gol = 1."
+
+#~ msgid "Doar plăți cu cardul (nu ramburs / transfer)"
+#~ msgstr "Doar plăți cu cardul (nu ramburs / transfer)"
+
+#~ msgid "Preia prețul produsului din Oblio."
+#~ msgstr "Preia prețul produsului din Oblio."
 
 #~ msgid ""
 #~ "FGSync pentru Oblio este o integrare open-source independentă. Nu este "

@@ -105,4 +105,57 @@ final class ClientMapperTest extends TestCase {
 		$this->assertSame( 'RO49AAAA1B31007593840000', $client['iban'] );
 		$this->assertSame( 'Test Bank', $client['bank'] );
 	}
+
+	public function test_empty_av_facturare_cui_falls_through_to_the_cnp(): void {
+		$order = new WC_Order( 1 );
+		$order->update_meta_data( 'av_facturare', array( 'cui' => ' ', 'cnp' => '1800101123456' ) );
+
+		$client = $this->mapper->map( $order );
+
+		$this->assertSame( '1800101123456', $client['cif'] );
+	}
+
+	public function test_empty_legacy_fields_fall_through_to_the_regex_scan(): void {
+		$order = new WC_Order( 1 );
+		$order->update_meta_data( 'av_facturare', array( 'cui' => '', 'nr_reg_com' => '' ) );
+		$order->update_meta_data( '_billing_cif', 'RO555' );
+		$order->update_meta_data( '_billing_rc', 'J40/1/2020' );
+
+		$client = $this->mapper->map( $order );
+
+		$this->assertSame( 'RO555', $client['cif'] );
+		$this->assertSame( 'J40/1/2020', $client['rc'] );
+	}
+
+	public function test_regex_scan_skips_empty_matches(): void {
+		$order = new WC_Order( 1 );
+		$order->update_meta_data( '_billing_cif', '' );
+		$order->update_meta_data( '_billing_cui', 'RO777' );
+
+		$client = $this->mapper->map( $order );
+
+		$this->assertSame( 'RO777', $client['cif'] );
+	}
+
+	public function test_rc_and_bank_suffixes_ignore_unrelated_meta(): void {
+		$order = new WC_Order( 1 );
+		$order->update_meta_data( '_tracking_src', 'newsletter' );
+		$order->update_meta_data( '_piggybank', 'yes' );
+
+		$client = $this->mapper->map( $order );
+
+		$this->assertSame( '', $client['rc'] );
+		$this->assertSame( '', $client['bank'] );
+	}
+
+	public function test_rc_and_bank_keys_still_match(): void {
+		$order = new WC_Order( 1 );
+		$order->update_meta_data( 'rc', 'J40/2/2021' );
+		$order->update_meta_data( '_billing_bank_name', 'Test Bank' );
+
+		$client = $this->mapper->map( $order );
+
+		$this->assertSame( 'J40/2/2021', $client['rc'] );
+		$this->assertSame( 'Test Bank', $client['bank'] );
+	}
 }

@@ -9,6 +9,7 @@ declare( strict_types=1 );
 
 namespace FGSyncOblio\Admin;
 
+use FGSyncOblio\Document\BuildContext;
 use WC_Product;
 final class ProductFields {
 
@@ -61,11 +62,11 @@ final class ProductFields {
 				'id'                => 'custom_package_number',
 				'label'             => __( 'Bucăți pe pachet', 'fgsync-oblio' ),
 				'desc_tip'          => true,
-				'description'       => __( 'Câte bucăți conține un pachet. La sincronizarea stocului împarte cantitatea și înmulțește prețul. Gol = 1.', 'fgsync-oblio' ),
+				'description'       => __( 'Câte unități din Oblio conține un pachet (acceptă zecimale, ex. 2.5). La sincronizarea stocului împarte cantitatea și înmulțește prețul. Gol = 1.', 'fgsync-oblio' ),
 				'type'              => 'number',
 				'custom_attributes' => array(
 					'min'  => '0',
-					'step' => '1',
+					'step' => 'any',
 				),
 				'value'             => $package_number > 0 ? (string) $package_number : '',
 			)
@@ -90,7 +91,7 @@ final class ProductFields {
 		$product->update_meta_data( self::META_PRODUCT_TYPE, $type );
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified in verify_product_save().
-		$package = isset( $_POST['custom_package_number'] ) ? absint( wp_unslash( $_POST['custom_package_number'] ) ) : 0;
+		$package = isset( $_POST['custom_package_number'] ) ? self::parse_package( sanitize_text_field( wp_unslash( $_POST['custom_package_number'] ) ) ) : 0.0;
 		$product->update_meta_data( self::META_PACKAGE_NUMBER, $package > 0 ? (string) $package : '' );
 
 		$product->save();
@@ -108,7 +109,7 @@ final class ProductFields {
 				'type'              => 'number',
 				'custom_attributes' => array(
 					'min'  => '0',
-					'step' => '1',
+					'step' => 'any',
 				),
 				'value'             => $package_number > 0 ? (string) $package_number : '',
 			)
@@ -120,7 +121,7 @@ final class ProductFields {
 			return;
 		}
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified in verify_variation_save().
-		$package = isset( $_POST['cfwc_package_number'][ (int) $index ] ) ? absint( wp_unslash( $_POST['cfwc_package_number'][ (int) $index ] ) ) : 0;
+		$package = isset( $_POST['cfwc_package_number'][ (int) $index ] ) ? self::parse_package( sanitize_text_field( wp_unslash( $_POST['cfwc_package_number'][ (int) $index ] ) ) ) : 0.0;
 
 		$variation = wc_get_product( (int) $variation_id );
 		if ( $variation instanceof WC_Product ) {
@@ -134,14 +135,24 @@ final class ProductFields {
 		return '' !== $type ? $type : trim( (string) get_post_meta( $product_id, self::LEGACY_META_PRODUCT_TYPE, true ) );
 	}
 
-	public static function package_number( int $product_id ): int {
-		$package = (int) get_post_meta( $product_id, self::META_PACKAGE_NUMBER, true );
-		return $package > 0 ? $package : (int) get_post_meta( $product_id, self::LEGACY_META_PACKAGE_NUMBER, true );
+	public static function package_number( int $product_id ): float {
+		$package = self::parse_package( get_post_meta( $product_id, self::META_PACKAGE_NUMBER, true ) );
+		return $package > 0 ? $package : self::parse_package( get_post_meta( $product_id, self::LEGACY_META_PACKAGE_NUMBER, true ) );
 	}
 
-	public static function variation_package_number( int $variation_id ): int {
-		$package = (int) get_post_meta( $variation_id, self::META_VARIATION_PACKAGE_NUMBER, true );
-		return $package > 0 ? $package : (int) get_post_meta( $variation_id, self::LEGACY_META_VARIATION_PACKAGE_NUMBER, true );
+	public static function variation_package_number( int $variation_id ): float {
+		$package = self::parse_package( get_post_meta( $variation_id, self::META_VARIATION_PACKAGE_NUMBER, true ) );
+		return $package > 0 ? $package : self::parse_package( get_post_meta( $variation_id, self::LEGACY_META_VARIATION_PACKAGE_NUMBER, true ) );
+	}
+
+	/**
+	 * Accepts decimals with a dot or comma (2.5 / 2,5); anything else is 0.
+	 *
+	 * @param mixed $raw Stored or submitted value.
+	 */
+	public static function parse_package( $raw ): float {
+		$value = str_replace( ',', '.', trim( is_scalar( $raw ) ? (string) $raw : '' ) );
+		return is_numeric( $value ) && (float) $value > 0 ? round( (float) $value, BuildContext::QUANTITY_DECIMALS ) : 0.0;
 	}
 
 	private function type_options(): array {

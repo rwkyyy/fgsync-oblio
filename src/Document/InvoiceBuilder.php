@@ -50,8 +50,8 @@ final class InvoiceBuilder {
 			throw new DocumentException( esc_html__( 'Configurare incompletă: verifică Oblio → Setări.', 'fgsync-oblio' ) );
 		}
 
-		$currency  = $this->currency( $order );
-		$ctx       = BuildContext::from_settings( $this->settings, $currency, $this->document_language( $order ) );
+		$ctx       = BuildContext::for_order( $this->settings, $order );
+		$currency  = $ctx->currency;
 		$issue     = $this->issue_date( $order, $options );
 		$reference = $this->reference_document( $order, $doc_type, $options );
 
@@ -143,32 +143,6 @@ final class InvoiceBuilder {
 			default:
 				return (string) $this->settings->get( 'series_invoice' );
 		}
-	}
-
-	private function document_language( WC_Order $order ): string {
-		$order_lang = (string) $order->get_meta( 'wpml_language' );
-		if ( '' !== $order_lang ) {
-			$code = strtoupper( substr( $order_lang, 0, 2 ) );
-			$code = 'ES' === $code ? 'SP' : $code;
-		} else {
-			$code = (string) $this->settings->get( 'language', 'RO' );
-		}
-
-		return (string) apply_filters( 'oblio_fgwoo_document_language', $code, $order );
-	}
-
-	private function currency( WC_Order $order ): string {
-		$currency = substr( (string) $order->get_currency(), 0, 3 );
-		$currency = 'lei' === strtolower( $currency ) ? 'RON' : $currency;
-
-		if ( $this->settings->is_enabled( 'oss_eur_currency' ) ) {
-			$billing_country = $order->get_billing_country();
-			if ( '' !== $billing_country && 'RO' !== $billing_country ) {
-				$currency = 'EUR';
-			}
-		}
-
-		return (string) apply_filters( 'oblio_fgwoo_document_currency', $currency, $order );
 	}
 
 	private function issue_date( WC_Order $order, array $options ): string {
