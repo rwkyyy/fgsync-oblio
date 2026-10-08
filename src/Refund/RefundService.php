@@ -16,7 +16,9 @@ use FGSyncOblio\Document\BuildContext;
 use FGSyncOblio\Document\DocumentException;
 use FGSyncOblio\Document\DocumentResult;
 use FGSyncOblio\Document\Mapper\LineItemMapper;
+use FGSyncOblio\Document\Mapper\LineVat;
 use FGSyncOblio\Document\Mapper\ShippingFeeMapper;
+use FGSyncOblio\Document\VatCategories;
 use FGSyncOblio\Order\OrderMeta;
 use FGSyncOblio\Support\Logger;
 use FGSyncOblio\Support\OrderLock;
@@ -40,13 +42,16 @@ final class RefundService implements RefundIssuer {
 
 	private ShippingFeeMapper $shipping_mapper;
 
-	public function __construct( Settings $settings, ClientFactory $factory, OrderStore $orders, Logger $logger, LineItemMapper $line_mapper, ShippingFeeMapper $shipping_mapper ) {
+	private VatCategories $vat_categories;
+
+	public function __construct( Settings $settings, ClientFactory $factory, OrderStore $orders, Logger $logger, LineItemMapper $line_mapper, ShippingFeeMapper $shipping_mapper, VatCategories $vat_categories ) {
 		$this->settings        = $settings;
 		$this->factory         = $factory;
 		$this->orders          = $orders;
 		$this->logger          = $logger;
 		$this->line_mapper     = $line_mapper;
 		$this->shipping_mapper = $shipping_mapper;
+		$this->vat_categories  = $vat_categories;
 	}
 
 	public function issue_for_refund( int $order_id, int $refund_id, bool $fail_fast = false ): ?DocumentResult {
@@ -253,7 +258,7 @@ final class RefundService implements RefundIssuer {
 
 				$products = $this->amount_only_line( $refund, $ctx );
 			}
-			$payload['products'] = $this->reconcile_products( $products, $refund, $ctx );
+			$payload['products'] = $this->vat_categories->apply( $this->reconcile_products( $products, $refund, $ctx ) );
 		}
 
 		return (array) apply_filters( 'oblio_fgwoo_storno_data', $payload, $order, $refund, $is_full );
@@ -311,7 +316,7 @@ final class RefundService implements RefundIssuer {
 			$net = abs( (float) $fee->get_total() );
 			$tax = abs( (float) $fee->get_total_tax() );
 			if ( $net + $tax > 0 ) {
-				$products[] = $this->shipping_mapper->service_line( $fee->get_name(), $net + $tax, $net, $tax, $ctx, -1 );
+				$products[] = $this->shipping_mapper->service_line( $fee->get_name(), $net + $tax, $net, $tax, $ctx, -1, LineVat::item_taxes( $fee ) );
 			}
 		}
 

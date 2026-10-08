@@ -634,6 +634,9 @@ if ( ! class_exists( 'WC_Order' ) ) {
 		/** @var array<int,WC_Order_Item_Shipping> */
 		private array $shipping_items = array();
 
+		/** @var array<int,WC_Order_Item_Tax> */
+		private array $tax_items = array();
+
 		public function __construct( int $id = 0 ) {
 			$this->id = $id;
 		}
@@ -688,7 +691,15 @@ if ( ! class_exists( 'WC_Order' ) ) {
 			if ( 'shipping' === $type ) {
 				return $this->shipping_items;
 			}
+			if ( 'tax' === $type ) {
+				return $this->tax_items;
+			}
 			return 'fee' === $type ? $this->fees : $this->items;
+		}
+
+		/** @param array<int,WC_Order_Item_Tax> $items */
+		public function set_tax_items( array $items ): void {
+			$this->tax_items = $items;
 		}
 
 		/** @param array<int,WC_Order_Item_Shipping> $items */
@@ -874,6 +885,10 @@ if ( ! class_exists( 'WC_Order_Item_Product' ) ) {
 			return $this->data['total_tax'];
 		}
 
+		public function get_taxes() {
+			return array( 'total' => $this->data['taxes'] ?? array() );
+		}
+
 		public function get_subtotal() {
 			return $this->data['subtotal'];
 		}
@@ -918,6 +933,28 @@ if ( ! class_exists( 'WC_Order_Item_Product' ) ) {
 	}
 }
 
+if ( ! class_exists( 'WC_Order_Item_Tax' ) ) {
+	class WC_Order_Item_Tax {
+
+		private int $rate_id;
+
+		private ?float $rate_percent;
+
+		public function __construct( int $rate_id, ?float $rate_percent ) {
+			$this->rate_id      = $rate_id;
+			$this->rate_percent = $rate_percent;
+		}
+
+		public function get_rate_id(): int {
+			return $this->rate_id;
+		}
+
+		public function get_rate_percent() {
+			return $this->rate_percent;
+		}
+	}
+}
+
 if ( ! class_exists( 'WC_Order_Item_Shipping' ) ) {
 	class WC_Order_Item_Shipping {
 
@@ -946,6 +983,10 @@ if ( ! class_exists( 'WC_Order_Item_Shipping' ) ) {
 
 		public function get_total_tax() {
 			return $this->data['total_tax'];
+		}
+
+		public function get_taxes() {
+			return array( 'total' => $this->data['taxes'] ?? array() );
 		}
 	}
 }
@@ -978,6 +1019,10 @@ if ( ! class_exists( 'WC_Order_Item_Fee' ) ) {
 
 		public function get_total_tax() {
 			return $this->data['total_tax'];
+		}
+
+		public function get_taxes() {
+			return array( 'total' => $this->data['taxes'] ?? array() );
 		}
 	}
 }
@@ -1315,4 +1360,23 @@ function oblio_test_reset(): void {
 	$GLOBALS['oblio_test_mail_calls']          = array();
 	$GLOBALS['oblio_test_mail_result']         = true;
 	$_POST                                     = array();
+}
+
+/**
+ * Seeds the VAT category cache with a real account's list (Oblio vat_rates,
+ * including its space-padded duplicate names), so document tests resolve
+ * categories without an HTTP call.
+ */
+function oblio_test_seed_vat_categories(): void {
+	$GLOBALS['oblio_test_transients'][ \FGSyncOblio\Document\VatCategories::TRANSIENT ] = array(
+		array( 'name' => 'Normala', 'percent' => 21, 'default' => true ),
+		array( 'name' => 'Redusa', 'percent' => 11, 'default' => false ),
+		array( 'name' => 'Scutita', 'percent' => 0, 'default' => false ),
+		array( 'name' => 'SFDD', 'percent' => 0, 'default' => false ),
+		array( 'name' => 'SDD', 'percent' => 0, 'default' => false ),
+		array( 'name' => 'Veche', 'percent' => 19, 'default' => false ),
+		array( 'name' => 'Redusa  ', 'percent' => 9, 'default' => false ),
+		array( 'name' => 'Redusa ', 'percent' => 5, 'default' => false ),
+		array( 'name' => 'Finlanda', 'percent' => 25.5, 'default' => false ),
+	);
 }

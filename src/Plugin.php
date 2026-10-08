@@ -45,6 +45,7 @@ use FGSyncOblio\Document\Mapper\ClientMapper;
 use FGSyncOblio\Document\Mapper\CollectMapper;
 use FGSyncOblio\Document\Mapper\LineItemMapper;
 use FGSyncOblio\Document\Mapper\ShippingFeeMapper;
+use FGSyncOblio\Document\VatCategories;
 use FGSyncOblio\Queue\AutoIssue;
 use FGSyncOblio\Queue\Jobs\GenerateDocument;
 use FGSyncOblio\Queue\Jobs\GenerateRefund;
@@ -138,6 +139,14 @@ final class Plugin {
 		$container->set( ClientMapper::class, static fn (): ClientMapper => new ClientMapper() );
 		$container->set( LineItemMapper::class, static fn ( Container $container ): LineItemMapper => new LineItemMapper( $container->get( Settings::class ) ) );
 		$container->set( ShippingFeeMapper::class, static fn (): ShippingFeeMapper => new ShippingFeeMapper() );
+		$container->set(
+			VatCategories::class,
+			static fn ( Container $container ): VatCategories => new VatCategories(
+				$container->get( ClientFactory::class ),
+				$container->get( Settings::class ),
+				$container->get( Logger::class )
+			)
+		);
 		$container->set( CollectMapper::class, static fn ( Container $container ): CollectMapper => new CollectMapper( $container->get( Settings::class ) ) );
 		$container->set( LifecyclePolicy::class, static fn ( Container $container ): LifecyclePolicy => new LifecyclePolicy( $container->get( Settings::class ) ) );
 		$container->set(
@@ -165,7 +174,8 @@ final class Plugin {
 				$container->get( ClientMapper::class ),
 				$container->get( LineItemMapper::class ),
 				$container->get( ShippingFeeMapper::class ),
-				$container->get( CollectMapper::class )
+				$container->get( CollectMapper::class ),
+				$container->get( VatCategories::class )
 			)
 		);
 
@@ -233,7 +243,8 @@ final class Plugin {
 				$container->get( OrderStore::class ),
 				$container->get( Logger::class ),
 				$container->get( LineItemMapper::class ),
-				$container->get( ShippingFeeMapper::class )
+				$container->get( ShippingFeeMapper::class ),
+				$container->get( VatCategories::class )
 			)
 		);
 

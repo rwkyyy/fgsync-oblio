@@ -64,6 +64,14 @@ final class OblioClient {
 		return $this->nomenclature( 'management', $cif );
 	}
 
+	/**
+	 * @param string $cif Company CIF.
+	 * @return array<int|string,mixed>
+	 */
+	public function vat_rates( string $cif ): array {
+		return $this->nomenclature( 'vat_rates', $cif );
+	}
+
 	public function test_connection(): array {
 		return $this->companies();
 	}

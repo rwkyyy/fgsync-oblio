@@ -78,7 +78,7 @@ final class LineItemMapper {
 				'measuringUnitTranslation' => $ctx->measuring_unit_translation,
 				'currency'                 => $ctx->currency,
 			)
-				+ $this->vat( $item_total, $item_total_tax, $ctx )
+				+ LineVat::fields( $item_total, $item_total_tax, LineVat::item_taxes( $item ), $ctx )
 				+ array(
 					'quantity'    => round( $quantity * $package, BuildContext::QUANTITY_DECIMALS ),
 					'productType' => $this->product_type( $item, $ctx->product_type ),
@@ -137,36 +137,12 @@ final class LineItemMapper {
 			'measuringUnitTranslation' => $ctx->measuring_unit_translation,
 			'currency'                 => $ctx->currency,
 		)
-			+ $this->vat( $net, $tax, $ctx )
+			+ LineVat::fields( $net, $tax, LineVat::item_taxes( $item ), $ctx )
 			+ array(
 				'quantity'    => -round( $quantity * $package, BuildContext::QUANTITY_DECIMALS ),
 				'productType' => $this->product_type( $item, $ctx->product_type ),
 				'management'  => $ctx->management,
 			);
-	}
-
-	/**
-	 * @param float        $net Net amount.
-	 * @param float        $tax Tax amount.
-	 * @param BuildContext $ctx Document context.
-	 * @return array<string,mixed>
-	 */
-	private function vat( float $net, float $tax, BuildContext $ctx ): array {
-		if ( ! $ctx->calc_taxes ) {
-			return array(
-				'vatName'       => '',
-				'vatPercentage' => null,
-				'vatIncluded'   => true,
-			);
-		}
-
-		$is_taxable = 0.0 !== $net && $tax / $net > 0;
-
-		return array(
-			'vatName'       => $is_taxable ? '' : 'SDD',
-			'vatPercentage' => $is_taxable ? (int) round( $tax / $net * 100 ) : 0,
-			'vatIncluded'   => true,
-		);
 	}
 
 	/**

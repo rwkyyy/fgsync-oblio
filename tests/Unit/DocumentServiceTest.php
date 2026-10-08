@@ -16,6 +16,7 @@ use FGSyncOblio\Document\Mapper\ClientMapper;
 use FGSyncOblio\Document\Mapper\CollectMapper;
 use FGSyncOblio\Document\Mapper\LineItemMapper;
 use FGSyncOblio\Document\Mapper\ShippingFeeMapper;
+use FGSyncOblio\Document\VatCategories;
 use FGSyncOblio\Order\OrderMeta;
 use FGSyncOblio\Support\ConnectionHealth;
 use FGSyncOblio\Support\Encryption;
@@ -37,6 +38,7 @@ final class DocumentServiceTest extends TestCase {
 
 	protected function setUp(): void {
 		oblio_test_reset();
+		oblio_test_seed_vat_categories();
 
 		$this->settings = new Settings();
 		$this->settings->set( 'email', 'shop@example.test' );
@@ -55,7 +57,8 @@ final class DocumentServiceTest extends TestCase {
 			new ClientMapper(),
 			new LineItemMapper( $this->settings ),
 			new ShippingFeeMapper(),
-			new CollectMapper( $this->settings )
+			new CollectMapper( $this->settings ),
+			new VatCategories( $factory, $this->settings, $this->logger )
 		);
 
 		return new DocumentService(

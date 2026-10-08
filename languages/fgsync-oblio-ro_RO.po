@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: FGSync for Oblio 1.3.2\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/fgsync-oblio\n"
-"POT-Creation-Date: 2026-10-08T12:11:49+00:00\n"
+"POT-Creation-Date: 2026-10-08T13:08:55+00:00\n"
 "PO-Revision-Date: 2026-09-30T00:00:00+00:00\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -1411,7 +1411,7 @@ msgstr "Sincronizarea încă rulează normal; nu a fost eliberată."
 msgid "Blocarea a fost eliberată. Poți porni din nou sincronizarea."
 msgstr "Blocarea a fost eliberată. Poți porni din nou sincronizarea."
 
-#: src/Api/OblioClient.php:183
+#: src/Api/OblioClient.php:191
 msgid ""
 "Răspuns neclar de la Oblio (200 OK, conținut ilizibil); se reîncearcă "
 "automat."
@@ -1419,19 +1419,19 @@ msgstr ""
 "Răspuns neclar de la Oblio (200 OK, conținut ilizibil); se reîncearcă "
 "automat."
 
-#: src/Api/OblioClient.php:200
+#: src/Api/OblioClient.php:208
 msgid "Email sau API secret lipsă."
 msgstr "Email sau API secret lipsă."
 
 #: src/Document/DocumentService.php:59 src/Document/DocumentService.php:118
-#: src/Refund/RefundService.php:75 src/Refund/RefundService.php:147
+#: src/Refund/RefundService.php:80 src/Refund/RefundService.php:152
 msgid ""
 "Un alt proces emite deja un document pentru comandă; se va reîncerca automat."
 msgstr ""
 "Un alt proces emite deja un document pentru comandă; se va reîncerca automat."
 
-#: src/Document/DocumentService.php:84 src/Refund/RefundService.php:106
-#: src/Refund/RefundService.php:193
+#: src/Document/DocumentService.php:84 src/Refund/RefundService.php:111
+#: src/Refund/RefundService.php:198
 msgid ""
 "Răspuns incomplet de la Oblio; se reîncearcă automat pentru a evita un "
 "document duplicat."
@@ -1443,19 +1443,19 @@ msgstr ""
 msgid "Vezi factura"
 msgstr "Vezi factura"
 
-#: src/Document/InvoiceBuilder.php:50
+#: src/Document/InvoiceBuilder.php:54
 msgid "Configurare incompletă: verifică Oblio → Setări."
 msgstr "Configurare incompletă: verifică Oblio → Setări."
 
-#: src/Document/InvoiceBuilder.php:114
+#: src/Document/InvoiceBuilder.php:118
 msgid "Alte taxe"
 msgstr "Alte taxe"
 
-#: src/Document/InvoiceBuilder.php:115
+#: src/Document/InvoiceBuilder.php:119
 msgid "Discount"
 msgstr "Discount"
 
-#: src/Document/InvoiceBuilder.php:131
+#: src/Document/InvoiceBuilder.php:135
 msgid "Comanda are valoare 0.00."
 msgstr "Comanda are valoare 0.00."
 
@@ -1483,9 +1483,19 @@ msgstr ""
 "ar pierde valoarea de pe factură. Schimbă \"Linia produsului tip pachet\" "
 "(Avansat) pe \"Include\" sau contactează suportul."
 
-#: src/Document/Mapper/ShippingFeeMapper.php:72
+#: src/Document/Mapper/ShippingFeeMapper.php:74
 msgid "Transport"
 msgstr "Transport"
+
+#. translators: 1: VAT percentage, 2: product line name.
+#: src/Document/VatCategories.php:72
+#, php-format
+msgid ""
+"Contul Oblio nu are o cotă TVA de %1$s%% (linia „%2$s”). Adaug-o în Oblio → "
+"Setări → Cote TVA, apoi emite din nou documentul."
+msgstr ""
+"Contul Oblio nu are o cotă TVA de %1$s%% (linia „%2$s”). Adaug-o în Oblio → "
+"Setări → Cote TVA, apoi emite din nou documentul."
 
 #: src/Extensibility/HookRegistry.php:18
 msgid "Datele documentului (payload factură/proformă)"
@@ -1627,11 +1637,11 @@ msgstr "Nu s-a putut reprograma reîncercarea în coadă."
 msgid "Factura nu a fost emisă în timp util."
 msgstr "Factura nu a fost emisă în timp util."
 
-#: src/Refund/RefundService.php:91 src/Refund/RefundService.php:158
+#: src/Refund/RefundService.php:96 src/Refund/RefundService.php:163
 msgid "Nu există factură pentru care să se emită storno."
 msgstr "Nu există factură pentru care să se emită storno."
 
-#: src/Refund/RefundService.php:171
+#: src/Refund/RefundService.php:176
 msgid ""
 "Există deja un storno pentru această factură. Storneaz restul printr-o "
 "rambursare WooCommerce."
@@ -1639,11 +1649,11 @@ msgstr ""
 "Există deja un storno pentru această factură. Storneaz restul printr-o "
 "rambursare WooCommerce."
 
-#: src/Refund/RefundService.php:333
+#: src/Refund/RefundService.php:338
 msgid "Rambursare"
 msgstr "Rambursare"
 
-#: src/Refund/RefundService.php:353
+#: src/Refund/RefundService.php:358
 msgid "Ajustare storno"
 msgstr "Ajustare storno"
 

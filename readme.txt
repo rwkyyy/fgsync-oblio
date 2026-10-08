@@ -4,7 +4,7 @@ Tags: woocommerce, invoicing, oblio, invoice, romania
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.3.5
+Stable tag: 1.3.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -131,6 +131,12 @@ Under Email, pick a mode. "Standalone" sends a separate message from the plugin 
 Yes. A few examples: `oblio_fgwoo_stock_quantity` and `oblio_fgwoo_stock_price` adjust a value right before it's written during stock sync, `oblio_fgwoo_document_currency` and `oblio_fgwoo_document_language` override those per order, and `oblio_fgwoo_email_button_issue` (see above) controls the email button's inline-issue behavior. See the plugin's GitHub repository for the current list.
 
 == Changelog ==
+
+= 1.3.6 =
+* Fixed: lines with 19% VAT were issued by Oblio at 21% without any error. This affected credit notes (storno) for orders invoiced before the August 2025 rate change, and any order still taxed at 19%. Every taxed line is now sent with the exact name of the matching VAT category from your Oblio account, so it keeps its real rate.
+* Invoices and credit notes use the VAT rate recorded on the order when it was placed, so changing your WooCommerce tax rates later no longer changes the rate on documents for older orders.
+* Non-integer VAT rates (for example 25.5% for Finland or 5.5% for France) are kept as they are instead of being rounded to a whole number.
+* If your Oblio account has no VAT category for a line's rate, the document is no longer issued with a different rate: it stops with a clear message telling you which rate to add in Oblio → Setări → Cote TVA.
 
 = 1.3.5 =
 * Credit notes (storno) now match the original invoice: same package quantities, product type, currency (including EUR for OSS orders), document language, warehouse and unit-of-measure translation.

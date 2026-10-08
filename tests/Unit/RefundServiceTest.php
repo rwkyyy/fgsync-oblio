@@ -12,6 +12,7 @@ use FGSyncOblio\Compat\OrderStore;
 use FGSyncOblio\Document\BuildContext;
 use FGSyncOblio\Document\Mapper\LineItemMapper;
 use FGSyncOblio\Document\Mapper\ShippingFeeMapper;
+use FGSyncOblio\Document\VatCategories;
 use FGSyncOblio\Order\OrderMeta;
 use FGSyncOblio\Refund\RefundService;
 use FGSyncOblio\Support\ConnectionHealth;
@@ -31,6 +32,7 @@ final class RefundServiceTest extends TestCase {
 
 	protected function setUp(): void {
 		oblio_test_reset();
+		oblio_test_seed_vat_categories();
 		$this->settings = new Settings();
 		$this->settings->set( 'email', 'shop@example.test' );
 		$this->settings->set( 'secret', 'token' );
@@ -40,7 +42,7 @@ final class RefundServiceTest extends TestCase {
 
 	private function service(): RefundService {
 		$factory = new ClientFactory( $this->settings, new Encryption(), new Logger(), new ConnectionHealth(), new RateLimiter( new InMemorySlotStore() ) );
-		return new RefundService( $this->settings, $factory, new OrderStore(), new Logger(), new LineItemMapper( $this->settings ), new ShippingFeeMapper() );
+		return new RefundService( $this->settings, $factory, new OrderStore(), new Logger(), new LineItemMapper( $this->settings ), new ShippingFeeMapper(), new VatCategories( $factory, $this->settings, new Logger() ) );
 	}
 
 	private function queue_auth_and_storno_response(): void {
@@ -70,7 +72,7 @@ final class RefundServiceTest extends TestCase {
 		$GLOBALS['oblio_test_orders'][99] = new WC_Order_Refund( 99, 2 );
 
 		$factory = new ClientFactory( $settings, new Encryption(), new Logger(), new ConnectionHealth(), new RateLimiter( new InMemorySlotStore() ) );
-		$service = new RefundService( $settings, $factory, new OrderStore(), new Logger(), new LineItemMapper( $settings ), new ShippingFeeMapper() );
+		$service = new RefundService( $settings, $factory, new OrderStore(), new Logger(), new LineItemMapper( $settings ), new ShippingFeeMapper(), new VatCategories( $factory, $settings, new Logger() ) );
 
 		$result = $service->issue_for_refund( 1, 99 );
 
@@ -185,7 +187,7 @@ final class RefundServiceTest extends TestCase {
 					'measuringUnit'            => 'buc',
 					'measuringUnitTranslation' => '',
 					'currency'                 => 'EUR',
-					'vatName'                  => '',
+					'vatName'                  => 'Normala',
 					'vatPercentage'            => 21,
 					'vatIncluded'              => true,
 					'quantity'                 => -6,
@@ -200,7 +202,7 @@ final class RefundServiceTest extends TestCase {
 					'measuringUnit'            => 'buc',
 					'measuringUnitTranslation' => '',
 					'currency'                 => 'EUR',
-					'vatName'                  => '',
+					'vatName'                  => 'Normala',
 					'vatPercentage'            => 21,
 					'vatIncluded'              => true,
 					'quantity'                 => -1,
@@ -214,7 +216,7 @@ final class RefundServiceTest extends TestCase {
 					'measuringUnit'            => 'buc',
 					'measuringUnitTranslation' => '',
 					'currency'                 => 'EUR',
-					'vatName'                  => '',
+					'vatName'                  => 'Normala',
 					'vatPercentage'            => 21,
 					'vatIncluded'              => true,
 					'quantity'                 => -1,
@@ -274,6 +276,30 @@ final class RefundServiceTest extends TestCase {
 			array( 'Ajustare storno', 0.01, -1, '', null ),
 			array( $products[1]['name'], $products[1]['price'], $products[1]['quantity'], $products[1]['vatName'], $products[1]['vatPercentage'] )
 		);
+	}
+
+	/**
+	 * An order invoiced at 19% before August 2025 is refunded after the rate
+	 * table moved to 21%: the storno must still carry 19%.
+	 */
+	public function test_storno_of_a_19_percent_invoice_keeps_19_percent(): void {
+		$GLOBALS['oblio_test_options']['woocommerce_calc_taxes'] = 'yes';
+
+		$order = new WC_Order( 1 );
+		$order->set_total( 400.0 );
+		$order->set_tax_items( array( new \WC_Order_Item_Tax( 4, 19.0 ) ) );
+
+		$refund = new WC_Order_Refund( 5, 1 );
+		$refund->set_amount( 119.0 );
+		$refund->set_items(
+			array(
+				new \WC_Order_Item_Product( array( 'quantity' => -1.0, 'total' => -100.0, 'total_tax' => -19.0, 'taxes' => array( 4 => -19.0 ) ) ),
+			)
+		);
+
+		$products = $this->partial_storno_products( $order, $refund );
+
+		$this->assertSame( array( 'Veche', 19 ), array( $products[0]['vatName'], $products[0]['vatPercentage'] ) );
 	}
 
 	public function test_storno_line_mirrors_the_invoice_line_for_the_same_item(): void {

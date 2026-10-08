@@ -11,6 +11,7 @@ namespace FGSyncOblio\Admin;
 
 use FGSyncOblio\Api\ClientFactory;
 use FGSyncOblio\Api\Exception\ApiException;
+use FGSyncOblio\Document\VatCategories;
 use FGSyncOblio\Queue\Scheduler;
 use FGSyncOblio\Support\Logger;
 use FGSyncOblio\Support\Settings;
@@ -147,6 +148,7 @@ final class NomenclatureCache {
 	public function refresh(): void {
 		delete_transient( self::SERIES_TRANSIENT );
 		delete_transient( self::MANAGEMENT_TRANSIENT );
+		delete_transient( VatCategories::TRANSIENT );
 	}
 
 	private function all_series(): array {

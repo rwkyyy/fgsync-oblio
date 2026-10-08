@@ -28,18 +28,22 @@ final class InvoiceBuilder {
 
 	private CollectMapper $collect_mapper;
 
+	private VatCategories $vat_categories;
+
 	public function __construct(
 		Settings $settings,
 		ClientMapper $client_mapper,
 		LineItemMapper $line_mapper,
 		ShippingFeeMapper $shipping_mapper,
-		CollectMapper $collect_mapper
+		CollectMapper $collect_mapper,
+		VatCategories $vat_categories
 	) {
 		$this->settings        = $settings;
 		$this->client_mapper   = $client_mapper;
 		$this->line_mapper     = $line_mapper;
 		$this->shipping_mapper = $shipping_mapper;
 		$this->collect_mapper  = $collect_mapper;
+		$this->vat_categories  = $vat_categories;
 	}
 
 	public function build( WC_Order $order, string $doc_type, array $options = array() ): array {
@@ -131,7 +135,7 @@ final class InvoiceBuilder {
 			throw new DocumentException( esc_html__( 'Comanda are valoare 0.00.', 'fgsync-oblio' ) );
 		}
 
-		return $products;
+		return $this->vat_categories->apply( $products );
 	}
 
 	private function series_name( string $doc_type ): string {

@@ -11,6 +11,7 @@ declare( strict_types=1 );
 namespace FGSyncOblio\Tests\Unit;
 
 use FGSyncOblio\Admin\ProductFields;
+use FGSyncOblio\Api\ClientFactory;
 use FGSyncOblio\Document\BuildContext;
 use FGSyncOblio\Document\DocumentException;
 use FGSyncOblio\Document\InvoiceBuilder;
@@ -18,8 +19,13 @@ use FGSyncOblio\Document\Mapper\ClientMapper;
 use FGSyncOblio\Document\Mapper\CollectMapper;
 use FGSyncOblio\Document\Mapper\LineItemMapper;
 use FGSyncOblio\Document\Mapper\ShippingFeeMapper;
+use FGSyncOblio\Document\VatCategories;
 use FGSyncOblio\Order\OrderMeta;
 use FGSyncOblio\Order\RegularPriceSnapshot;
+use FGSyncOblio\Support\ConnectionHealth;
+use FGSyncOblio\Support\Encryption;
+use FGSyncOblio\Support\Logger;
+use FGSyncOblio\Support\RateLimiter;
 use FGSyncOblio\Support\Settings;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -40,6 +46,7 @@ final class InvoiceLinesTest extends TestCase {
 
 	protected function setUp(): void {
 		oblio_test_reset();
+		oblio_test_seed_vat_categories();
 		$GLOBALS['oblio_test_options']['woocommerce_calc_taxes'] = 'yes';
 		$this->settings = new Settings();
 		$this->settings->set( 'cif', 'RO123' );
@@ -52,7 +59,8 @@ final class InvoiceLinesTest extends TestCase {
 			new ClientMapper(),
 			new LineItemMapper( $this->settings ),
 			new ShippingFeeMapper(),
-			new CollectMapper( $this->settings )
+			new CollectMapper( $this->settings ),
+			new VatCategories( new ClientFactory( $this->settings, new Encryption(), new Logger(), new ConnectionHealth(), new RateLimiter( new InMemorySlotStore() ) ), $this->settings, new Logger() )
 		);
 	}
 
@@ -92,7 +100,7 @@ final class InvoiceLinesTest extends TestCase {
 					'measuringUnit'            => 'buc',
 					'measuringUnitTranslation' => '',
 					'currency'                 => 'RON',
-					'vatName'                  => '',
+					'vatName'                  => 'Normala',
 					'vatPercentage'            => 21,
 					'vatIncluded'              => true,
 					'quantity'                 => 2.0,
@@ -365,7 +373,7 @@ final class InvoiceLinesTest extends TestCase {
 	public function test_fractional_quantity_survives_a_zero_decimal_shop(): void {
 		$GLOBALS['oblio_test_options']['woocommerce_price_num_decimals'] = 0;
 		$item = $this->item(
-			array( 'quantity' => 1.5, 'subtotal' => 150.0, 'subtotal_tax' => 32.0, 'total' => 150.0, 'total_tax' => 32.0 ),
+			array( 'quantity' => 1.5, 'subtotal' => 150.0, 'subtotal_tax' => 31.5, 'total' => 150.0, 'total_tax' => 31.5 ),
 			new WC_Product( array( 'regular_price' => '121', 'price' => '121' ) )
 		);
 
@@ -432,14 +440,106 @@ final class InvoiceLinesTest extends TestCase {
 	}
 
 	/**
-	 * Current behaviour (A5): the VAT rate is rounded to a whole number.
+	 * Oblio silently turns a nameless 19% line into its default 21% category.
 	 */
-	public function test_fractional_vat_rate_is_rounded_to_an_integer(): void {
-		$item = $this->item( array( 'subtotal' => 100.0, 'subtotal_tax' => 5.5, 'total' => 100.0, 'total_tax' => 5.5 ) );
+	public function test_a_19_percent_line_is_sent_with_the_accounts_19_percent_category(): void {
+		$item = $this->item( array( 'subtotal' => 100.0, 'subtotal_tax' => 19.0, 'total' => 100.0, 'total_tax' => 19.0 ) );
 
-		$products = $this->products( $this->order( array( $item ), 105.5 ) );
+		$products = $this->products( $this->order( array( $item ), 119.0 ) );
 
-		$this->assertSame( 6, $products[0]['vatPercentage'] );
+		$this->assertSame( array( 'Veche', 19 ), array( $products[0]['vatName'], $products[0]['vatPercentage'] ) );
+	}
+
+	public function test_a_non_integer_rate_uses_its_category(): void {
+		$item = $this->item( array( 'subtotal' => 100.0, 'subtotal_tax' => 25.5, 'total' => 100.0, 'total_tax' => 25.5 ) );
+
+		$products = $this->products( $this->order( array( $item ), 125.5 ) );
+
+		$this->assertSame( array( 'Finlanda', 25.5 ), array( $products[0]['vatName'], $products[0]['vatPercentage'] ) );
+	}
+
+	public function test_space_padded_category_names_are_sent_exactly(): void {
+		$item = $this->item( array( 'subtotal' => 100.0, 'subtotal_tax' => 9.0, 'total' => 100.0, 'total_tax' => 9.0 ) );
+
+		$products = $this->products( $this->order( array( $item ), 109.0 ) );
+
+		$this->assertSame( 'Redusa  ', $products[0]['vatName'] );
+	}
+
+	public function test_the_rate_recorded_on_the_order_beats_the_rounded_amounts(): void {
+		$item  = $this->item(
+			array(
+				'subtotal'     => 0.83,
+				'subtotal_tax' => 0.17,
+				'total'        => 0.83,
+				'total_tax'    => 0.17,
+				'taxes'        => array( 7 => 0.17 ),
+			)
+		);
+		$order = $this->order( array( $item ), 1.0 );
+		$order->set_tax_items( array( new \WC_Order_Item_Tax( 7, 19.0 ) ) );
+
+		$products = $this->products( $order );
+
+		$this->assertSame( array( 'Veche', 19 ), array( $products[0]['vatName'], $products[0]['vatPercentage'] ) );
+	}
+
+	public function test_an_unrecorded_rate_id_falls_back_to_the_amounts(): void {
+		$item  = $this->item(
+			array(
+				'subtotal'     => 100.0,
+				'subtotal_tax' => 21.0,
+				'total'        => 100.0,
+				'total_tax'    => 21.0,
+				'taxes'        => array( 2 => 0, 8 => 21.0 ),
+			)
+		);
+		$order = $this->order( array( $item ), 121.0 );
+		$order->set_tax_items( array( new \WC_Order_Item_Tax( 2, 5.0 ) ) );
+
+		$products = $this->products( $order );
+
+		$this->assertSame( array( 'Normala', 21 ), array( $products[0]['vatName'], $products[0]['vatPercentage'] ) );
+	}
+
+	public function test_a_small_line_without_recorded_rates_still_finds_its_category(): void {
+		$item = $this->item( array( 'subtotal' => 0.83, 'subtotal_tax' => 0.17, 'total' => 0.83, 'total_tax' => 0.17 ) );
+
+		$products = $this->products( $this->order( array( $item ), 1.0 ) );
+
+		$this->assertSame( array( 'Normala', 21 ), array( $products[0]['vatName'], $products[0]['vatPercentage'] ) );
+	}
+
+	public function test_internal_tolerance_hint_never_reaches_the_payload(): void {
+		$item = $this->item( array( 'subtotal' => 100.0, 'subtotal_tax' => 21.0, 'total' => 100.0, 'total_tax' => 21.0 ) );
+		$order = $this->order( array( $item ), 133.1 );
+		$order->set_shipping_total( 10.0 );
+		$order->set_shipping_tax( 2.1 );
+
+		foreach ( $this->products( $order ) as $line ) {
+			$this->assertArrayNotHasKey( VatCategories::TOLERANCE_FIELD, $line );
+		}
+	}
+
+	public function test_an_exact_rate_without_a_category_fails_instead_of_snapping_to_a_neighbour(): void {
+		$this->settings->set( 'email', 'shop@example.test' );
+		$this->settings->set( 'secret', 'token' );
+		$GLOBALS['oblio_test_http_responses'][] = array(
+			'response' => array( 'code' => 200 ),
+			'body'     => wp_json_encode( array( 'access_token' => 'tok', 'token_type' => 'Bearer', 'expires_in' => 3600 ) ),
+		);
+		$GLOBALS['oblio_test_http_responses'][] = array(
+			'response' => array( 'code' => 200 ),
+			'body'     => wp_json_encode( array( 'data' => array( array( 'name' => 'Redusa ', 'percent' => 5, 'default' => false ) ) ) ),
+		);
+		$item  = $this->item( array( 'subtotal' => 100.0, 'subtotal_tax' => 5.5, 'total' => 100.0, 'total_tax' => 5.5, 'taxes' => array( 3 => 5.5 ) ) );
+		$order = $this->order( array( $item ), 105.5 );
+		$order->set_tax_items( array( new \WC_Order_Item_Tax( 3, 5.5 ) ) );
+
+		$this->expectException( DocumentException::class );
+		$this->expectExceptionMessage( 'nu are o cotă TVA de 5.5%' );
+
+		$this->products( $order );
 	}
 
 	public function test_negative_line_keeps_its_vat_rate(): void {
@@ -449,7 +549,7 @@ final class InvoiceLinesTest extends TestCase {
 		$products = $this->products( $this->order( array( $positive, $negative ), 108.9 ) );
 
 		$this->assertSame( -12.1, $products[1]['price'] );
-		$this->assertSame( '', $products[1]['vatName'] );
+		$this->assertSame( 'Normala', $products[1]['vatName'] );
 		$this->assertSame( 21, $products[1]['vatPercentage'] );
 	}
 
