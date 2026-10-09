@@ -12,6 +12,7 @@ namespace FGSyncOblio\Queue\Jobs;
 use FGSyncOblio\Api\Exception\ApiException;
 use FGSyncOblio\Compat\OrderStore;
 use FGSyncOblio\Document\DocumentException;
+use FGSyncOblio\Document\PriorRefunds;
 use FGSyncOblio\Order\OrderMeta;
 use FGSyncOblio\Queue\Scheduler;
 use FGSyncOblio\Refund\RefundIssuer;
@@ -94,6 +95,11 @@ final class GenerateRefund {
 		// on a separate, much longer budget until it appears instead of never
 		// revisiting this refund (see MAX_INVOICE_WAIT_ATTEMPTS).
 		if ( ! OrderMeta::has( $order, OrderMeta::TYPE_INVOICE ) ) {
+			if ( $this->never_invoiced( $order ) ) {
+				$this->scheduler->release_pending_refund( $order_id, $refund_id, $owner );
+				$this->logger->info( sprintf( 'Queue: order #%d was refunded in full before any invoice, no storno for refund #%d', $order_id, $refund_id ) );
+				return;
+			}
 			$this->wait_for_invoice( $order, $refund_id, $attempt, $invoice_wait, $owner );
 			return;
 		}
@@ -120,6 +126,18 @@ final class GenerateRefund {
 		} catch ( Throwable $exception ) {
 			$this->maybe_retry( $order, $refund_id, $attempt, $owner, $exception->getMessage() );
 		}
+	}
+
+	/**
+	 * A fully refunded order gets no invoice built from its lines, so there's
+	 * nothing to wait for unless an aviz or proforma would carry it.
+	 *
+	 * @param WC_Order $order Order.
+	 */
+	private function never_invoiced( WC_Order $order ): bool {
+		return ! OrderMeta::has( $order, OrderMeta::TYPE_NOTICE )
+			&& ! OrderMeta::has( $order, OrderMeta::TYPE_PROFORMA )
+			&& PriorRefunds::for_order( $order )->covers( $order );
 	}
 
 	private function wait_for_invoice( WC_Order $order, int $refund_id, int $attempt, int $invoice_wait, string $owner ): void {

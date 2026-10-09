@@ -2,6 +2,7 @@
 /.git
 .DS_Store
 /.github
+/bin
 /docs
 /tests
 /node_modules

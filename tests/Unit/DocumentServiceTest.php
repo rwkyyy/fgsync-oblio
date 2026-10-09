@@ -27,6 +27,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use WC_Order;
 use WC_Order_Item_Product;
+use WC_Order_Refund;
 use WC_Product;
 
 #[CoversClass( \FGSyncOblio\Document\DocumentService::class )]
@@ -115,6 +116,27 @@ final class DocumentServiceTest extends TestCase {
 		$this->assertSame( 'https://example.test/doc', $order->get_meta( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'link' ) ) );
 	}
 
+	public function test_issue_records_the_refunds_the_invoice_netted(): void {
+		$order = $this->order_with_one_line_item( 1 );
+		$order->set_total( 150.0 );
+		$refund = new WC_Order_Refund( 7, 1 );
+		$refund->set_amount( -50.0 );
+		$order->set_refunds( array( $refund ) );
+		$GLOBALS['oblio_test_orders'][1] = $order;
+		$GLOBALS['oblio_test_http_responses'][] = array(
+			'response' => array( 'code' => 200 ),
+			'body'     => wp_json_encode( array( 'access_token' => 'tok', 'token_type' => 'Bearer', 'expires_in' => 3600 ) ),
+		);
+		$GLOBALS['oblio_test_http_responses'][] = array(
+			'response' => array( 'code' => 200 ),
+			'body'     => wp_json_encode( array( 'data' => array( 'seriesName' => 'FCT', 'number' => '1', 'link' => 'https://example.test/doc' ) ) ),
+		);
+
+		$this->service()->issue( $order, OrderMeta::TYPE_INVOICE, array(), true );
+
+		$this->assertSame( array( 7 ), OrderMeta::netted_refunds( $order, OrderMeta::TYPE_INVOICE ) );
+	}
+
 	/**
 	 * The lock must be released before the post-issue hook/email run - a slow
 	 * or throwing callback there must not extend lock contention or corrupt
@@ -145,6 +167,26 @@ final class DocumentServiceTest extends TestCase {
 		$second = $service->issue( $order, OrderMeta::TYPE_INVOICE, array(), true );
 
 		$this->assertSame( 'FCT', $second->series_name );
+	}
+
+	public function test_stock_deduction_is_skipped_when_the_account_has_no_warehouses(): void {
+		set_transient( 'oblio_fgwoo_management', array(), WEEK_IN_SECONDS );
+		$order = $this->order_with_one_line_item( 1 );
+		$GLOBALS['oblio_test_orders'][1] = $order;
+		$GLOBALS['oblio_test_http_responses'][] = array(
+			'response' => array( 'code' => 200 ),
+			'body'     => wp_json_encode( array( 'access_token' => 'tok', 'token_type' => 'Bearer', 'expires_in' => 3600 ) ),
+		);
+		$GLOBALS['oblio_test_http_responses'][] = array(
+			'response' => array( 'code' => 200 ),
+			'body'     => wp_json_encode( array( 'data' => array( 'seriesName' => 'FCT', 'number' => '1', 'link' => 'https://example.test/doc' ) ) ),
+		);
+
+		$this->service()->issue( $order, OrderMeta::TYPE_INVOICE, array( 'use_stock' => true ), true );
+
+		$payload = json_decode( (string) end( $GLOBALS['oblio_test_http_calls'] )['args']['body'], true );
+		$this->assertSame( 0, $payload['useStock'] );
+		$this->assertFalse( OrderMeta::invoice_used_stock( $order ) );
 	}
 
 	public function test_a_retryable_api_failure_throws_and_leaves_nothing_persisted(): void {

@@ -91,6 +91,61 @@ final class AutoIssueTest extends TestCase {
 		$this->assertCount( 0, $GLOBALS['oblio_test_wc_logs'] );
 	}
 
+	public function test_a_completed_online_payment_queues_the_invoice(): void {
+		$this->settings->set( 'invoice_autogen', 'yes' );
+		$this->settings->set( 'invoice_on_payment', 'yes' );
+		$GLOBALS['oblio_test_orders'][1] = new WC_Order( 1 );
+
+		$this->auto_issue->on_payment_complete( 1 );
+
+		$this->assertCount( 1, $GLOBALS['oblio_test_as_calls'] );
+	}
+
+	public function test_payment_does_nothing_unless_the_option_is_on(): void {
+		$this->settings->set( 'invoice_autogen', 'yes' );
+		$GLOBALS['oblio_test_orders'][1] = new WC_Order( 1 );
+
+		$this->auto_issue->on_payment_complete( 1 );
+
+		$this->assertCount( 0, $GLOBALS['oblio_test_as_calls'] );
+	}
+
+	public function test_payment_does_nothing_in_scheduled_mode(): void {
+		$this->settings->set( 'invoice_autogen', 'yes' );
+		$this->settings->set( 'invoice_on_payment', 'yes' );
+		$this->settings->set( 'invoice_generation', 'batch' );
+		$GLOBALS['oblio_test_orders'][1] = new WC_Order( 1 );
+
+		$this->auto_issue->on_payment_complete( 1 );
+
+		$this->assertCount( 0, $GLOBALS['oblio_test_as_calls'] );
+	}
+
+	public function test_payment_skips_an_order_that_already_has_an_invoice(): void {
+		$this->settings->set( 'invoice_autogen', 'yes' );
+		$this->settings->set( 'invoice_on_payment', 'yes' );
+		$order = new WC_Order( 1 );
+		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'link' ), 'https://example.test/doc' );
+		$GLOBALS['oblio_test_orders'][1] = $order;
+
+		$this->auto_issue->on_payment_complete( 1 );
+
+		$this->assertCount( 0, $GLOBALS['oblio_test_as_calls'] );
+	}
+
+	public function test_no_automatic_proforma_for_an_order_paid_online(): void {
+		$this->settings->set( 'proforma_autogen', 'yes' );
+		$this->settings->set( 'proforma_on_received', 'yes' );
+		$order = new WC_Order( 1 );
+		$order->set_payment_method( 'stripe' );
+		$order->date_paid                = new \DateTimeImmutable( '2026-10-08' );
+		$GLOBALS['oblio_test_orders'][1] = $order;
+
+		$this->auto_issue->on_thankyou( 1 );
+
+		$this->assertCount( 0, $GLOBALS['oblio_test_as_calls'] );
+	}
+
 	public function test_proforma_auto_issue_logs_when_scheduling_fails(): void {
 		$this->settings->set( 'proforma_autogen', 'yes' );
 		$this->settings->set( 'proforma_on_received', 'no' );

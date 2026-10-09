@@ -21,6 +21,7 @@ use FGSyncOblio\Support\Logger;
 use FGSyncOblio\Support\RateLimiter;
 use FGSyncOblio\Support\Settings;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use WC_Order;
 use WC_Order_Refund;
@@ -137,6 +138,44 @@ final class RefundServiceTest extends TestCase {
 		$second = $service->issue_for_refund( 1, 5, true );
 
 		$this->assertNull( $second );
+	}
+
+	private function invoiced_order_with_netted_refund(): WC_Order {
+		$order = new WC_Order( 1 );
+		$order->set_total( 198.20 );
+		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'link' ), 'https://example.test/invoice' );
+		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'series' ), 'FCT' );
+		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'number' ), '1' );
+		$netted = new WC_Order_Refund( 4, 1 );
+		$netted->set_amount( -107.52 );
+		$order->set_refunds( array( $netted ) );
+		OrderMeta::record_netted_refunds( $order, OrderMeta::TYPE_INVOICE, array( 4 ) );
+		$GLOBALS['oblio_test_orders'][1] = $order;
+		$GLOBALS['oblio_test_orders'][4] = $netted;
+		return $order;
+	}
+
+	public function test_a_refund_the_invoice_already_netted_gets_no_storno(): void {
+		$order = $this->invoiced_order_with_netted_refund();
+
+		$this->assertNull( $this->service()->issue_for_refund( 1, 4, true ) );
+		$this->assertSame( array(), $GLOBALS['oblio_test_http_calls'] );
+		$this->assertSame( '', (string) $order->get_meta( 'oblio_fgwoo_storno_refund_4' ) );
+	}
+
+	public function test_refunding_the_rest_of_a_netted_invoice_is_a_full_storno(): void {
+		$order = $this->invoiced_order_with_netted_refund();
+		$rest  = new WC_Order_Refund( 5, 1 );
+		$rest->set_amount( -90.68 );
+		$order->set_refunds( array( $order->get_refunds()[0], $rest ) );
+		$GLOBALS['oblio_test_orders'][5] = $rest;
+		$this->queue_auth_and_storno_response();
+
+		$this->service()->issue_for_refund( 1, 5, true );
+
+		$payload = $this->last_storno_payload();
+		$this->assertSame( 1, $payload['referenceDocument']['refund'] );
+		$this->assertArrayNotHasKey( 'products', $payload );
 	}
 
 	private function partial_storno_products( WC_Order $order, WC_Order_Refund $refund ): array {
@@ -258,6 +297,7 @@ final class RefundServiceTest extends TestCase {
 
 		$order = new WC_Order( 1 );
 		$order->set_total( 400.0 );
+		$order->set_tax_items( array( new \WC_Order_Item_Tax( 1, 21.0, 69.42 ) ) );
 
 		$refund = new WC_Order_Refund( 5, 1 );
 		$refund->set_amount( 100.0 );
@@ -273,7 +313,7 @@ final class RefundServiceTest extends TestCase {
 		$this->assertCount( 2, $products );
 		$this->assertSame( array( 33.33, -3 ), array( $products[0]['price'], $products[0]['quantity'] ) );
 		$this->assertSame(
-			array( 'Ajustare storno', 0.01, -1, '', null ),
+			array( 'Ajustare storno', 0.01, -1, 'Normala', 21 ),
 			array( $products[1]['name'], $products[1]['price'], $products[1]['quantity'], $products[1]['vatName'], $products[1]['vatPercentage'] )
 		);
 	}
@@ -326,6 +366,79 @@ final class RefundServiceTest extends TestCase {
 		$this->assertSame( $invoice_line, $storno_line );
 	}
 
+	private function bundle_order(): WC_Order {
+		$bundle = new \WC_Order_Item_Product(
+			array( 'id' => 11, 'name' => 'Pachet 2 X Zeolit', 'quantity' => 2.0, 'subtotal' => 608.72, 'subtotal_tax' => 127.84, 'total' => 608.72, 'total_tax' => 127.84 ),
+			new \WC_Product( array( 'type' => 'bundle', 'sku' => 'ZEO-x2' ) )
+		);
+		$bundle->add_meta_data( '_bundle_cart_key', 'cart-1' );
+		$items = array( 11 => $bundle );
+		foreach ( array( 12, 13 ) as $id ) {
+			$component = new \WC_Order_Item_Product(
+				array( 'id' => $id, 'name' => 'Zeolit', 'quantity' => 2.0 ),
+				new \WC_Product( array( 'sku' => 'ZEO', 'regular_price' => '199' ) )
+			);
+			$component->add_meta_data( '_bundled_by', 'cart-1' );
+			$items[ $id ] = $component;
+		}
+
+		$order = new WC_Order( 1 );
+		$order->set_total( 736.56 );
+		$order->set_items( $items );
+		return $order;
+	}
+
+	private function bundle_refund( float $quantity, float $total, float $tax ): WC_Order_Refund {
+		$item = new \WC_Order_Item_Product(
+			array( 'name' => 'Pachet 2 X Zeolit', 'quantity' => $quantity, 'total' => $total, 'total_tax' => $tax ),
+			new \WC_Product( array( 'type' => 'bundle', 'sku' => 'ZEO-x2' ) )
+		);
+		$item->add_meta_data( '_refunded_item_id', '11' );
+
+		$refund = new WC_Order_Refund( 5, 1 );
+		$refund->set_amount( abs( $total + $tax ) );
+		$refund->set_items( array( $item ) );
+		return $refund;
+	}
+
+	public function test_a_refunded_fixed_price_bundle_is_stornoed_on_its_components(): void {
+		$GLOBALS['oblio_test_options']['woocommerce_calc_taxes'] = 'yes';
+
+		$products = $this->partial_storno_products( $this->bundle_order(), $this->bundle_refund( -1.0, -304.36, -63.92 ) );
+
+		$this->assertSame( array( 'ZEO', 'ZEO' ), array_column( $products, 'code' ) );
+		$this->assertSame( array( 184.14, 184.14 ), array_column( $products, 'price' ) );
+		$this->assertSame( array( -1, -1 ), array_column( $products, 'quantity' ) );
+		$this->assertSame( array( 21, 21 ), array_column( $products, 'vatPercentage' ) );
+	}
+
+	public function test_a_bundle_refunded_by_value_only_keeps_one_unit_per_component(): void {
+		$GLOBALS['oblio_test_options']['woocommerce_calc_taxes'] = 'yes';
+
+		$products = $this->partial_storno_products( $this->bundle_order(), $this->bundle_refund( 0.0, -100.0, -21.0 ) );
+
+		$this->assertSame( array( 'ZEO', 'ZEO' ), array_column( $products, 'code' ) );
+		$this->assertSame( array( 60.5, 60.5 ), array_column( $products, 'price' ) );
+		$this->assertSame( array( -1, -1 ), array_column( $products, 'quantity' ) );
+	}
+
+	public function test_include_mode_stornos_the_bundle_line_itself(): void {
+		$this->settings->set( 'bundle_line_mode', 'include' );
+
+		$products = $this->partial_storno_products( $this->bundle_order(), $this->bundle_refund( -1.0, -304.36, -63.92 ) );
+
+		$this->assertSame( array( 'ZEO-x2' ), array_column( $products, 'code' ) );
+	}
+
+	public function test_a_refunded_bundle_without_a_known_original_line_is_stornoed_as_is(): void {
+		$refund = $this->bundle_refund( -1.0, -304.36, -63.92 );
+		$refund->get_items()[0]->add_meta_data( '_refunded_item_id', '99' );
+
+		$products = $this->partial_storno_products( $this->bundle_order(), $refund );
+
+		$this->assertSame( array( 'ZEO-x2' ), array_column( $products, 'code' ) );
+	}
+
 	public function test_partial_storno_sends_the_document_language(): void {
 		$order = new WC_Order( 1 );
 		$order->set_total( 400.0 );
@@ -373,6 +486,32 @@ final class RefundServiceTest extends TestCase {
 		$this->assertSame( -1, $products[0]['quantity'] );
 		$this->assertSame( '', $products[0]['vatName'] );
 		$this->assertNull( $products[0]['vatPercentage'] );
+	}
+
+	/**
+	 * @return array<string,array{0:array<int,\WC_Order_Item_Tax>,1:string,2:int|float}>
+	 */
+	public static function amount_only_vat_cases(): array {
+		return array(
+			'19% order keeps 19%'           => array( array( new \WC_Order_Item_Tax( 1, 19.0, 63.87 ) ), 'Veche', 19 ),
+			'untaxed order uses the setting' => array( array(), 'Scutita', 0 ),
+		);
+	}
+
+	#[DataProvider( 'amount_only_vat_cases' )]
+	public function test_refund_by_amount_uses_the_orders_own_vat( array $tax_items, string $vat_name, $percent ): void {
+		$GLOBALS['oblio_test_options']['woocommerce_calc_taxes'] = 'yes';
+		$this->settings->set( 'vat_untaxed_category', 'Scutita' );
+		$order = new WC_Order( 1 );
+		$order->set_total( 400.0 );
+		$order->set_tax_items( $tax_items );
+
+		$refund = new WC_Order_Refund( 5, 1 );
+		$refund->set_amount( 50.0 );
+
+		$products = $this->partial_storno_products( $order, $refund );
+
+		$this->assertSame( array( $vat_name, $percent ), array( $products[0]['vatName'], $products[0]['vatPercentage'] ) );
 	}
 
 	public function test_no_adjustment_when_lines_match_the_refund(): void {

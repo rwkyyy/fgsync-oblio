@@ -10,6 +10,7 @@ declare( strict_types=1 );
 namespace FGSyncOblio\Admin;
 
 use Automattic\WooCommerce\Utilities\OrderUtil;
+use FGSyncOblio\Document\LifecyclePolicy;
 use FGSyncOblio\Order\OrderMeta;
 use FGSyncOblio\Support\Settings;
 use WC_Order;
@@ -80,8 +81,9 @@ final class OrderMetaBox {
 		$errors   = array();
 		$invoiced = null !== OrderMeta::get( $order, OrderMeta::TYPE_INVOICE );
 
-		$errors[] = $this->document_row( $order, OrderMeta::TYPE_INVOICE, __( 'Factură', 'fgsync-oblio' ), true );
-		if ( ! $invoiced || null !== OrderMeta::get( $order, OrderMeta::TYPE_PROFORMA ) ) {
+		$errors[] = $this->document_row( $order, OrderMeta::TYPE_INVOICE, __( 'Factură', 'fgsync-oblio' ), ! NomenclatureCache::has_no_warehouses() );
+		$proforma = OrderMeta::get( $order, OrderMeta::TYPE_PROFORMA );
+		if ( null !== $proforma || ( ! $invoiced && ! LifecyclePolicy::paid_online( $order ) ) ) {
 			$errors[] = $this->document_row( $order, OrderMeta::TYPE_PROFORMA, __( 'Proformă', 'fgsync-oblio' ), false );
 		}
 		if ( $this->settings->is_enabled( 'notice_enabled' ) ) {

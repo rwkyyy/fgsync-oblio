@@ -158,4 +158,27 @@ final class ClientMapperTest extends TestCase {
 		$this->assertSame( 'J40/2/2021', $client['rc'] );
 		$this->assertSame( 'Test Bank', $client['bank'] );
 	}
+
+	public function test_persoana_juridica_is_invoiced_as_the_company(): void {
+		$order = new WC_Order( 1 );
+		$order->set_billing( array( 'first_name' => 'Ion', 'last_name' => 'Pop', 'company' => 'ACME SRL' ) );
+		$order->update_meta_data( 'av_facturare', array( 'tip_facturare' => 'pers-jur', 'cui' => 'RO40663762', 'nr_reg_com' => 'J03/1/2019', 'nume_banca' => 'ING', 'iban' => 'RO49INGB0000999900000000' ) );
+
+		$client = $this->mapper->map( $order );
+
+		$this->assertSame(
+			array( 'RO40663762', 'ACME SRL', 'J03/1/2019', 'ING', 'RO49INGB0000999900000000', 'Ion Pop' ),
+			array( $client['cif'], $client['name'], $client['rc'], $client['bank'], $client['iban'], $client['contact'] )
+		);
+	}
+
+	public function test_persoana_fizica_is_invoiced_as_the_person_even_with_a_company_filled(): void {
+		$order = new WC_Order( 1 );
+		$order->set_billing( array( 'first_name' => 'Ion', 'last_name' => 'Pop', 'company' => 'ACME SRL' ) );
+		$order->update_meta_data( 'av_facturare', array( 'tip_facturare' => 'pers-fiz', 'cnp' => '1800101123456', 'cui' => 'RO40663762' ) );
+
+		$client = $this->mapper->map( $order );
+
+		$this->assertSame( array( '1800101123456', 'Ion Pop', '' ), array( $client['cif'], $client['name'], $client['rc'] ) );
+	}
 }

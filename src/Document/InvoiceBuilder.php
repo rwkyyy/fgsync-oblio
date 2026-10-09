@@ -12,6 +12,7 @@ namespace FGSyncOblio\Document;
 use FGSyncOblio\Document\Mapper\ClientMapper;
 use FGSyncOblio\Document\Mapper\CollectMapper;
 use FGSyncOblio\Document\Mapper\LineItemMapper;
+use FGSyncOblio\Document\Mapper\LineVat;
 use FGSyncOblio\Document\Mapper\ShippingFeeMapper;
 use FGSyncOblio\Order\OrderMeta;
 use FGSyncOblio\Support\Settings;
@@ -46,7 +47,7 @@ final class InvoiceBuilder {
 		$this->vat_categories  = $vat_categories;
 	}
 
-	public function build( WC_Order $order, string $doc_type, array $options = array() ): array {
+	public function build( WC_Order $order, string $doc_type, array $options = array(), ?PriorRefunds $refunds = null ): array {
 		$cif    = (string) $this->settings->get( 'cif' );
 		$series = $this->series_name( $doc_type );
 
@@ -90,7 +91,7 @@ final class InvoiceBuilder {
 		if ( ! empty( $reference ) ) {
 			$data['referenceDocument'] = $reference;
 		} else {
-			$data['products'] = $this->products( $order, $ctx );
+			$data['products'] = $this->products( $order, $ctx, $refunds ?? PriorRefunds::for_order( $order ) );
 		}
 
 		if ( OrderMeta::TYPE_INVOICE === $doc_type ) {
@@ -103,14 +104,40 @@ final class InvoiceBuilder {
 		return (array) apply_filters( 'oblio_fgwoo_document_data', $data, $order, $doc_type );
 	}
 
-	private function products( WC_Order $order, BuildContext $ctx ): array {
-		$lines    = $this->line_mapper->map( $order, $ctx );
-		$shipping = $this->shipping_mapper->map( $order, $ctx );
+	/**
+	 * Refunds the document built from this order takes in, so they get no
+	 * storno of their own: those on the order now, or, for an invoice built
+	 * on an aviz or proforma, the ones that document took in.
+	 *
+	 * @param WC_Order            $order    Order.
+	 * @param string              $doc_type Document type.
+	 * @param array<string,mixed> $options  Issue options.
+	 * @param PriorRefunds        $refunds  Refunds the lines were built with.
+	 * @return array<int,int>
+	 */
+	public function netted_refund_ids( WC_Order $order, string $doc_type, array $options, PriorRefunds $refunds ): array {
+		if ( isset( $options['reference'] ) && is_array( $options['reference'] ) ) {
+			return array();
+		}
+		$referenced = $this->referenced_type( $order, $doc_type );
+		if ( null !== $referenced ) {
+			return OrderMeta::netted_refunds( $order, $referenced );
+		}
+		return $refunds->refund_ids;
+	}
+
+	private function products( WC_Order $order, BuildContext $ctx, PriorRefunds $refunds ): array {
+		if ( $refunds->covers( $order ) ) {
+			throw new FullyRefundedException( esc_html__( 'Comanda a fost rambursată integral, nu mai este nimic de facturat.', 'fgsync-oblio' ) );
+		}
+
+		$lines    = $this->line_mapper->map( $order, $ctx, $refunds );
+		$shipping = $this->shipping_mapper->map( $order, $ctx, $refunds );
 
 		$products = array_merge( $lines['products'], $shipping['products'] );
 		$total    = $lines['total'] + $shipping['total'];
 
-		$order_total = (float) $order->get_total();
+		$order_total = (float) $order->get_total() - $refunds->amount;
 		if ( number_format( $total, 2, '.', '' ) !== number_format( $order_total, 2, '.', '' ) ) {
 			$difference = $order_total - $total;
 			$products[] = array(
@@ -123,12 +150,12 @@ final class InvoiceBuilder {
 				'measuringUnit'            => $ctx->measuring_unit,
 				'measuringUnitTranslation' => $ctx->measuring_unit_translation,
 				'currency'                 => $ctx->currency,
-				'vatName'                  => '',
-				'vatPercentage'            => null,
-				'vatIncluded'              => true,
-				'quantity'                 => 1,
-				'productType'              => 'Serviciu',
-			);
+			)
+				+ LineVat::document_fields( $ctx )
+				+ array(
+					'quantity'    => 1,
+					'productType' => 'Serviciu',
+				);
 		}
 
 		if ( '0.00' === number_format( $total, 2, '.', '' ) ) {
@@ -174,18 +201,35 @@ final class InvoiceBuilder {
 		if ( isset( $options['reference'] ) && is_array( $options['reference'] ) ) {
 			return $options['reference'];
 		}
-		if ( OrderMeta::TYPE_INVOICE !== $doc_type ) {
+		$type = $this->referenced_type( $order, $doc_type );
+		if ( null === $type ) {
 			return array();
 		}
-		$proforma = OrderMeta::get( $order, OrderMeta::TYPE_PROFORMA );
-		if ( null === $proforma ) {
-			return array();
-		}
+		$document = (array) OrderMeta::get( $order, $type );
 		return array(
-			'type'       => 'Proforma',
-			'seriesName' => $proforma['series'],
-			'number'     => $proforma['number'],
+			'type'       => OrderMeta::TYPE_NOTICE === $type ? 'Aviz' : 'Proforma',
+			'seriesName' => $document['series'],
+			'number'     => $document['number'],
 		);
+	}
+
+	/**
+	 * An aviz already took the goods out of stock, so the invoice is built on
+	 * it rather than issued again as a new sale; it wins over a proforma.
+	 *
+	 * @param WC_Order $order    Order.
+	 * @param string   $doc_type Document type being issued.
+	 */
+	private function referenced_type( WC_Order $order, string $doc_type ): ?string {
+		if ( OrderMeta::TYPE_INVOICE !== $doc_type ) {
+			return null;
+		}
+		foreach ( array( OrderMeta::TYPE_NOTICE, OrderMeta::TYPE_PROFORMA ) as $type ) {
+			if ( null !== OrderMeta::get( $order, $type ) ) {
+				return $type;
+			}
+		}
+		return null;
 	}
 
 	private function mentions( WC_Order $order ): string {

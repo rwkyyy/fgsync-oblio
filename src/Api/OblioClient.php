@@ -60,8 +60,22 @@ final class OblioClient {
 		return $this->nomenclature( 'series', $cif );
 	}
 
+	/**
+	 * Oblio answers 400 when the account has no warehouses, a normal setup
+	 * for shops that don't manage stock, so that answer isn't logged as an error.
+	 *
+	 * @param string $cif Company CIF.
+	 */
 	public function management( string $cif ): array {
-		return $this->nomenclature( 'management', $cif );
+		$response = $this->request(
+			'GET',
+			'/api/nomenclature/management',
+			array(
+				'query'           => array( 'cif' => $cif ),
+				'expected_errors' => array( 400 ),
+			)
+		);
+		return is_array( $response['data'] ?? null ) ? $response['data'] : array();
 	}
 
 	/**
@@ -179,7 +193,8 @@ final class OblioClient {
 			$status_message = is_array( $decoded ) && isset( $decoded['statusMessage'] )
 				? (string) $decoded['statusMessage']
 				: sprintf( 'HTTP %d', $code );
-			$this->logger->error( sprintf( '%s %s failed (%d): %s', $method, $path, $code, $status_message ) );
+			$expected       = in_array( $code, (array) ( $opts['expected_errors'] ?? array() ), true );
+			$this->logger->{$expected ? 'debug' : 'error'}( sprintf( '%s %s failed (%d): %s', $method, $path, $code, $status_message ) );
 			if ( 401 === $code || $code >= 500 ) {
 				$this->health->record_failure( $status_message );
 			}

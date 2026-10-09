@@ -13,6 +13,7 @@ use FGSyncOblio\Admin\AdminBarStatus;
 use FGSyncOblio\Admin\AdminBarToggle;
 use FGSyncOblio\Admin\BulkActions;
 use FGSyncOblio\Admin\ConnectionTest;
+use FGSyncOblio\Admin\EuVatImportAction;
 use FGSyncOblio\Admin\ImportAction;
 use FGSyncOblio\Admin\LegacyNotice;
 use FGSyncOblio\Admin\LogReader;
@@ -30,12 +31,14 @@ use FGSyncOblio\Admin\SettingsShortcut;
 use FGSyncOblio\Admin\StatusPanel;
 use FGSyncOblio\Admin\StockSyncAction;
 use FGSyncOblio\Admin\UpdateChecker;
+use FGSyncOblio\Admin\VatCategoryCheck;
 use FGSyncOblio\Api\ClientFactory;
 use FGSyncOblio\Compat\OrderStore;
 use FGSyncOblio\Frontend\AccountInvoices;
 use FGSyncOblio\Legacy\Importer;
 use FGSyncOblio\Extensibility\HookInspector;
 use FGSyncOblio\Extensibility\HookRegistry;
+use FGSyncOblio\Customer\BuyerResolver;
 use FGSyncOblio\Document\DocumentService;
 use FGSyncOblio\Document\EmailButton;
 use FGSyncOblio\Document\InvoiceBuilder;
@@ -67,6 +70,8 @@ use FGSyncOblio\Support\ConnectionHealth;
 use FGSyncOblio\Support\Logger;
 use FGSyncOblio\Support\RateLimiter;
 use FGSyncOblio\Support\Settings;
+use FGSyncOblio\Tax\EuVatRateImporter;
+use FGSyncOblio\Tax\WooTaxRateStore;
 final class Plugin {
 
 	private static ?Plugin $instance = null;
@@ -136,7 +141,8 @@ final class Plugin {
 			)
 		);
 
-		$container->set( ClientMapper::class, static fn (): ClientMapper => new ClientMapper() );
+		$container->set( BuyerResolver::class, static fn (): BuyerResolver => new BuyerResolver() );
+		$container->set( ClientMapper::class, static fn ( Container $container ): ClientMapper => new ClientMapper( $container->get( BuyerResolver::class ) ) );
 		$container->set( LineItemMapper::class, static fn ( Container $container ): LineItemMapper => new LineItemMapper( $container->get( Settings::class ) ) );
 		$container->set( ShippingFeeMapper::class, static fn (): ShippingFeeMapper => new ShippingFeeMapper() );
 		$container->set(
@@ -303,6 +309,22 @@ final class Plugin {
 		);
 
 		$container->set(
+			EuVatImportAction::class,
+			static fn ( Container $container ): EuVatImportAction => new EuVatImportAction(
+				new EuVatRateImporter( new WooTaxRateStore() ),
+				$container->get( Logger::class )
+			)
+		);
+
+		$container->set(
+			VatCategoryCheck::class,
+			static fn ( Container $container ): VatCategoryCheck => new VatCategoryCheck(
+				$container->get( NomenclatureCache::class ),
+				new WooTaxRateStore()
+			)
+		);
+
+		$container->set(
 			StockSyncAction::class,
 			static fn ( Container $container ): StockSyncAction => new StockSyncAction(
 				$container->get( StockSyncCoordinator::class ),
@@ -421,7 +443,8 @@ final class Plugin {
 			static fn ( Container $container ): ConnectionTest => new ConnectionTest(
 				$container->get( ClientFactory::class ),
 				$container->get( NomenclatureCache::class ),
-				$container->get( Logger::class )
+				$container->get( Logger::class ),
+				$container->get( Settings::class )
 			)
 		);
 	}
@@ -457,6 +480,8 @@ final class Plugin {
 			$this->get( LegacyNotice::class )->register();
 			$this->get( ConnectionTest::class )->register();
 			$this->get( StockSyncAction::class )->register();
+			$this->get( EuVatImportAction::class )->register();
+			$this->get( VatCategoryCheck::class )->register();
 			$this->get( AdminBarToggle::class )->register();
 			$this->get( LogTailAction::class )->register();
 			$this->get( OrderActions::class )->register();

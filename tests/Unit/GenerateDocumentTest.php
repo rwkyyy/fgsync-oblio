@@ -10,6 +10,7 @@ namespace FGSyncOblio\Tests\Unit;
 use FGSyncOblio\Api\Exception\ApiException;
 use FGSyncOblio\Compat\OrderStore;
 use FGSyncOblio\Document\DocumentException;
+use FGSyncOblio\Document\FullyRefundedException;
 use FGSyncOblio\Document\DocumentIssuer;
 use FGSyncOblio\Document\DocumentResult;
 use FGSyncOblio\Order\OrderMeta;
@@ -119,6 +120,18 @@ final class GenerateDocumentTest extends TestCase {
 
 		$this->assertNotSame( '', (string) $order->get_meta( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'failed' ) ) );
 		$this->assertSame( '', (string) $order->get_meta( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'failed_permanent' ) ) );
+	}
+
+	public function test_a_fully_refunded_order_is_skipped_without_a_failure(): void {
+		$order = new WC_Order( 1 );
+		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'failed' ), 'old' );
+		$this->documents->fail_with( new FullyRefundedException( 'refunded' ) );
+
+		$this->run_job( $order );
+
+		$this->assertSame( '', (string) $order->get_meta( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'failed' ) ) );
+		$this->assertSame( '', (string) $order->get_meta( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'failed_permanent' ) ) );
+		$this->assertArrayNotHasKey( 'oblio_fgwoo_pending_doc_' . OrderMeta::TYPE_INVOICE . '_1', $GLOBALS['oblio_test_options'] );
 	}
 
 	public function test_a_successful_issue_clears_both_failure_flags(): void {

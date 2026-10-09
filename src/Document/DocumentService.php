@@ -9,6 +9,7 @@ declare( strict_types=1 );
 
 namespace FGSyncOblio\Document;
 
+use FGSyncOblio\Admin\NomenclatureCache;
 use FGSyncOblio\Api\ClientFactory;
 use FGSyncOblio\Api\Exception\ApiException;
 use FGSyncOblio\Order\OrderMeta;
@@ -48,6 +49,10 @@ final class DocumentService implements DocumentIssuer {
 	}
 
 	public function issue( WC_Order $order, string $doc_type, array $options = array(), bool $fail_fast = false ): DocumentResult {
+		if ( ! empty( $options['use_stock'] ) && NomenclatureCache::has_no_warehouses() ) {
+			$options['use_stock'] = false;
+		}
+
 		$existing = OrderMeta::get( $order, $doc_type );
 		if ( null !== $existing ) {
 			return new DocumentResult( $doc_type, $existing['series'], $existing['number'], $existing['link'] );
@@ -74,7 +79,8 @@ final class DocumentService implements DocumentIssuer {
 			$this->policy->assert_can_issue( $order, $doc_type );
 			$this->maybe_drop_proforma( $order, $doc_type );
 
-			$payload = $this->builder->build( $order, $doc_type, $options );
+			$refunds = PriorRefunds::for_order( $order );
+			$payload = $this->builder->build( $order, $doc_type, $options, $refunds );
 
 			OrderLock::renew( $order->get_id(), $owner );
 			$data   = $this->factory->create()->create_document( $doc_type, $payload );
@@ -88,6 +94,7 @@ final class DocumentService implements DocumentIssuer {
 
 				OrderMeta::record_invoice_stock_usage( $order, ! empty( $options['use_stock'] ) );
 			}
+			OrderMeta::record_netted_refunds( $order, $doc_type, $this->builder->netted_refund_ids( $order, $doc_type, $options, $refunds ) );
 			OrderMeta::save( $order, $result );
 		} finally {
 			OrderLock::release( $order->get_id(), $owner );

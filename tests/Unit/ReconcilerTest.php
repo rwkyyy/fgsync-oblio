@@ -132,6 +132,20 @@ final class ReconcilerTest extends TestCase {
 		$this->assertCount( 0, $GLOBALS['oblio_test_as_calls'] );
 	}
 
+	public function test_storno_reconciliation_skips_a_refund_the_invoice_netted(): void {
+		$this->settings->set( 'storno_autogen', 'yes' );
+		$order = new WC_Order( 1 );
+		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'link' ), 'https://example.test/invoice' );
+		OrderMeta::record_netted_refunds( $order, OrderMeta::TYPE_INVOICE, array( 5 ) );
+		$GLOBALS['oblio_test_orders'][1] = $order;
+		$GLOBALS['oblio_test_orders'][5] = new WC_Order_Refund( 5, 1 );
+		$GLOBALS['oblio_test_wc_orders_result'] = array( 5 );
+
+		$this->reconciler->run();
+
+		$this->assertCount( 0, $GLOBALS['oblio_test_as_calls'] );
+	}
+
 	public function test_storno_reconciliation_skips_a_permanently_failed_refund(): void {
 		$this->settings->set( 'storno_autogen', 'yes' );
 		$order = new WC_Order( 1 );

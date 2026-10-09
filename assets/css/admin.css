@@ -221,10 +221,14 @@
     border-radius: 6px;
     padding: 8px 11px;
     font-size: 13px;
-    background: var(--panel);
+    background-color: var(--panel);
     box-shadow: none;
     min-width: 320px;
     max-width: 100%;
+}
+
+.oblio-fgwoo-page-body select:not([multiple]) {
+    padding-right: 28px;
 }
 
 .oblio-fgwoo-page-body input:focus,
@@ -622,6 +626,85 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 8px;
+}
+
+.oblio-fgwoo-page-body .description.oblio-fgwoo-warning {
+    background: #fdf5ec;
+    border: 1px solid var(--warn);
+    border-radius: 6px;
+    padding: 8px 10px;
+    color: #9a4a0d;
+}
+
+.oblio-fgwoo-rates {
+    display: grid;
+    grid-template-columns: max-content max-content 1fr;
+    gap: 6px 18px;
+    align-items: center;
+    margin-top: 10px;
+    max-width: 520px;
+    font-size: 12px;
+    color: var(--ink-2);
+}
+
+.oblio-fgwoo-rates .head {
+    font-weight: 600;
+    color: var(--ink-3);
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--line);
+}
+
+.oblio-fgwoo-rates .rate {
+    font-weight: 700;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+.oblio-fgwoo-rates code {
+    justify-self: start;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 1px 7px;
+    font-size: 12px;
+    color: var(--ink);
+}
+
+.oblio-fgwoo-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 4px 0 10px;
+    max-width: 640px;
+}
+
+.oblio-fgwoo-chip {
+    font-size: 11px;
+    line-height: 1.6;
+    padding: 0 7px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--panel-2);
+    color: var(--ink-2);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.oblio-fgwoo-chip.is-new {
+    background: #eaf5ee;
+    border-color: #bfe0cb;
+    color: var(--success);
+}
+
+.oblio-fgwoo-chip.is-changed {
+    background: #fdf5ec;
+    border-color: #f1d3b5;
+    color: #9a4a0d;
+}
+
+.oblio-fgwoo-page-body .description.oblio-fgwoo-success {
+    color: var(--success);
 }
 
 .oblio-fgwoo-qrow {

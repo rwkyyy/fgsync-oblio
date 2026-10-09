@@ -10,6 +10,7 @@ declare( strict_types=1 );
 namespace FGSyncOblio\Admin;
 
 use FGSyncOblio\Api\ClientFactory;
+use FGSyncOblio\Document\VatCategories;
 use FGSyncOblio\Extensibility\HookInspector;
 use FGSyncOblio\Extensibility\HookRegistry;
 use FGSyncOblio\Support\Logger;
@@ -17,7 +18,7 @@ use FGSyncOblio\Support\Settings;
 use WC_Admin_Settings;
 final class SettingsPage {
 
-	private const PAGE_SLUG = 'fgsync-oblio';
+	public const PAGE_SLUG = 'fgsync-oblio';
 
 	private Settings $settings;
 
@@ -118,6 +119,7 @@ final class SettingsPage {
 		return array(
 			''           => __( 'Conectare', 'fgsync-oblio' ),
 			'documents'  => __( 'Documente', 'fgsync-oblio' ),
+			'tax'        => __( 'TVA', 'fgsync-oblio' ),
 			'collection' => __( 'Încasare', 'fgsync-oblio' ),
 			'stock'      => __( 'Sincronizare', 'fgsync-oblio' ),
 			'email'      => __( 'Email', 'fgsync-oblio' ),
@@ -296,6 +298,8 @@ final class SettingsPage {
 				return $this->connection_fields( $opt );
 			case 'documents':
 				return $this->documents_fields( $opt );
+			case 'tax':
+				return $this->tax_fields( $opt );
 			case 'collection':
 				return $this->collection_fields( $opt );
 			case 'stock':
@@ -396,14 +400,14 @@ final class SettingsPage {
 				'desc'    => __( 'Ce dată apare pe document: ziua emiterii sau ziua comenzii.', 'fgsync-oblio' ),
 			),
 
-			array(
+			$this->without_warehouses() + array(
 				'title'   => __( 'Punct de lucru', 'fgsync-oblio' ),
 				'type'    => 'select',
 				'id'      => $opt( 'workstation' ),
 				'options' => $this->with_saved_value( array( '' => __( 'Implicit', 'fgsync-oblio' ) ) + $this->nomenclature->workstations(), 'workstation' ),
 				'desc'    => __( 'Punctul de lucru pe care se emit documentele. „Implicit” folosește setarea din Oblio.', 'fgsync-oblio' ),
 			),
-			array(
+			$this->without_warehouses() + array(
 				'title'   => __( 'Gestiune (emitere)', 'fgsync-oblio' ),
 				'type'    => 'select',
 				'id'      => $opt( 'management' ),
@@ -504,6 +508,12 @@ final class SettingsPage {
 				'desc'    => __( 'Se poate selecta unul sau mai multe statusuri.', 'fgsync-oblio' ),
 			),
 			array(
+				'title' => __( 'Emite și la confirmarea plății', 'fgsync-oblio' ),
+				'type'  => 'checkbox',
+				'id'    => $opt( 'invoice_on_payment' ),
+				'desc'  => __( 'Factura se emite imediat ce WooCommerce confirmă o <strong>plată online</strong> (card, PayPal etc.), chiar dacă statusul comenzii nu este încă în lista de mai sus. Plata ramburs și transferul bancar nu declanșează această opțiune. Funcționează în modurile „Prin coadă” și „Instant”.', 'fgsync-oblio' ),
+			),
+			$this->without_warehouses() + array(
 				'title' => __( 'Descarcă din stoc la factura automată', 'fgsync-oblio' ),
 				'type'  => 'checkbox',
 				'id'    => $opt( 'invoice_autogen_use_stock' ),
@@ -553,6 +563,132 @@ final class SettingsPage {
 				'desc'  => __( 'Experimental: funcția „Returns” din WooCommerce nu are încă un API stabil, așa că integrarea folosește hook-uri presupuse (filtrabile). Necesită funcția „Returns” activă. A nu se folosi în producție fără testare.', 'fgsync-oblio' ),
 			),
 		);
+	}
+
+	/**
+	 * @param callable $opt Maps a setting key to its option name.
+	 * @return array<int,array<string,mixed>>
+	 */
+	private function tax_fields( callable $opt ): array {
+		$oss = array(
+			'title'    => __( 'OSS: Emite în EUR pentru clienții din afara României', 'fgsync-oblio' ),
+			'type'     => 'checkbox',
+			'id'       => $opt( 'oss_eur_currency' ),
+			'desc_tip' => __( 'Documentele pentru adrese de facturare din afara României se emit <strong>în EUR</strong>. Oblio afișează și echivalentul în RON pe document. Această setare <strong>nu impactează TVA-ul.</strong>', 'fgsync-oblio' ),
+		);
+
+		if ( 'yes' !== get_option( 'woocommerce_calc_taxes' ) ) {
+			return array_merge(
+				array(
+					array(
+						'title' => __( 'Cote TVA', 'fgsync-oblio' ),
+						'type'  => 'title',
+						'desc'  => sprintf(
+							/* translators: %s: link to the WooCommerce general settings */
+							__( '<strong>Taxele sunt dezactivate în WooCommerce.</strong> Liniile se trimit fără TVA, iar Oblio aplică setările contului. Le poți activa din %s.', 'fgsync-oblio' ),
+							'<a href="' . esc_url( admin_url( 'admin.php?page=wc-settings&tab=general' ) ) . '">' . esc_html__( 'WooCommerce → Setări → General', 'fgsync-oblio' ) . '</a>'
+						),
+						'id'    => 'oblio_fgwoo_tax',
+					),
+					array(
+						'type' => 'sectionend',
+						'id'   => 'oblio_fgwoo_tax',
+					),
+					array(
+						'title' => __( 'Monedă documente', 'fgsync-oblio' ),
+						'type'  => 'title',
+						'id'    => 'oblio_fgwoo_tax_eu',
+					),
+					$oss,
+					array(
+						'type' => 'sectionend',
+						'id'   => 'oblio_fgwoo_tax_eu',
+					),
+				),
+				$this->buyer_fields()
+			);
+		}
+
+		return array_merge(
+			array(
+				array(
+					'title' => __( 'Cote TVA', 'fgsync-oblio' ),
+					'type'  => 'title',
+					'desc'  => __( 'Fiecare poziție de pe documentele emise, primesc ca și TVA categoria din Oblio cu <strong>același procent</strong>!<br> O cotă de TVA nouă sau schimbată înseamnă o <strong>categorie nouă</strong> în Oblio, numită după procent (de ex. „25.5”).', 'fgsync-oblio' ),
+					'id'    => 'oblio_fgwoo_tax',
+				),
+				array(
+					'type' => VatCategoryCheck::FIELD_TYPE,
+					'id'   => 'oblio_fgwoo_vat_category_check',
+				),
+				array(
+					'title'    => __( 'Categorie de taxare pentru produse fără TVA', 'fgsync-oblio' ),
+					'type'     => 'select',
+					'id'       => $opt( 'vat_untaxed_category' ),
+					'default'  => 'SDD',
+					'options'  => $this->with_saved_value( VatCategories::untaxed_options( $this->nomenclature->vat_categories() ), 'vat_untaxed_category' ),
+					'desc'     => sprintf(
+						/* translators: %s: link to Oblio's VAT categories page */
+						__( 'Categoria de <strong>0%%</strong> folosită pentru liniile fără TVA. Lista provine din: %s.', 'fgsync-oblio' ),
+						VatCategories::settings_link()
+					),
+					'desc_tip' => __( 'De exemplu SDD (scutit cu drept de deducere), SFDD (scutit fără drept de deducere), Scutita sau Taxare inversa.', 'fgsync-oblio' ),
+				),
+				array(
+					'type' => 'sectionend',
+					'id'   => 'oblio_fgwoo_tax',
+				),
+				array(
+					'title' => __( 'Cote TVA UE', 'fgsync-oblio' ),
+					'type'  => 'title',
+					'id'    => 'oblio_fgwoo_tax_eu',
+				),
+				array(
+					'type' => EuVatImportAction::FIELD_TYPE,
+					'id'   => 'oblio_fgwoo_eu_vat_import',
+				),
+				$oss,
+				array(
+					'type' => 'sectionend',
+					'id'   => 'oblio_fgwoo_tax_eu',
+				),
+			),
+			$this->buyer_fields()
+		);
+	}
+
+	/**
+	 * @return array<int,array<string,mixed>>
+	 */
+	private function buyer_fields(): array {
+		return array(
+			array(
+				'type' => 'title',
+				'desc' => $this->facturare_plugin_notice(),
+				'id'   => 'oblio_fgwoo_tax_buyers',
+			),
+			array(
+				'type' => 'sectionend',
+				'id'   => 'oblio_fgwoo_tax_buyers',
+			),
+		);
+	}
+
+	private function facturare_plugin_notice(): string {
+		$link = '<a href="https://wordpress.org/plugins/facturare-persoana-fizica-sau-juridica/" target="_blank" rel="noopener">Facturare - Persoana Fizica sau Juridica</a>';
+		if ( defined( 'WOOFACTURARE_VERSION' ) ) {
+			return '<p class="description">' . sprintf(
+				/* translators: 1: plugin link, 2: plugin version */
+				__( 'Persoană fizică / juridică, CUI, CNP, Reg. Com., bancă și IBAN se preiau din <strong>%1$s</strong> (versiunea %2$s, activ).', 'fgsync-oblio' ),
+				$link,
+				esc_html( (string) WOOFACTURARE_VERSION )
+			) . '</p>';
+		}
+		return '<p class="description">' . sprintf(
+			/* translators: %s: plugin link */
+			__( '<strong>Recomandăm:</strong> pluginul gratuit %s, pentru posibilitatea selecției tipului de facturare: persoană fizică / juridică, dar și a câmpurilor specifice: CNP, CUI, Reg. Com., bancă și IBAN. Fără acest plugin (sau altul) FGSync va căuta în câmpurile din comandă, dar nu putem garanta detectarea lor corectă/completă.', 'fgsync-oblio' ),
+			$link
+		) . '</p>';
 	}
 
 	private function collection_fields( callable $opt ): array {
@@ -623,7 +759,7 @@ final class SettingsPage {
 				'options' => $this->interval_options(),
 				'desc'    => __( 'Cât de des rulează sincronizarea programată.', 'fgsync-oblio' ),
 			),
-			array(
+			$this->without_warehouses() + array(
 				'title'   => __( 'Gestiuni (locații)', 'fgsync-oblio' ),
 				'type'    => 'multiselect',
 				'class'   => 'wc-enhanced-select',
@@ -765,6 +901,13 @@ final class SettingsPage {
 				'desc'    => __( 'Tipul cu care se trimit produsele noi către Oblio.', 'fgsync-oblio' ),
 			),
 			array(
+				'title'   => __( 'Tip produs pentru produse virtuale', 'fgsync-oblio' ),
+				'type'    => 'select',
+				'id'      => $opt( 'product_type_virtual' ),
+				'options' => array( '' => __( 'La fel ca tipul implicit', 'fgsync-oblio' ) ) + $this->product_type_options(),
+				'desc'    => __( 'Pentru produsele marcate <strong>virtuale</strong> în WooCommerce (de ex. digitale, descărcabile), de obicei „Serviciu”. Tipul setat pe produs are prioritate.', 'fgsync-oblio' ),
+			),
+			array(
 				'title'       => __( 'Mențiuni', 'fgsync-oblio' ),
 				'type'        => 'textarea',
 				'id'          => $opt( 'invoice_mentions' ),
@@ -809,27 +952,17 @@ final class SettingsPage {
 				'desc'  => __( 'Emite documentul fără a actualiza prețul produsului în nomenclatorul Oblio.', 'fgsync-oblio' ),
 			),
 			array(
-				'title' => __( 'Facturare OSS: EUR pentru clienți din afara României', 'fgsync-oblio' ),
-				'type'  => 'checkbox',
-				'id'    => $opt( 'oss_eur_currency' ),
-				'desc'  => sprintf(
-					/* translators: %s: link to the WooCommerce tax settings */
-					__( 'Emite documentul în moneda EUR când adresa de facturare nu este din România, indiferent de moneda comenzii (regim UE - One Stop Shop - OSS). <br>Valabil pentru vânzări B2C (clienți casnici) de sub 10.000 € pe an către alte state membre UE; peste acest prag, TVA-ul trebuie aplicat pe cota țării clientului, configurabilă în %s. <br>Lasă debifat dacă magazinul nu aplică OSS / nu facturează și/sau livrează în afara României.', 'fgsync-oblio' ),
-					'<a href="' . esc_url( admin_url( 'admin.php?page=wc-settings&tab=tax' ) ) . '" class="oblio-fgwoo-link">' . esc_html__( 'Setările de taxe WooCommerce', 'fgsync-oblio' ) . '</a>'
-				),
-			),
-			array(
 				'title'             => __( 'Produse pachet (Bundles)', 'fgsync-oblio' ),
 				'type'              => 'select',
 				'id'                => $opt( 'bundle_line_mode' ),
-				'default'           => 'skip',
+				'default'           => 'auto',
 				'options'           => array(
-					'skip'    => __( 'OMITE linia pachetului (recomandat)', 'fgsync-oblio' ),
+					'auto'    => __( 'AUTOMAT: facturează componentele (recomandat)', 'fgsync-oblio' ),
 					'include' => __( 'INCLUDE linia pachetului (trebuie să aibă stoc)', 'fgsync-oblio' ),
 				),
 				'custom_attributes' => $this->has_bundle_product_type() ? array() : array( 'disabled' => 'disabled' ),
 				'desc'              => $this->has_bundle_product_type()
-					? __( 'Doar componentele sunt facturate și scad din stoc; linia pachetului nu are cod propriu în Oblio. Dacă nu descarci stoc prin Oblio, „Include” poate fi mai clar pe factură.', 'fgsync-oblio' )
+					? __( 'Doar componentele sunt facturate și scad din stoc; linia pachetului nu are cod propriu în Oblio. Dacă pachetul are preț propriu (ex. pachet promoțional), prețul lui se împarte pe componente. Dacă nu descarci stoc prin Oblio, „Include” poate fi mai clar pe factură.', 'fgsync-oblio' )
 					: __( 'Necesită plugin-ul WooCommerce Product Bundles (tipul de produs „bundle” nu este disponibil).', 'fgsync-oblio' ),
 			),
 			array(
@@ -937,6 +1070,22 @@ final class SettingsPage {
 			'HU' => 'Maghiară',
 			'DE' => 'Germană',
 			'BG' => 'Bulgară',
+		);
+	}
+
+	/**
+	 * Disables a warehouse-only field once Oblio has said the account has
+	 * no warehouses; the explanation replaces the field's description.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function without_warehouses(): array {
+		if ( ! NomenclatureCache::has_no_warehouses() ) {
+			return array();
+		}
+		return array(
+			'custom_attributes' => array( 'disabled' => 'disabled' ),
+			'desc'              => __( '<strong>Firma nu folosește gestiune de stoc în Oblio</strong>, deci această opțiune nu se aplică.', 'fgsync-oblio' ),
 		);
 	}
 

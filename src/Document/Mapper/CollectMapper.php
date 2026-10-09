@@ -14,7 +14,7 @@ use WC_Order;
 final class CollectMapper {
 
 	// Gateways (or none, for admin/free orders) where no card payment was taken.
-	private const OFFLINE_GATEWAYS = array( '', 'bacs', 'cod', 'cheque' );
+	public const OFFLINE_GATEWAYS = array( '', 'bacs', 'cod', 'cheque' );
 
 	private Settings $settings;
 

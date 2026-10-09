@@ -11,6 +11,7 @@ namespace FGSyncOblio\Queue;
 
 use FGSyncOblio\Compat\OrderStore;
 use FGSyncOblio\Document\DocumentIssuer;
+use FGSyncOblio\Document\LifecyclePolicy;
 use FGSyncOblio\Order\OrderMeta;
 use FGSyncOblio\Support\Logger;
 use FGSyncOblio\Support\RateLimiter;
@@ -52,6 +53,23 @@ final class AutoIssue {
 	public function register(): void {
 		add_action( 'woocommerce_order_status_changed', array( $this, 'on_status_changed' ), 20, 4 );
 		add_action( 'woocommerce_thankyou', array( $this, 'on_thankyou' ), 20, 1 );
+		add_action( 'woocommerce_payment_complete', array( $this, 'on_payment_complete' ), 20, 1 );
+	}
+
+	/**
+	 * Online gateways (card, PayPal, ...) confirm payment here, often while the
+	 * order is still "processing"; cash on delivery and bank transfer never do.
+	 *
+	 * @param int|string $order_id Order ID.
+	 */
+	public function on_payment_complete( $order_id ): void {
+		if ( ! $this->is_configured() || ! $this->settings->is_enabled( 'invoice_autogen' ) || ! $this->settings->is_enabled( 'invoice_on_payment' ) ) {
+			return;
+		}
+		$order = $this->orders->get_order( (int) $order_id );
+		if ( null !== $order ) {
+			$this->issue_invoice( $order );
+		}
 	}
 
 	public function on_status_changed( $order_id, $from, $to, $order = null ): void {
@@ -74,15 +92,15 @@ final class AutoIssue {
 	}
 
 	private function maybe_issue_invoice( WC_Order $order, string $from, string $to ): void {
-		if ( ! $this->settings->is_enabled( 'invoice_autogen' ) ) {
+		if ( ! $this->settings->is_enabled( 'invoice_autogen' ) || ! $this->entered( $from, $to, $this->settings->invoice_statuses() ) ) {
 			return;
 		}
+		$this->issue_invoice( $order );
+	}
 
+	private function issue_invoice( WC_Order $order ): void {
 		$mode = (string) $this->settings->get( 'invoice_generation', 'event' );
 		if ( 'event' !== $mode && 'instant' !== $mode ) {
-			return;
-		}
-		if ( ! $this->entered( $from, $to, $this->settings->invoice_statuses() ) ) {
 			return;
 		}
 		if ( OrderMeta::has( $order, OrderMeta::TYPE_INVOICE ) ) {
@@ -119,7 +137,7 @@ final class AutoIssue {
 		if ( ! $this->entered( $from, $to, $targets ) ) {
 			return;
 		}
-		if ( OrderMeta::has( $order, OrderMeta::TYPE_INVOICE ) || OrderMeta::has( $order, OrderMeta::TYPE_PROFORMA ) ) {
+		if ( OrderMeta::has( $order, OrderMeta::TYPE_INVOICE ) || OrderMeta::has( $order, OrderMeta::TYPE_PROFORMA ) || LifecyclePolicy::paid_online( $order ) ) {
 			return;
 		}
 		if ( ! $this->scheduler->enqueue_document( $order->get_id(), OrderMeta::TYPE_PROFORMA )
@@ -141,7 +159,7 @@ final class AutoIssue {
 		if ( null === $order ) {
 			return;
 		}
-		if ( OrderMeta::has( $order, OrderMeta::TYPE_INVOICE ) || OrderMeta::has( $order, OrderMeta::TYPE_PROFORMA ) ) {
+		if ( OrderMeta::has( $order, OrderMeta::TYPE_INVOICE ) || OrderMeta::has( $order, OrderMeta::TYPE_PROFORMA ) || LifecyclePolicy::paid_online( $order ) ) {
 			return;
 		}
 

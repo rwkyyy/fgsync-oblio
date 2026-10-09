@@ -12,6 +12,7 @@ namespace FGSyncOblio\Queue\Jobs;
 use FGSyncOblio\Api\Exception\ApiException;
 use FGSyncOblio\Compat\OrderStore;
 use FGSyncOblio\Document\DocumentException;
+use FGSyncOblio\Document\FullyRefundedException;
 use FGSyncOblio\Document\DocumentIssuer;
 use FGSyncOblio\Order\OrderMeta;
 use FGSyncOblio\Queue\Scheduler;
@@ -86,6 +87,12 @@ final class GenerateDocument {
 			$order->delete_meta_data( OrderMeta::key( $doc_type, 'failed_permanent' ) );
 			$order->save();
 			$this->scheduler->release_pending_document( $order_id, $doc_type, $owner );
+		} catch ( FullyRefundedException $exception ) {
+			$order->delete_meta_data( OrderMeta::key( $doc_type, 'failed' ) );
+			$order->delete_meta_data( OrderMeta::key( $doc_type, 'failed_permanent' ) );
+			$order->save();
+			$this->scheduler->release_pending_document( $order_id, $doc_type, $owner );
+			$this->logger->info( sprintf( 'Queue: order #%d was refunded in full, no %s issued', $order_id, $doc_type ) );
 		} catch ( DocumentException $exception ) {
 			$this->fail( $order, $doc_type, $owner, $exception->getMessage(), false );
 		} catch ( ApiException $exception ) {

@@ -26,7 +26,6 @@ use FGSyncOblio\Support\Settings;
 use RuntimeException;
 use WC_Order;
 use WC_Order_Item_Fee;
-use WC_Order_Item_Product;
 use WC_Order_Refund;
 final class RefundService implements RefundIssuer {
 
@@ -97,6 +96,11 @@ final class RefundService implements RefundIssuer {
 			}
 
 			if ( '' !== (string) $order->get_meta( OrderMeta::key( OrderMeta::TYPE_STORNO, 'full' ) ) ) {
+				return null;
+			}
+
+			if ( in_array( $refund_id, OrderMeta::netted_refunds( $order, OrderMeta::TYPE_INVOICE ), true ) ) {
+				$this->logger->info( sprintf( 'Order #%d refund #%d: already taken off invoice %s %s, no storno needed', $order_id, $refund_id, $invoice['series'], $invoice['number'] ) );
 				return null;
 			}
 
@@ -229,10 +233,21 @@ final class RefundService implements RefundIssuer {
 		$order->update_meta_data( OrderMeta::STORNO_LIST, $list );
 	}
 
+	/**
+	 * Measured against the invoice total, which leaves out refunds it netted.
+	 *
+	 * @param WC_Order        $order  Order.
+	 * @param WC_Order_Refund $refund Refund.
+	 */
 	private function is_full_refund( WC_Order $order, WC_Order_Refund $refund ): bool {
-		$refund_amount = abs( (float) $refund->get_amount() );
-		$order_total   = (float) $order->get_total();
-		return abs( $refund_amount - $order_total ) < 0.01;
+		$invoiced = (float) $order->get_total();
+		$netted   = OrderMeta::netted_refunds( $order, OrderMeta::TYPE_INVOICE );
+		foreach ( $order->get_refunds() as $prior ) {
+			if ( $prior instanceof WC_Order_Refund && in_array( (int) $prior->get_id(), $netted, true ) ) {
+				$invoiced -= abs( (float) $prior->get_amount() );
+			}
+		}
+		return abs( abs( (float) $refund->get_amount() ) - $invoiced ) < 0.01;
 	}
 
 	private function build_storno( WC_Order $order, array $invoice, WC_Order_Refund $refund, bool $is_full, int $refund_id ): array {
@@ -253,7 +268,7 @@ final class RefundService implements RefundIssuer {
 
 		if ( ! $is_full ) {
 
-			$products = $this->refund_products( $refund, $ctx );
+			$products = $this->refund_products( $order, $refund, $ctx );
 			if ( empty( $products ) ) {
 
 				$products = $this->amount_only_line( $refund, $ctx );
@@ -296,18 +311,8 @@ final class RefundService implements RefundIssuer {
 		return substr( md5( site_url() . '|' . (string) $this->settings->get( 'cif' ) ), 0, 12 );
 	}
 
-	private function refund_products( WC_Order_Refund $refund, BuildContext $ctx ): array {
-		$products = array();
-
-		foreach ( $refund->get_items() as $item ) {
-			if ( ! $item instanceof WC_Order_Item_Product ) {
-				continue;
-			}
-			$line = $this->line_mapper->storno_line( $item, $ctx );
-			if ( null !== $line ) {
-				$products[] = $line;
-			}
-		}
+	private function refund_products( WC_Order $order, WC_Order_Refund $refund, BuildContext $ctx ): array {
+		$products = $this->line_mapper->storno_lines( $order, $refund, $ctx );
 
 		foreach ( $refund->get_items( 'fee' ) as $fee ) {
 			if ( ! $fee instanceof WC_Order_Item_Fee ) {
@@ -335,7 +340,7 @@ final class RefundService implements RefundIssuer {
 
 		$reason = trim( (string) $refund->get_reason() );
 
-		return array( $this->untaxed_service_line( '' !== $reason ? $reason : __( 'Rambursare', 'fgsync-oblio' ), round( $amount, $ctx->precision + 2 ), -1, $ctx ) );
+		return array( $this->adjustment_line( '' !== $reason ? $reason : __( 'Rambursare', 'fgsync-oblio' ), round( $amount, $ctx->precision + 2 ), -1, $ctx ) );
 	}
 
 	private function reconcile_products( array $products, WC_Order_Refund $refund, BuildContext $ctx ): array {
@@ -355,7 +360,7 @@ final class RefundService implements RefundIssuer {
 			return $products;
 		}
 
-		$products[] = $this->untaxed_service_line( __( 'Ajustare storno', 'fgsync-oblio' ), $adjustment['price'], $adjustment['quantity'], $ctx );
+		$products[] = $this->adjustment_line( __( 'Ajustare storno', 'fgsync-oblio' ), $adjustment['price'], $adjustment['quantity'], $ctx );
 
 		return $products;
 	}
@@ -367,7 +372,7 @@ final class RefundService implements RefundIssuer {
 	 * @param BuildContext $ctx      Document context.
 	 * @return array<string,mixed>
 	 */
-	private function untaxed_service_line( string $name, float $price, int $quantity, BuildContext $ctx ): array {
+	private function adjustment_line( string $name, float $price, int $quantity, BuildContext $ctx ): array {
 		return array(
 			'name'                     => $name,
 			'code'                     => '',
@@ -375,12 +380,12 @@ final class RefundService implements RefundIssuer {
 			'measuringUnit'            => $ctx->measuring_unit,
 			'measuringUnitTranslation' => $ctx->measuring_unit_translation,
 			'currency'                 => $ctx->currency,
-			'vatName'                  => '',
-			'vatPercentage'            => null,
-			'vatIncluded'              => true,
-			'quantity'                 => $quantity,
-			'productType'              => 'Serviciu',
-		);
+		)
+			+ LineVat::document_fields( $ctx )
+			+ array(
+				'quantity'    => $quantity,
+				'productType' => 'Serviciu',
+			);
 	}
 
 	public static function storno_adjustment( float $target, float $magnitude ): ?array {

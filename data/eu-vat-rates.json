@@ -1,0 +1,248 @@
+{
+    "source": "https://api.vatcomply.com/vat_rates",
+    "fetched_at": "2026-10-08",
+    "rates": {
+        "AT": {
+            "standard": 20.0,
+            "reduced": [
+                10.0,
+                13.0,
+                19.0
+            ],
+            "super_reduced": 4.9,
+            "parking": null
+        },
+        "BE": {
+            "standard": 21.0,
+            "reduced": [
+                6.0,
+                12.0
+            ],
+            "super_reduced": null,
+            "parking": 12.0
+        },
+        "BG": {
+            "standard": 20.0,
+            "reduced": [
+                9.0
+            ],
+            "super_reduced": null,
+            "parking": null
+        },
+        "CY": {
+            "standard": 19.0,
+            "reduced": [
+                5.0,
+                9.0
+            ],
+            "super_reduced": 3.0,
+            "parking": null
+        },
+        "CZ": {
+            "standard": 21.0,
+            "reduced": [
+                12.0
+            ],
+            "super_reduced": null,
+            "parking": null
+        },
+        "DE": {
+            "standard": 19.0,
+            "reduced": [
+                7.0
+            ],
+            "super_reduced": null,
+            "parking": null
+        },
+        "DK": {
+            "standard": 25.0,
+            "reduced": [],
+            "super_reduced": null,
+            "parking": null
+        },
+        "EE": {
+            "standard": 24.0,
+            "reduced": [
+                9.0,
+                13.0
+            ],
+            "super_reduced": null,
+            "parking": null
+        },
+        "ES": {
+            "standard": 21.0,
+            "reduced": [
+                10.0
+            ],
+            "super_reduced": 4.0,
+            "parking": null
+        },
+        "FI": {
+            "standard": 25.5,
+            "reduced": [
+                10.0,
+                13.5
+            ],
+            "super_reduced": null,
+            "parking": null
+        },
+        "FR": {
+            "standard": 20.0,
+            "reduced": [
+                0.9,
+                1.05,
+                5.5,
+                8.5,
+                10.0,
+                13.0
+            ],
+            "super_reduced": 2.1,
+            "parking": null
+        },
+        "GR": {
+            "standard": 24.0,
+            "reduced": [
+                6.0,
+                13.0,
+                17.0
+            ],
+            "super_reduced": 4.0,
+            "parking": 13.0
+        },
+        "HR": {
+            "standard": 25.0,
+            "reduced": [
+                5.0,
+                13.0
+            ],
+            "super_reduced": null,
+            "parking": null
+        },
+        "HU": {
+            "standard": 27.0,
+            "reduced": [
+                5.0,
+                18.0
+            ],
+            "super_reduced": null,
+            "parking": null
+        },
+        "IE": {
+            "standard": 23.0,
+            "reduced": [
+                9.0,
+                13.5
+            ],
+            "super_reduced": null,
+            "parking": null
+        },
+        "IT": {
+            "standard": 22.0,
+            "reduced": [
+                5.0,
+                10.0
+            ],
+            "super_reduced": 4.0,
+            "parking": null
+        },
+        "LT": {
+            "standard": 21.0,
+            "reduced": [
+                5.0,
+                12.0
+            ],
+            "super_reduced": null,
+            "parking": null
+        },
+        "LU": {
+            "standard": 17.0,
+            "reduced": [
+                8.0,
+                14.0
+            ],
+            "super_reduced": 3.0,
+            "parking": 14.0
+        },
+        "LV": {
+            "standard": 21.0,
+            "reduced": [
+                5.0,
+                12.0
+            ],
+            "super_reduced": null,
+            "parking": null
+        },
+        "MT": {
+            "standard": 18.0,
+            "reduced": [
+                5.0,
+                7.0
+            ],
+            "super_reduced": null,
+            "parking": 12.0
+        },
+        "NL": {
+            "standard": 21.0,
+            "reduced": [
+                9.0
+            ],
+            "super_reduced": null,
+            "parking": null
+        },
+        "PL": {
+            "standard": 23.0,
+            "reduced": [
+                5.0,
+                8.0
+            ],
+            "super_reduced": 8.0,
+            "parking": null
+        },
+        "PT": {
+            "standard": 23.0,
+            "reduced": [
+                6.0,
+                13.0,
+                16.0,
+                22.0
+            ],
+            "super_reduced": 6.0,
+            "parking": 13.0
+        },
+        "RO": {
+            "standard": 21.0,
+            "reduced": [
+                11.0
+            ],
+            "super_reduced": null,
+            "parking": null
+        },
+        "SE": {
+            "standard": 25.0,
+            "reduced": [
+                6.0,
+                12.0
+            ],
+            "super_reduced": null,
+            "parking": null
+        },
+        "SI": {
+            "standard": 22.0,
+            "reduced": [
+                5.0,
+                9.5
+            ],
+            "super_reduced": null,
+            "parking": null
+        },
+        "SK": {
+            "standard": 23.0,
+            "reduced": [
+                5.0,
+                19.0
+            ],
+            "super_reduced": null,
+            "parking": null
+        }
+    }
+}

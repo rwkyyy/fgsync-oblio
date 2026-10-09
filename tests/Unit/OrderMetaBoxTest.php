@@ -44,4 +44,28 @@ final class OrderMetaBoxTest extends TestCase {
 		$this->assertStringContainsString( 'data-task="delete"', $output );
 		$this->assertCount( 0, $GLOBALS['oblio_test_wc_orders_calls'] );
 	}
+
+	public function test_invoice_is_issued_without_stock_when_the_account_has_no_warehouses(): void {
+		set_transient( 'oblio_fgwoo_management', array(), WEEK_IN_SECONDS );
+
+		ob_start();
+		$this->meta_box->render( new WC_Order( 5 ) );
+		$output = (string) ob_get_clean();
+
+		$this->assertStringNotContainsString( 'data-use-stock', $output );
+		$this->assertStringNotContainsString( 'Emite fără descărcare', $output );
+	}
+
+	public function test_no_proforma_button_for_an_order_paid_online(): void {
+		$order = new WC_Order( 6 );
+		$order->set_payment_method( 'stripe' );
+		$order->date_paid = new \DateTimeImmutable( '2026-10-08' );
+
+		ob_start();
+		$this->meta_box->render( $order );
+		$output = (string) ob_get_clean();
+
+		$this->assertStringNotContainsString( 'data-doc-type="proforma"', $output );
+		$this->assertStringContainsString( 'data-doc-type="invoice"', $output );
+	}
 }

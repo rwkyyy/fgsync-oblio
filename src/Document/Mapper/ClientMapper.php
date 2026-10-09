@@ -9,14 +9,21 @@ declare( strict_types=1 );
 
 namespace FGSyncOblio\Document\Mapper;
 
+use FGSyncOblio\Customer\BuyerResolver;
 use WC_Order;
 final class ClientMapper {
+
+	private BuyerResolver $resolver;
+
+	public function __construct( ?BuyerResolver $resolver = null ) {
+		$this->resolver = $resolver ?? new BuyerResolver();
+	}
 
 	public function map( WC_Order $order, array $ctx = array() ): array {
 		$first   = $order->get_billing_first_name();
 		$last    = $order->get_billing_last_name();
 		$contact = trim( $first . ' ' . $last );
-		$company = trim( $order->get_billing_company() );
+		$buyer   = $this->resolver->resolve( $order );
 
 		$city  = $order->get_billing_city();
 		$state = $this->resolve_state( $order );
@@ -27,15 +34,15 @@ final class ClientMapper {
 		$address = trim( $order->get_billing_address_1() . ', ' . $order->get_billing_address_2(), ', ' );
 
 		$client = array(
-			'cif'          => $this->field( $order, 'cif', '/(cif|cui|nif|company_details)$/i' ),
-			'name'         => '' !== $company ? $company : $contact,
-			'rc'           => $this->field( $order, 'rc', '/(regcom|reg_com|(^|[_-])rc)$/i' ),
+			'cif'          => $this->field( $order, 'cif', $buyer->oblio_cif() ),
+			'name'         => '' !== $buyer->company ? $buyer->company : $contact,
+			'rc'           => $this->field( $order, 'rc', $buyer->registration ),
 			'address'      => $address,
 			'state'        => $state,
 			'city'         => $city,
 			'country'      => $this->resolve_country( $order ),
-			'iban'         => $this->field( $order, 'iban', '/(iban)$/i' ),
-			'bank'         => $this->field( $order, 'bank', '/(^|[_-])bank(_name|_details)?$/i' ),
+			'iban'         => $this->field( $order, 'iban', $buyer->iban ),
+			'bank'         => $this->field( $order, 'bank', $buyer->bank ),
 			'email'        => $order->get_billing_email(),
 			'phone'        => $order->get_billing_phone(),
 			'contact'      => $contact,
@@ -46,61 +53,9 @@ final class ClientMapper {
 		return (array) apply_filters( 'oblio_fgwoo_client_data', $client, $order );
 	}
 
-	private function field( WC_Order $order, string $field, string $pattern ): string {
+	private function field( WC_Order $order, string $field, string $resolved ): string {
 		$value = apply_filters( 'oblio_fgwoo_client_field', null, $field, $order );
-		if ( is_string( $value ) ) {
-			return $value;
-		}
-		$legacy = $this->legacy_checkout_value( $order, $field );
-		if ( null !== $legacy ) {
-			return $legacy;
-		}
-		return $this->find_meta_by_pattern( $order, $pattern );
-	}
-
-	/**
-	 * `av_facturare` / `curiero_pf_pj_option` are order-meta arrays written by
-	 * popular third-party Romanian checkout plugins (CIF/RC + PF-PJ fields).
-	 * WooCommerce's own get_meta() already unserializes them; only cif/rc are
-	 * ever stored in them, so any other field falls straight through to the
-	 * regex scan.
-	 *
-	 * @param WC_Order $order Order to read.
-	 * @param string   $field One of 'cif', 'rc', 'iban', 'bank'.
-	 * @return string|null First non-empty value, or null when none so the caller
-	 *                      can fall through to the regex scan.
-	 */
-	private function legacy_checkout_value( WC_Order $order, string $field ): ?string {
-		if ( 'cif' !== $field && 'rc' !== $field ) {
-			return null;
-		}
-		$av_facturare = $order->get_meta( 'av_facturare' );
-		$curiero      = $order->get_meta( 'curiero_pf_pj_option' );
-		$av_facturare = is_array( $av_facturare ) ? $av_facturare : array();
-		$curiero      = is_array( $curiero ) ? $curiero : array();
-
-		$candidates = 'cif' === $field
-			? array( $av_facturare['cui'] ?? null, $av_facturare['cnp'] ?? null, $curiero['cui'] ?? null )
-			: array( $av_facturare['nr_reg_com'] ?? null, $curiero['nr_reg_com'] ?? null );
-
-		foreach ( $candidates as $value ) {
-			if ( is_scalar( $value ) && '' !== trim( (string) $value ) ) {
-				return trim( (string) $value );
-			}
-		}
-		return null;
-	}
-
-	private function find_meta_by_pattern( WC_Order $order, string $pattern ): string {
-		foreach ( $order->get_meta_data() as $meta ) {
-			$data  = $meta->get_data();
-			$key   = (string) ( $data['key'] ?? '' );
-			$value = $data['value'] ?? '';
-			if ( '' !== $key && is_scalar( $value ) && '' !== trim( (string) $value ) && preg_match( $pattern, $key ) ) {
-				return trim( (string) $value );
-			}
-		}
-		return '';
+		return is_string( $value ) ? $value : $resolved;
 	}
 
 	private function resolve_state( WC_Order $order ): string {

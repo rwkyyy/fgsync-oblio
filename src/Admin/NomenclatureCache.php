@@ -1,6 +1,6 @@
 <?php
 /**
- * Caches Oblio nomenclature (companies, series, warehouses) for the settings UI.
+ * Caches Oblio nomenclature (companies, series, warehouses, VAT categories) for the settings UI.
  *
  * @package FGSyncOblio
  */
@@ -47,7 +47,9 @@ final class NomenclatureCache {
 
 	public function on_cif_change(): void {
 		$this->refresh();
-		$this->scheduler->enqueue_nomenclature_refresh();
+		if ( ! $this->prime() ) {
+			$this->scheduler->enqueue_nomenclature_refresh();
+		}
 	}
 
 	public function prime(): bool {
@@ -56,17 +58,44 @@ final class NomenclatureCache {
 			return false;
 		}
 
+		$client = $this->factory->create();
+		$loaded = $this->load( self::SERIES_TRANSIENT, 'series', static fn (): array => (array) $client->series( $cif ), self::TTL );
+		if ( false === self::uses_stock() ) {
+			set_transient( self::MANAGEMENT_TRANSIENT, array(), self::TTL );
+		} else {
+			$loaded = $this->load( self::MANAGEMENT_TRANSIENT, 'management', static fn (): array => (array) $client->management( $cif ), self::TTL ) && $loaded;
+		}
+		$loaded = $this->load( VatCategories::TRANSIENT, 'VAT categories', static fn (): array => VatCategories::normalize( (array) $client->vat_rates( $cif ) ), DAY_IN_SECONDS ) && $loaded;
+
+		if ( $loaded ) {
+			$this->logger->debug( 'Nomenclature refreshed (series, management, VAT categories)' );
+		}
+		return $loaded;
+	}
+
+	/**
+	 * Each list is cached on its own, so one failing call doesn't leave the
+	 * others empty. Oblio answers 400 for an account without warehouses,
+	 * which is a valid setup: it's cached as an empty list.
+	 *
+	 * @param string   $transient Cache key.
+	 * @param string   $label     Name for the log.
+	 * @param callable $fetch     Returns the list from Oblio.
+	 * @param int      $ttl       Cache lifetime.
+	 */
+	private function load( string $transient, string $label, callable $fetch, int $ttl ): bool {
 		try {
-			$client = $this->factory->create();
-			set_transient( self::SERIES_TRANSIENT, (array) $client->series( $cif ), self::TTL );
-			set_transient( self::MANAGEMENT_TRANSIENT, (array) $client->management( $cif ), self::TTL );
+			set_transient( $transient, $fetch(), $ttl );
+			return true;
 		} catch ( ApiException $exception ) {
-			$this->logger->error( 'Nomenclature refresh failed: ' . $exception->status_message() );
+			if ( self::MANAGEMENT_TRANSIENT === $transient && 400 === $exception->http_status() ) {
+				set_transient( $transient, array(), $ttl );
+				$this->logger->info( 'No Oblio warehouses for this company: ' . $exception->status_message() );
+				return true;
+			}
+			$this->logger->error( sprintf( 'Nomenclature refresh failed (%s): %s', $label, $exception->status_message() ) );
 			return false;
 		}
-
-		$this->logger->debug( 'Nomenclature refreshed (series + management)' );
-		return true;
 	}
 
 	/**
@@ -77,7 +106,7 @@ final class NomenclatureCache {
 	 * down API isn't retried on every single page load.
 	 */
 	public function ensure_fresh(): void {
-		if ( false !== get_transient( self::SERIES_TRANSIENT ) && false !== get_transient( self::MANAGEMENT_TRANSIENT ) ) {
+		if ( $this->is_complete() ) {
 			return;
 		}
 		if ( false !== get_transient( self::REFRESH_BACKOFF ) ) {
@@ -87,6 +116,32 @@ final class NomenclatureCache {
 			return;
 		}
 		$this->scheduler->enqueue_nomenclature_refresh();
+	}
+
+	/**
+	 * Oblio's "useStock" flag for the selected company, from the company list
+	 * loaded by „Preia ultimele date”; null when Oblio didn't send it.
+	 */
+	public static function uses_stock(): ?bool {
+		$flags = get_option( ConnectionTest::USE_STOCK_OPTION, array() );
+		$cif   = (string) get_option( 'oblio_fgwoo_cif', '' );
+		return is_array( $flags ) && isset( $flags[ $cif ] ) ? (bool) $flags[ $cif ] : null;
+	}
+
+	/**
+	 * True once Oblio has said the company doesn't use stock, or has answered
+	 * with no warehouses; false while that's unknown.
+	 */
+	public static function has_no_warehouses(): bool {
+		if ( false === self::uses_stock() ) {
+			return true;
+		}
+		$cached = get_transient( self::MANAGEMENT_TRANSIENT );
+		return is_array( $cached ) && empty( $cached );
+	}
+
+	public function is_complete(): bool {
+		return false !== get_transient( self::SERIES_TRANSIENT ) && false !== get_transient( self::MANAGEMENT_TRANSIENT ) && false !== get_transient( VatCategories::TRANSIENT );
 	}
 
 	public function refresh_with_backoff(): void {
@@ -143,6 +198,13 @@ final class NomenclatureCache {
 			}
 		}
 		return $options;
+	}
+
+	/**
+	 * @return array<int,array<string,mixed>>
+	 */
+	public function vat_categories(): array {
+		return $this->read( VatCategories::TRANSIENT );
 	}
 
 	public function refresh(): void {

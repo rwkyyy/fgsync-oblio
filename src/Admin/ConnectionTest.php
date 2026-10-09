@@ -12,10 +12,13 @@ namespace FGSyncOblio\Admin;
 use FGSyncOblio\Api\ClientFactory;
 use FGSyncOblio\Api\Exception\ApiException;
 use FGSyncOblio\Support\Logger;
+use FGSyncOblio\Support\Settings;
 final class ConnectionTest {
 
 	public const NONCE_ACTION     = 'oblio_fgwoo_admin';
 	public const COMPANIES_OPTION = 'oblio_fgwoo_companies';
+
+	public const USE_STOCK_OPTION = 'oblio_fgwoo_companies_use_stock';
 
 	private ClientFactory $factory;
 
@@ -23,10 +26,13 @@ final class ConnectionTest {
 
 	private Logger $logger;
 
-	public function __construct( ClientFactory $factory, NomenclatureCache $nomenclature, Logger $logger ) {
+	private Settings $settings;
+
+	public function __construct( ClientFactory $factory, NomenclatureCache $nomenclature, Logger $logger, Settings $settings ) {
 		$this->factory      = $factory;
 		$this->nomenclature = $nomenclature;
 		$this->logger       = $logger;
+		$this->settings     = $settings;
 	}
 
 	public function register(): void {
@@ -41,6 +47,7 @@ final class ConnectionTest {
 		$email  = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
 		$secret = isset( $_POST['secret'] ) ? trim( (string) wp_unslash( $_POST['secret'] ) ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- opaque token, trimmed only.
 
+		$saved_credentials = '' === $secret && $email === (string) $this->settings->get( 'email' );
 		if ( '' === $secret ) {
 			$secret = $this->factory->get_secret();
 		}
@@ -57,16 +64,26 @@ final class ConnectionTest {
 			wp_send_json_error( array( 'message' => $exception->status_message() ) );
 		}
 
-		$map = array();
+		$map       = array();
+		$use_stock = array();
 		foreach ( $companies as $company ) {
 			if ( ! empty( $company['cif'] ) ) {
 				$map[ (string) $company['cif'] ] = (string) ( $company['company'] ?? $company['cif'] );
+				if ( isset( $company['useStock'] ) && is_scalar( $company['useStock'] ) ) {
+					$use_stock[ (string) $company['cif'] ] = (bool) (int) $company['useStock'];
+				}
 			}
 		}
 		update_option( self::COMPANIES_OPTION, $map, false );
+		update_option( self::USE_STOCK_OPTION, $use_stock, false );
 
-		$this->nomenclature->refresh();
-		$this->nomenclature->prime();
+		if ( '' === (string) $this->settings->get( 'cif' ) && 1 === count( $map ) ) {
+			$this->settings->set( 'cif', (string) array_key_first( $map ) );
+			$loaded = $this->nomenclature->is_complete();
+		} else {
+			$this->nomenclature->refresh();
+			$loaded = $this->nomenclature->prime();
+		}
 
 		$this->logger->info( sprintf( 'Connection test succeeded, %d compan%s found', count( $map ), 1 === count( $map ) ? 'y' : 'ies' ) );
 
@@ -78,6 +95,8 @@ final class ConnectionTest {
 					count( $map )
 				),
 				'companies' => $map,
+				'cif'       => (string) $this->settings->get( 'cif' ),
+				'reload'    => $loaded && $saved_credentials,
 			)
 		);
 	}

@@ -90,6 +90,11 @@ final class Importer {
 			++$imported;
 		}
 
+		// The old plugin also issued the invoice as soon as an online payment completed.
+		if ( 'yes' === $this->convert( get_option( 'oblio_invoice_autogen', '' ), 'bool' ) ) {
+			$this->settings->set( 'invoice_on_payment', 'yes' );
+		}
+
 		update_option( 'oblio_fgwoo_imported_at', time(), false );
 		$this->logger->info( sprintf( 'Import from legacy plugin: %d setting(s) imported', $imported ) );
 

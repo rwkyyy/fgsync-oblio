@@ -14,11 +14,11 @@
 			$result.text( text ).css( 'color', ok ? '#157347' : '#c62d1c' );
 		}
 
-		function repopulateCif( companies ) {
+		function repopulateCif( companies, selected ) {
 			if ( ! companies || ! $cif.length ) {
 				return;
 			}
-			var current = $cif.val();
+			var current = $cif.val() || selected;
 			$cif.empty().append( $( '<option/>' ).val( '' ).text( fgsyncOblio.i18n.select ) );
 			$.each( companies, function ( cif, label ) {
 				$cif.append( $( '<option/>' ).val( cif ).text( label ) );
@@ -40,7 +40,10 @@
 			} ).done( function ( response ) {
 				if ( response && response.success ) {
 					setResult( response.data.message, true );
-					repopulateCif( response.data.companies );
+					repopulateCif( response.data.companies, response.data.cif );
+					if ( response.data.reload ) {
+						setTimeout( function () { window.location.reload(); }, 1200 );
+					}
 				} else {
 					setResult( ( response && response.data && response.data.message ) || fgsyncOblio.i18n.error, false );
 				}

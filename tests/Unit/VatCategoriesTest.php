@@ -95,7 +95,7 @@ final class VatCategoriesTest extends TestCase {
 		$this->queue_vat_rates( array( array( 'name' => 'Normala', 'percent' => 21, 'default' => true ) ) );
 
 		$this->expectException( DocumentException::class );
-		$this->expectExceptionMessage( 'Contul Oblio nu are o cotă TVA de 20% (linia „Produs”)' );
+		$this->expectExceptionMessage( 'Contul Oblio nu are o cotă TVA de 20% (linia „Produs”). Adaug-o în Oblio → Setări → Cote TVA cu numele „20”' );
 
 		$this->categories()->apply( array( $this->line( 20 ) ) );
 	}
@@ -130,5 +130,81 @@ final class VatCategoriesTest extends TestCase {
 		$this->expectException( DocumentException::class );
 
 		$this->categories()->apply( array( $this->line( 5.5 ) + array( VatCategories::TOLERANCE_FIELD => 0.01 ) ) );
+	}
+
+	public function test_a_configured_name_is_sent_with_the_accounts_exact_spelling(): void {
+		$GLOBALS['oblio_test_transients'][ VatCategories::TRANSIENT ] = array(
+			array( 'name' => 'Taxare inversa', 'percent' => 21, 'default' => false ),
+			array( 'name' => 'Taxare inversa ', 'percent' => 0, 'default' => false ),
+		);
+
+		$lines = $this->categories()->apply( array( $this->line( 0, 'Taxare inversa' ) ) );
+
+		$this->assertSame( 'Taxare inversa ', $lines[0]['vatName'] );
+	}
+
+	public function test_a_configured_name_missing_from_the_account_points_to_the_setting(): void {
+		oblio_test_seed_vat_categories();
+		$this->queue_vat_rates( array( array( 'name' => 'Normala', 'percent' => 21, 'default' => true ) ) );
+
+		$this->expectException( DocumentException::class );
+		$this->expectExceptionMessage( 'Categoria TVA „TVA Inclus” (0%) nu există în contul Oblio. Alege alta în FGSync → Setări → TVA' );
+
+		$this->categories()->apply( array( $this->line( 0, 'TVA Inclus' ) ) );
+	}
+
+	public function test_untaxed_options_list_only_zero_rate_categories_without_padding(): void {
+		$options = VatCategories::untaxed_options(
+			array(
+				array( 'name' => 'Normala', 'percent' => 21, 'default' => true ),
+				array( 'name' => 'SDD', 'percent' => 0, 'default' => false ),
+				array( 'name' => 'Taxare inversa ', 'percent' => 0, 'default' => false ),
+				'garbage',
+			)
+		);
+
+		$this->assertSame( array( 'SDD' => 'SDD (0%)', 'Taxare inversa' => 'Taxare inversa (0%)' ), $options );
+	}
+
+	public function test_missing_lists_taxed_rates_without_a_category_grouped_by_rate(): void {
+		$rows = array(
+			array( 'id' => 1, 'country' => 'RO', 'state' => '', 'rate' => 21.0 ),
+			array( 'id' => 2, 'country' => 'FR', 'state' => '', 'rate' => 20.0 ),
+			array( 'id' => 3, 'country' => 'HU', 'state' => '', 'rate' => 27.0 ),
+			array( 'id' => 4, 'country' => 'AT', 'state' => '', 'rate' => 20.0 ),
+			array( 'id' => 5, 'country' => 'FR', 'state' => 'XX', 'rate' => 20.0 ),
+			array( 'id' => 6, 'country' => 'FI', 'state' => '', 'rate' => 25.5 ),
+			array( 'id' => 7, 'country' => 'BE', 'state' => '', 'rate' => 5.5 ),
+			array( 'id' => 8, 'country' => '', 'state' => '', 'rate' => 0.0 ),
+		);
+
+		$missing = VatCategories::missing( $this->seeded(), $rows );
+
+		$this->assertSame(
+			array(
+				'5.5' => array( 'BE' ),
+				'20'  => array( 'FR', 'AT' ),
+				'27'  => array( 'HU' ),
+			),
+			$missing
+		);
+	}
+
+	public function test_missing_reports_nothing_while_the_categories_are_unknown(): void {
+		$rows = array( array( 'id' => 1, 'country' => 'FR', 'state' => '', 'rate' => 20.0 ) );
+
+		$this->assertSame( array(), VatCategories::missing( array(), $rows ) );
+	}
+
+	public function test_rate_label_is_the_plain_number_oblio_recommends_as_category_name(): void {
+		$this->assertSame( array( '25.5', '21', '5.5', '0' ), array_map( array( VatCategories::class, 'rate_label' ), array( 25.5, 21.0, 5.50, 0.0 ) ) );
+	}
+
+	/**
+	 * @return array<int|string,mixed>
+	 */
+	private function seeded(): array {
+		oblio_test_seed_vat_categories();
+		return $GLOBALS['oblio_test_transients'][ VatCategories::TRANSIENT ];
 	}
 }

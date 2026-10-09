@@ -301,6 +301,16 @@ if ( ! function_exists( 'wc_get_logger' ) ) {
  * in mind for any future test of a rejection path.
  */
 $GLOBALS['oblio_test_json_response'] = null;
+if ( ! function_exists( '_n' ) ) {
+	function _n( $single, $plural, $number, $domain = 'default' ) {
+		return 1 === (int) $number ? $single : $plural;
+	}
+}
+if ( ! function_exists( 'sanitize_email' ) ) {
+	function sanitize_email( $email ) {
+		return trim( (string) $email );
+	}
+}
 if ( ! function_exists( 'check_ajax_referer' ) ) {
 	function check_ajax_referer( $action = -1, $query_arg = false, $die = true ) {
 		return true;
@@ -554,6 +564,7 @@ if ( ! class_exists( 'FakeWpdb' ) ) {
 $GLOBALS['wpdb'] = new FakeWpdb();
 
 require __DIR__ . '/order-util-stub.php';
+require_once __DIR__ . '/Support/InMemoryTaxRateStore.php';
 
 /**
  * Wraps a single order-meta key/value pair - only get_data() is called
@@ -802,6 +813,12 @@ if ( ! class_exists( 'WC_Order' ) ) {
 			$this->payment_method = $value;
 		}
 
+		public ?\DateTimeInterface $date_paid = null;
+
+		public function get_date_paid() {
+			return $this->date_paid;
+		}
+
 		public function get_payment_method(): string {
 			return $this->payment_method;
 		}
@@ -812,6 +829,14 @@ if ( ! class_exists( 'WC_Order' ) ) {
 
 		public function get_date_created(): ?\DateTime {
 			return $this->date_created;
+		}
+
+		public function get_total_tax() {
+			$total = $this->shipping_tax;
+			foreach ( array_merge( $this->items, $this->fees ) as $item ) {
+				$total += (float) $item->get_total_tax();
+			}
+			return $total;
 		}
 
 		public function set_order_number( string $value ): void {
@@ -855,6 +880,7 @@ if ( ! class_exists( 'WC_Order_Item_Product' ) ) {
 		public function __construct( array $data = array(), $product = null ) {
 			$this->data = array_merge(
 				array(
+					'id'           => 0,
 					'name'         => 'Test product',
 					'quantity'     => 1.0,
 					'total'        => 0.0,
@@ -867,6 +893,10 @@ if ( ! class_exists( 'WC_Order_Item_Product' ) ) {
 				$data
 			);
 			$this->product = $product;
+		}
+
+		public function get_id(): int {
+			return (int) $this->data['id'];
 		}
 
 		public function get_name(): string {
@@ -940,9 +970,20 @@ if ( ! class_exists( 'WC_Order_Item_Tax' ) ) {
 
 		private ?float $rate_percent;
 
-		public function __construct( int $rate_id, ?float $rate_percent ) {
+		private float $tax_total;
+
+		public function __construct( int $rate_id, ?float $rate_percent, float $tax_total = 0.0 ) {
 			$this->rate_id      = $rate_id;
 			$this->rate_percent = $rate_percent;
+			$this->tax_total    = $tax_total;
+		}
+
+		public function get_tax_total() {
+			return $this->tax_total;
+		}
+
+		public function get_shipping_tax_total() {
+			return 0.0;
 		}
 
 		public function get_rate_id(): int {
@@ -965,12 +1006,22 @@ if ( ! class_exists( 'WC_Order_Item_Shipping' ) ) {
 		public function __construct( array $data = array() ) {
 			$this->data = array_merge(
 				array(
+					'id'        => 0,
 					'name'      => 'Flat rate',
 					'total'     => 0.0,
 					'total_tax' => 0.0,
+					'meta'      => array(),
 				),
 				$data
 			);
+		}
+
+		public function get_id(): int {
+			return (int) $this->data['id'];
+		}
+
+		public function get_meta( $key ) {
+			return $this->data['meta'][ $key ] ?? '';
 		}
 
 		public function get_name(): string {
@@ -1001,12 +1052,22 @@ if ( ! class_exists( 'WC_Order_Item_Fee' ) ) {
 		public function __construct( array $data = array() ) {
 			$this->data = array_merge(
 				array(
+					'id'        => 0,
 					'name'      => 'Fee',
 					'total'     => 0.0,
 					'total_tax' => 0.0,
+					'meta'      => array(),
 				),
 				$data
 			);
+		}
+
+		public function get_id(): int {
+			return (int) $this->data['id'];
+		}
+
+		public function get_meta( $key ) {
+			return $this->data['meta'][ $key ] ?? '';
 		}
 
 		public function get_name(): string {
@@ -1049,9 +1110,14 @@ if ( ! class_exists( 'WC_Product' ) ) {
 					'stock_quantity'    => null,
 					'stock_status'      => 'instock',
 					'backorders'        => 'no',
+					'virtual'           => false,
 				),
 				$data
 			);
+		}
+
+		public function is_virtual(): bool {
+			return (bool) $this->data['virtual'];
 		}
 
 		public int $saves = 0;
@@ -1184,7 +1250,11 @@ if ( ! function_exists( 'wp_remote_retrieve_body' ) ) {
 	}
 }
 if ( ! function_exists( 'add_query_arg' ) ) {
-	function add_query_arg( $args, $url ) {
+	function add_query_arg( $args, $url, $third = null ) {
+		if ( ! is_array( $args ) ) {
+			$args = array( $args => $url );
+			$url  = (string) $third;
+		}
 		if ( empty( $args ) ) {
 			return $url;
 		}
@@ -1209,6 +1279,16 @@ if ( ! function_exists( 'wp_remote_request' ) ) {
 	function wp_remote_request( $url, $args = array() ) {
 		$GLOBALS['oblio_test_http_calls'][] = array(
 			'method' => 'request',
+			'url'    => $url,
+			'args'   => $args,
+		);
+		return oblio_test_next_http_response();
+	}
+}
+if ( ! function_exists( 'wp_remote_get' ) ) {
+	function wp_remote_get( $url, $args = array() ) {
+		$GLOBALS['oblio_test_http_calls'][] = array(
+			'method' => 'get',
 			'url'    => $url,
 			'args'   => $args,
 		);

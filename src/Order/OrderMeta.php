@@ -98,6 +98,34 @@ final class OrderMeta {
 		$order->update_meta_data( self::key( self::TYPE_INVOICE, 'use_stock' ), $used ? '1' : '0' );
 	}
 
+	/**
+	 * @param WC_Order       $order      Order.
+	 * @param string         $type       Document type.
+	 * @param array<int,int> $refund_ids Refunds the document already took off its lines.
+	 */
+	public static function record_netted_refunds( WC_Order $order, string $type, array $refund_ids ): void {
+		if ( array() === $refund_ids ) {
+			$order->delete_meta_data( self::key( $type, 'netted_refunds' ) );
+			return;
+		}
+		$order->update_meta_data( self::key( $type, 'netted_refunds' ), array_values( array_map( 'intval', $refund_ids ) ) );
+		// A storno that gave up waiting for this document is no longer owed.
+		foreach ( $refund_ids as $refund_id ) {
+			$order->delete_meta_data( 'oblio_fgwoo_storno_failed_' . (int) $refund_id );
+			$order->delete_meta_data( 'oblio_fgwoo_storno_failed_permanent_' . (int) $refund_id );
+		}
+	}
+
+	/**
+	 * @param WC_Order $order Order.
+	 * @param string   $type  Document type.
+	 * @return array<int,int>
+	 */
+	public static function netted_refunds( WC_Order $order, string $type ): array {
+		$ids = $order->get_meta( self::key( $type, 'netted_refunds' ) );
+		return is_array( $ids ) ? array_map( 'intval', $ids ) : array();
+	}
+
 	public static function invoice_used_stock( WC_Order $order ): bool {
 		return '1' === (string) $order->get_meta( self::key( self::TYPE_INVOICE, 'use_stock' ) );
 	}
@@ -171,7 +199,7 @@ final class OrderMeta {
 	public static function clear( WC_Order $order, string $type ): void {
 		$series = (string) $order->get_meta( self::key( $type, 'series' ) );
 
-		foreach ( array( 'series', 'number', 'link', 'date' ) as $field ) {
+		foreach ( array( 'series', 'number', 'link', 'date', 'netted_refunds' ) as $field ) {
 			$order->delete_meta_data( self::key( $type, $field ) );
 		}
 		if ( self::TYPE_INVOICE === $type ) {

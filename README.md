@@ -28,13 +28,24 @@ versiunea stabilă de instalat. Descrierea completă și changelog-ul publicate 
 ## Funcționalități
 
 * Facturi, proforme, avize și storno - automat pe status de comandă sau manual din ecranul comenzii.
+* Factură și la confirmarea plății online (opțional), ca în pluginul vechi.
+* Factura unei comenzi cu aviz se emite pe baza avizului, deci stocul se descarcă o singură dată.
+* Fără proforme pentru comenzile deja plătite online (proforma e o cerere de plată).
+* Rambursările făcute înainte de factură sunt scăzute din factură, fără storno separat.
 * Procesare pe coadă (Queue / Action Scheduler): emiterea nu blochează niciodată checkout-ul/site-ul/ecranul operatorului.
 * Sincronizare stoc în loturi, pe una sau mai multe gestiuni, după SKU.
 * Încasare automată ("marcat ca plătit"), configurabilă pe metodă de plată.
 * Compatibil HPOS (High-Performance Order Storage) și stocare clasică a comenzilor.
 * Compatibil WPML / WooCommerce Multilingual.
-* Compatibilitate Bundles (limitat)
-* Compatibilitate OSS
+* Compatibilitate Bundles, inclusiv pachete cu preț fix (prețul se împarte pe componente)
+* Documente în EUR pentru clienții din afara României (opțional)
+* TVA: fiecare linie primește categoria TVA exactă din contul Oblio, potrivită după cotă; cotele fără categorie sunt semnalate înainte să eșueze o factură.
+* Import opțional al cotelor TVA standard pentru cele 27 de state UE în WooCommerce.
+* Persoană fizică / juridică din pluginul gratuit „Facturare - Persoana Fizica sau Juridica”.
+* Facturile și stornourile apar în secțiunea „Facturi” din contul clientului.
+* Tip de produs separat pentru produsele virtuale (de ex. „Serviciu” pentru produse digitale).
+* Funcționează și cu conturi Oblio fără gestiuni (de ex. magazine doar cu produse digitale): opțiunile de stoc se dezactivează, iar facturile se emit fără descărcare din stoc.
+* Tabul „Stare”: jurnalul zilei cu actualizare live, coada de procesare, hook-urile suprascrise de alte pluginuri și un raport de diagnoză fără date personale, gata de atașat la un issue.
 
 Lista completă e în [`readme.txt`](readme.txt), secțiunea `== Description ==`.
 
@@ -52,7 +63,7 @@ plus timeout-ul de 30s al cererii către API-ul Oblio), fără reîncercare auto
 
 FGSync rulează aceleași operații pe coadă (queue / action scheduler) sau din cache, și adaugă 23 de filtre/hook-uri
 proprii pentru cazuri speciale (vezi secțiunea Extensibilitate). Codul e integral rescris pe o bază modernă -
-PHP 8.1+ cu tipare stricte (`strict_types`) și namespace-uri în toate cele peste 70 de fișiere din `src/`,
+PHP 8.1+ cu tipare stricte (`strict_types`) și namespace-uri în toate cele peste 80 de fișiere din `src/`,
 acoperit de o suită de teste automate (PHPUnit) - față de codul vechi, care nu declară o versiune minimă de
 PHP și nu folosește tipare stricte. Tabelele de mai jos compară,
 funcționalitate cu funcționalitate, FGSync cu pluginul original „WooCommerce Oblio".
@@ -77,12 +88,29 @@ FGSync peste funcționalitatea de bază listată chiar deasupra lui, nu o funcț
 | **Facturi, emitere automată sau manuală** | ✅                                                                                                                | ✅ |
 | ↳ Emitere pe coadă (Action Scheduler), nu mai blochează comanda | `-`                                                                                                              | ✅ |
 | ↳ Reîncercare automată cu backoff la eșec | `-`                                                                                                              | ✅ |
-| **Proforme** | ✅ (blocate pentru plata cu cardul)                                                                               | ✅ |
+| **Emitere la confirmarea plății online** | ✅ | ✅ opțională |
+| **Proforme** | ✅ (blocate pentru plata cu cardul)                                                                               | ✅ nu se emit pentru comenzile deja plătite online |
 | **Ștergere document** | ✅ posibilă doar pentru ultimul document din serie: Oblio refuză ștergerea oricărui alt document, afișat constant | ✅ |
 | ↳ Butonul de ștergere e ascuns când documentul nu e ultimul din serie, în loc să apară eroarea Oblio după click | `-`                                                                                                              | ✅ |
 | **Storno (credit note), integral și parțial** | ❌                                                                                                                | ✅ automat la rambursarea comenzii |
+| ↳ Rambursările dinainte de factură sunt scăzute din factură, fără storno separat | `-` | ✅ |
 | **Aviz (notă de livrare)** | ⚠️ codul există, dar nu e funcțional                                                                             | ✅ |
+| ↳ Factura se emite pe baza avizului, stocul se descarcă o singură dată | `-` | ✅ |
+| **Tip produs Oblio (implicit și per produs)** | ✅ | ✅ |
+| ↳ Tip separat pentru produsele virtuale (digitale) | `-` | ✅ |
+| **Facturi în contul clientului** | ✅ | ✅ |
+| ↳ Include stornourile, cu paginare | `-` | ✅ |
 | **Reconciliere pentru documente omise** | ❌                                                                                                                | ✅ job recurent |
+
+### TVA și date client
+
+| Funcționalitate | Integrarea Oblio.eu | FGSync |
+|---|---|---|
+| **Cota TVA pe fiecare linie** | ⚠️ rotunjită la număr întreg (25,5% devine 26%), fără numele categoriei | ✅ cota exactă, cu numele categoriei din contul Oblio |
+| ↳ Cotă fără categorie în Oblio: listată în tabul TVA, cu numele recomandat, iar documentul se oprește cu un mesaj clar | `-` | ✅ |
+| **Linii fără TVA** | ⚠️ mereu SDD | ✅ categoria 0% se alege din setări |
+| **Cote TVA pentru clienții din UE** | ❌ | ✅ import opțional în WooCommerce; lista e verificată lunar și vine cu actualizările pluginului |
+| **Pluginul „Facturare - Persoana Fizica sau Juridica”** | ⚠️ CNP-ul e trimis drept CIF, alegerea PF/PJ e ignorată, banca și IBAN-ul nu sunt preluate | ✅ PF/PJ, CUI, CNP, Reg. Com., bancă și IBAN, la checkout clasic și bloc |
 
 ### Stoc
 
@@ -128,8 +156,8 @@ FGSync peste funcționalitatea de bază listată chiar deasupra lui, nu o funcț
 |---|---|---|
 | **High-Performance Order Storage (HPOS)** | ⚠️ parțială | ✅ completă |
 | **WPML / WooCommerce Multilingual** | ❌ | ✅ |
-| **WooCommerce Bundles** | ❌ | ✅ |
-| **Facturare OSS (EUR pentru clienți din afara României)** | ❌ | ✅ opțională |
+| **WooCommerce Bundles** | ❌ | ✅ componentele sunt facturate, prețul fix al pachetului se împarte pe ele |
+| **Documente în EUR pentru clienții din afara României** | ❌ | ✅ opțională |
 | **Câmpuri CIF/RC din alte pluginuri de checkout** | ✅ | ✅ |
 
 ### Comenzi și interfață admin
@@ -158,6 +186,8 @@ FGSync peste funcționalitatea de bază listată chiar deasupra lui, nu o funcț
 | **Stocare cheie API** | ✅ text simplu | ✅ criptată (AES-256-GCM) |
 | **Jurnal de activitate** | ✅ fișier JSON brut, fără interfață | ✅ jurnal WooCommerce, cu panou de stare dedicat |
 | **Indicator de conexiune în bara de admin** | ❌ | ✅ |
+| **Raport de diagnoză pentru suport** | ❌ | ✅ fără cheia API, CIF sau date personale |
+| **Text sugerat pentru politica de confidențialitate** | ❌ | ✅ |
 | **Mecanism de actualizare** | ✅ updater propriu, în afara WordPress.org | ✅ standard WordPress.org (SVN) |
 | **Import de date din pluginul vechi** | ❌ | ✅ unidirecțional |
 | **Pagină „Ajutor"** | ✅ | ❌ plănuit: wiki pe GitHub și secțiune FAQ pe pagina din WordPress.org |

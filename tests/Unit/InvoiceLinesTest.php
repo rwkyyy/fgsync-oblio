@@ -14,11 +14,13 @@ use FGSyncOblio\Admin\ProductFields;
 use FGSyncOblio\Api\ClientFactory;
 use FGSyncOblio\Document\BuildContext;
 use FGSyncOblio\Document\DocumentException;
+use FGSyncOblio\Document\FullyRefundedException;
 use FGSyncOblio\Document\InvoiceBuilder;
 use FGSyncOblio\Document\Mapper\ClientMapper;
 use FGSyncOblio\Document\Mapper\CollectMapper;
 use FGSyncOblio\Document\Mapper\LineItemMapper;
 use FGSyncOblio\Document\Mapper\ShippingFeeMapper;
+use FGSyncOblio\Document\PriorRefunds;
 use FGSyncOblio\Document\VatCategories;
 use FGSyncOblio\Order\OrderMeta;
 use FGSyncOblio\Order\RegularPriceSnapshot;
@@ -34,12 +36,14 @@ use WC_Order;
 use WC_Order_Item_Fee;
 use WC_Order_Item_Product;
 use WC_Order_Item_Shipping;
+use WC_Order_Refund;
 use WC_Product;
 
 #[CoversClass( InvoiceBuilder::class )]
 #[CoversClass( LineItemMapper::class )]
 #[CoversClass( ShippingFeeMapper::class )]
 #[CoversClass( BuildContext::class )]
+#[CoversClass( PriorRefunds::class )]
 final class InvoiceLinesTest extends TestCase {
 
 	private Settings $settings;
@@ -583,6 +587,53 @@ final class InvoiceLinesTest extends TestCase {
 		$this->assertNull( $products[3]['vatPercentage'] );
 	}
 
+	public function test_untaxed_lines_use_the_configured_category(): void {
+		$this->settings->set( 'vat_untaxed_category', 'Taxare inversa' );
+		$GLOBALS['oblio_test_transients'][ VatCategories::TRANSIENT ][] = array( 'name' => 'Taxare inversa', 'percent' => 0, 'default' => false );
+		$item = $this->item( array( 'subtotal' => 100.0, 'total' => 100.0 ) );
+
+		$products = $this->products( $this->order( array( $item ), 100.0 ) );
+
+		$this->assertSame( array( 'Taxare inversa', 0 ), array( $products[0]['vatName'], $products[0]['vatPercentage'] ) );
+	}
+
+	/**
+	 * @return array<string,array{0:array<int,\WC_Order_Item_Tax>,1:float,2:string,3:int|float|null}>
+	 */
+	public static function balancing_vat_cases(): array {
+		return array(
+			'19% order'                    => array( array( new \WC_Order_Item_Tax( 99, 19.0, 19.0 ) ), 19.0, 'Veche', 19 ),
+			'largest tax line wins'        => array( array( new \WC_Order_Item_Tax( 1, 9.0, 0.9 ), new \WC_Order_Item_Tax( 99, 21.0, 21.0 ) ), 21.0, 'Normala', 21 ),
+			'untaxed order'                => array( array(), 0.0, 'SDD', 0 ),
+			'tax but no tax lines: Oblio default' => array( array(), 19.0, '', null ),
+			'tax line without a recorded rate'    => array( array( new \WC_Order_Item_Tax( 99, null, 19.0 ) ), 19.0, '', null ),
+		);
+	}
+
+	#[DataProvider( 'balancing_vat_cases' )]
+	public function test_the_balancing_line_uses_the_orders_main_rate( array $tax_items, float $tax, string $vat_name, $percent ): void {
+		$item  = $this->item( array( 'subtotal' => 100.0, 'subtotal_tax' => $tax, 'total' => 100.0, 'total_tax' => $tax, 'taxes' => array( 99 => $tax ) ) );
+		$order = $this->order( array( $item ), 100.0 + $tax + 0.01 );
+		$order->set_tax_items( $tax_items );
+
+		$products = $this->products( $order );
+		$balance  = end( $products );
+
+		$this->assertSame( 'Alte taxe', $balance['name'] );
+		$this->assertSame( array( $vat_name, $percent ), array( $balance['vatName'], $balance['vatPercentage'] ) );
+	}
+
+	public function test_the_balancing_line_is_left_to_oblio_when_taxes_are_off(): void {
+		$GLOBALS['oblio_test_options']['woocommerce_calc_taxes'] = 'no';
+		$item  = $this->item( array( 'subtotal' => 100.0, 'total' => 100.0 ) );
+		$order = $this->order( array( $item ), 100.01 );
+		$order->set_tax_items( array( new \WC_Order_Item_Tax( 1, 21.0, 21.0 ) ) );
+
+		$balance = $this->products( $order )[1];
+
+		$this->assertSame( array( '', null ), array( $balance['vatName'], $balance['vatPercentage'] ) );
+	}
+
 	public function test_each_shipping_method_is_its_own_line_with_its_own_rate(): void {
 		$item  = $this->item( array( 'subtotal' => 100.0, 'subtotal_tax' => 21.0, 'total' => 100.0, 'total_tax' => 21.0 ) );
 		$order = $this->order( array( $item ), 144.2 );
@@ -666,6 +717,328 @@ final class InvoiceLinesTest extends TestCase {
 
 		$this->expectException( DocumentException::class );
 		$this->products( $this->order( array( $item ), 0.0 ) );
+	}
+
+	private function with_document( WC_Order $order, string $type, string $series, string $number ): WC_Order {
+		$order->update_meta_data( OrderMeta::key( $type, 'series' ), $series );
+		$order->update_meta_data( OrderMeta::key( $type, 'number' ), $number );
+		$order->update_meta_data( OrderMeta::key( $type, 'link' ), 'https://example.test/' . $series . $number );
+		return $order;
+	}
+
+	private function invoice_order(): WC_Order {
+		$item = $this->item(
+			array( 'quantity' => 1.0, 'subtotal' => 100.0, 'subtotal_tax' => 0.0, 'total' => 100.0, 'total_tax' => 0.0 ),
+			new WC_Product( array( 'regular_price' => '100', 'price' => '100' ) )
+		);
+		return $this->order( array( $item ), 100.0 );
+	}
+
+	public function test_invoice_is_built_on_the_aviz_that_moved_the_stock(): void {
+		$order = $this->with_document( $this->invoice_order(), OrderMeta::TYPE_NOTICE, 'AVZ', '7' );
+
+		$data = $this->builder()->build( $order, OrderMeta::TYPE_INVOICE );
+
+		$this->assertSame( array( 'type' => 'Aviz', 'seriesName' => 'AVZ', 'number' => '7' ), $data['referenceDocument'] );
+		$this->assertSame( array(), $data['products'] );
+	}
+
+	public function test_the_aviz_wins_over_a_proforma(): void {
+		$order = $this->with_document( $this->with_document( $this->invoice_order(), OrderMeta::TYPE_PROFORMA, 'PRF', '3' ), OrderMeta::TYPE_NOTICE, 'AVZ', '7' );
+
+		$this->assertSame( 'Aviz', $this->builder()->build( $order, OrderMeta::TYPE_INVOICE )['referenceDocument']['type'] );
+	}
+
+	public function test_invoice_is_built_on_the_proforma_without_an_aviz(): void {
+		$order = $this->with_document( $this->invoice_order(), OrderMeta::TYPE_PROFORMA, 'PRF', '3' );
+
+		$this->assertSame( array( 'type' => 'Proforma', 'seriesName' => 'PRF', 'number' => '3' ), $this->builder()->build( $order, OrderMeta::TYPE_INVOICE )['referenceDocument'] );
+	}
+
+	public function test_an_aviz_is_not_built_on_other_documents(): void {
+		$this->settings->set( 'series_notice', 'AVZ' );
+		$order = $this->with_document( $this->invoice_order(), OrderMeta::TYPE_PROFORMA, 'PRF', '3' );
+
+		$this->assertArrayNotHasKey( 'referenceDocument', $this->builder()->build( $order, OrderMeta::TYPE_NOTICE ) );
+	}
+
+	public function test_virtual_products_use_the_virtual_product_type(): void {
+		$this->settings->set( 'product_type_virtual', 'Serviciu' );
+		$line = array( 'quantity' => 1.0, 'subtotal' => 100.0, 'subtotal_tax' => 0.0, 'total' => 100.0, 'total_tax' => 0.0 );
+
+		$products = $this->products(
+			$this->order(
+				array(
+					$this->item( array( 'name' => 'E-book' ) + $line, new WC_Product( array( 'regular_price' => '100', 'price' => '100', 'virtual' => true ) ) ),
+					$this->item( array( 'name' => 'Carte' ) + $line, new WC_Product( array( 'regular_price' => '100', 'price' => '100' ) ) ),
+				),
+				200.0
+			)
+		);
+
+		$this->assertSame( array( 'Serviciu', 'Marfa' ), array_column( $products, 'productType' ) );
+	}
+
+	public function test_virtual_products_keep_the_default_type_when_none_is_set(): void {
+		$item = $this->item(
+			array( 'quantity' => 1.0, 'subtotal' => 100.0, 'subtotal_tax' => 0.0, 'total' => 100.0, 'total_tax' => 0.0 ),
+			new WC_Product( array( 'regular_price' => '100', 'price' => '100', 'virtual' => true ) )
+		);
+
+		$this->assertSame( 'Marfa', $this->products( $this->order( array( $item ), 100.0 ) )[0]['productType'] );
+	}
+
+	private function bundle( array $data, string $cart_key ): WC_Order_Item_Product {
+		$item = $this->item(
+			array( 'name' => 'Pachet 2 X Zeolit' ) + $data,
+			new WC_Product( array( 'type' => 'bundle', 'sku' => 'ZEO-x2' ) )
+		);
+		$item->add_meta_data( '_bundle_cart_key', $cart_key );
+		return $item;
+	}
+
+	private function component( string $bundled_by, string $sku, string $regular, array $data = array() ): WC_Order_Item_Product {
+		$item = $this->item(
+			array( 'name' => $sku ) + $data,
+			new WC_Product( array( 'sku' => $sku, 'regular_price' => $regular, 'price' => $regular ) )
+		);
+		$item->add_meta_data( '_bundled_by', $bundled_by );
+		return $item;
+	}
+
+	public function test_a_fixed_price_bundle_spreads_its_price_over_the_components(): void {
+		$order = $this->order(
+			array(
+				$this->bundle( array( 'subtotal' => 304.36, 'subtotal_tax' => 63.92, 'total' => 304.36, 'total_tax' => 63.92 ), 'cart-1' ),
+				$this->component( 'cart-1', 'ZEO', '199' ),
+				$this->component( 'cart-1', 'ZEO', '199' ),
+			),
+			368.28
+		);
+
+		$products = $this->products( $order );
+
+		$this->assertSame( array( 'ZEO', 'ZEO' ), array_column( $products, 'code' ) );
+		$this->assertSame( array( 184.14, 184.14 ), array_column( $products, 'price' ) );
+		$this->assertSame( array( 21, 21 ), array_column( $products, 'vatPercentage' ) );
+	}
+
+	public function test_bundle_price_is_weighted_by_component_regular_price_and_keeps_the_total(): void {
+		$order = $this->order(
+			array(
+				$this->bundle( array( 'subtotal' => 100.0, 'subtotal_tax' => 21.0, 'total' => 100.0, 'total_tax' => 21.0 ), 'cart-1' ),
+				$this->component( 'cart-1', 'A', '20' ),
+				$this->component( 'cart-1', 'B', '10', array( 'quantity' => 2.0 ) ),
+			),
+			121.0
+		);
+
+		$products = $this->products( $order );
+
+		$this->assertSame( array( 60.5, 30.25 ), array_column( $products, 'price' ) );
+		$this->assertCount( 2, $products );
+	}
+
+	public function test_a_bundle_coupon_still_shows_as_a_discount_line(): void {
+		$order = $this->order(
+			array(
+				$this->bundle( array( 'subtotal' => 100.0, 'subtotal_tax' => 21.0, 'total' => 80.0, 'total_tax' => 16.8 ), 'cart-1' ),
+				$this->component( 'cart-1', 'A', '50' ),
+				$this->component( 'cart-1', 'B', '50' ),
+			),
+			96.8
+		);
+
+		$products = $this->products( $order );
+
+		$this->assertSame( array( 'A', 'Discount "A"', 'B', 'Discount "B"' ), array_column( $products, 'name' ) );
+		$this->assertSame( array( 12.1, 12.1 ), array_column( $products, 'discount' ) );
+	}
+
+	public function test_a_per_item_priced_bundle_only_invoices_its_components(): void {
+		$order = $this->order(
+			array(
+				$this->bundle( array(), 'cart-1' ),
+				$this->component( 'cart-1', 'A', '100', array( 'subtotal' => 100.0, 'subtotal_tax' => 21.0, 'total' => 100.0, 'total_tax' => 21.0 ) ),
+			),
+			121.0
+		);
+
+		$products = $this->products( $order );
+
+		$this->assertSame( array( 'A' ), array_column( $products, 'code' ) );
+		$this->assertSame( array( 121.0 ), array_column( $products, 'price' ) );
+	}
+
+	public function test_bundle_price_goes_only_to_its_own_components(): void {
+		$order = $this->order(
+			array(
+				$this->bundle( array( 'subtotal' => 100.0, 'total' => 100.0 ), 'cart-1' ),
+				$this->component( 'cart-1', 'A', '10' ),
+				$this->component( 'cart-2', 'B', '10', array( 'subtotal' => 50.0, 'total' => 50.0 ) ),
+			),
+			150.0
+		);
+
+		$this->assertSame( array( 100.0, 50.0 ), array_column( $this->products( $order ), 'price' ) );
+	}
+
+	public function test_a_priced_bundle_without_components_on_the_order_fails_clearly(): void {
+		$order = $this->order(
+			array( $this->bundle( array( 'subtotal' => 100.0, 'total' => 100.0 ), 'cart-1' ) ),
+			100.0
+		);
+
+		$this->expectException( DocumentException::class );
+		$this->expectExceptionMessage( 'componentele lui nu apar pe comandă' );
+		$this->products( $order );
+	}
+
+	public function test_include_mode_invoices_the_bundle_line_itself(): void {
+		$this->settings->set( 'bundle_line_mode', 'include' );
+		$order = $this->order(
+			array(
+				$this->bundle( array( 'subtotal' => 100.0, 'total' => 100.0 ), 'cart-1' ),
+				$this->component( 'cart-1', 'A', '10' ),
+			),
+			100.0
+		);
+
+		$this->assertSame( array( 'ZEO-x2', 'A' ), array_column( $this->products( $order ), 'code' ) );
+	}
+
+	public function test_the_old_skip_value_behaves_like_auto(): void {
+		$this->settings->set( 'bundle_line_mode', 'skip' );
+		$order = $this->order(
+			array(
+				$this->bundle( array( 'subtotal' => 100.0, 'total' => 100.0 ), 'cart-1' ),
+				$this->component( 'cart-1', 'A', '10' ),
+			),
+			100.0
+		);
+
+		$this->assertSame( array( 100.0 ), array_column( $this->products( $order ), 'price' ) );
+	}
+
+	/**
+	 * @param array<int,WC_Order_Item_Product>  $items    Refunded product lines (negative amounts).
+	 * @param array<int,WC_Order_Item_Shipping> $shipping Refunded shipping lines.
+	 */
+	private function refund( int $id, float $amount, array $items = array(), array $shipping = array() ): WC_Order_Refund {
+		$refund = new WC_Order_Refund( $id, 1 );
+		$refund->set_amount( $amount );
+		$refund->set_items( $items );
+		$refund->set_shipping_items( $shipping );
+		return $refund;
+	}
+
+	private function refunded_item( int $original_id, array $data ): WC_Order_Item_Product {
+		$item = $this->item( $data );
+		$item->add_meta_data( '_refunded_item_id', $original_id );
+		return $item;
+	}
+
+	/** Order 10, only 4 in stock, 6 refunded before the invoice. */
+	private function partly_refunded_order(): WC_Order {
+		$item  = $this->item(
+			array( 'id' => 11, 'name' => 'Caramele cu miere', 'quantity' => 10.0, 'subtotal' => 148.10, 'subtotal_tax' => 31.10, 'total' => 148.10, 'total_tax' => 31.10 ),
+			new WC_Product( array( 'sku' => '5941185193338', 'regular_price' => '17.92', 'price' => '17.92' ) )
+		);
+		$order = $this->order( array( $item ), 198.20 );
+		$order->set_shipping_items( array( new WC_Order_Item_Shipping( array( 'id' => 12, 'name' => 'Curier rapid', 'total' => 15.70, 'total_tax' => 3.30 ) ) ) );
+		$order->set_refunds(
+			array(
+				$this->refund( 81441, -107.52, array( $this->refunded_item( 11, array( 'quantity' => -6.0, 'total' => -88.86, 'total_tax' => -18.66 ) ) ) ),
+			)
+		);
+		return $order;
+	}
+
+	public function test_a_refund_before_the_invoice_is_taken_off_the_line(): void {
+		$products = $this->products( $this->partly_refunded_order() );
+
+		$this->assertCount( 2, $products );
+		$this->assertSame( array( '5941185193338', 17.92, 4.0, 21 ), array( $products[0]['code'], $products[0]['price'], $products[0]['quantity'], $products[0]['vatPercentage'] ) );
+		$this->assertSame( array( 'Transport', 19.0 ), array( $products[1]['name'], $products[1]['price'] ) );
+	}
+
+	public function test_a_fully_refunded_line_and_shipping_are_left_off(): void {
+		$kept     = $this->item( array( 'id' => 11, 'name' => 'Kept', 'subtotal' => 100.0, 'total' => 100.0 ) );
+		$returned = $this->item( array( 'id' => 13, 'name' => 'Returned', 'quantity' => 2.0, 'subtotal' => 50.0, 'total' => 50.0 ) );
+		$order    = $this->order( array( $kept, $returned ), 160.0 );
+		$order->set_shipping_items( array( new WC_Order_Item_Shipping( array( 'id' => 12, 'total' => 10.0 ) ) ) );
+		$order->set_refunds(
+			array(
+				$this->refund(
+					5,
+					-60.0,
+					array( $this->refunded_item( 13, array( 'quantity' => -2.0, 'total' => -50.0 ) ) ),
+					array( new WC_Order_Item_Shipping( array( 'total' => -10.0, 'meta' => array( '_refunded_item_id' => 12 ) ) ) )
+				),
+			)
+		);
+
+		$this->assertSame( array( 'Kept' ), array_column( $this->products( $order ), 'name' ) );
+	}
+
+	public function test_a_refund_by_amount_before_the_invoice_becomes_a_discount_line(): void {
+		$item  = $this->item( array( 'subtotal' => 100.0, 'subtotal_tax' => 21.0, 'total' => 100.0, 'total_tax' => 21.0 ) );
+		$order = $this->order( array( $item ), 121.0 );
+		$order->set_refunds( array( $this->refund( 5, -21.0 ) ) );
+
+		$products = $this->products( $order );
+
+		$this->assertCount( 2, $products );
+		$this->assertSame( array( 'Discount', -21.0, 1 ), array( $products[1]['name'], $products[1]['price'], $products[1]['quantity'] ) );
+	}
+
+	public function test_a_fully_refunded_order_has_nothing_to_invoice(): void {
+		$item  = $this->item( array( 'id' => 11, 'subtotal' => 100.0, 'total' => 100.0 ) );
+		$order = $this->order( array( $item ), 100.0 );
+		$order->set_refunds( array( $this->refund( 5, -100.0, array( $this->refunded_item( 11, array( 'quantity' => -1.0, 'total' => -100.0 ) ) ) ) ) );
+
+		$this->expectException( FullyRefundedException::class );
+		$this->products( $order );
+	}
+
+	public function test_a_refunded_bundle_quantity_scales_its_components(): void {
+		$container = $this->bundle( array( 'id' => 20, 'quantity' => 2.0, 'subtotal' => 200.0, 'total' => 200.0 ), 'cart-1' );
+		$order     = $this->order(
+			array(
+				$container,
+				$this->component( 'cart-1', 'A', '60', array( 'quantity' => 2.0 ) ),
+				$this->component( 'cart-1', 'B', '40', array( 'quantity' => 2.0 ) ),
+			),
+			200.0
+		);
+		$order->set_refunds( array( $this->refund( 5, -100.0, array( $this->refunded_item( 20, array( 'quantity' => -1.0, 'total' => -100.0 ) ) ) ) ) );
+
+		$products = $this->products( $order );
+
+		$this->assertSame( array( 'A', 'B' ), array_column( $products, 'code' ) );
+		$this->assertSame( array( 1.0, 1.0 ), array_column( $products, 'quantity' ) );
+		$this->assertSame( array( 60.0, 40.0 ), array_column( $products, 'price' ) );
+	}
+
+	public function test_an_order_without_refunds_is_unchanged(): void {
+		$item  = $this->item( array( 'id' => 11, 'quantity' => 2.0, 'subtotal' => 200.0, 'total' => 200.0 ) );
+		$order = $this->order( array( $item ), 200.0 );
+
+		$this->assertSame( array( 2.0 ), array_column( $this->products( $order ), 'quantity' ) );
+		$this->assertSame( array(), $this->builder()->netted_refund_ids( $order, OrderMeta::TYPE_INVOICE, array(), PriorRefunds::for_order( $order ) ) );
+	}
+
+	public function test_netted_refunds_come_from_the_lines_or_the_referenced_aviz(): void {
+		$order   = $this->partly_refunded_order();
+		$refunds = PriorRefunds::for_order( $order );
+
+		$this->assertSame( array( 81441 ), $this->builder()->netted_refund_ids( $order, OrderMeta::TYPE_INVOICE, array(), $refunds ) );
+
+		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_NOTICE, 'link' ), 'https://example.test/aviz' );
+		$this->assertSame( array(), $this->builder()->netted_refund_ids( $order, OrderMeta::TYPE_INVOICE, array(), $refunds ) );
+
+		OrderMeta::record_netted_refunds( $order, OrderMeta::TYPE_NOTICE, array( 81441 ) );
+		$this->assertSame( array( 81441 ), $this->builder()->netted_refund_ids( $order, OrderMeta::TYPE_INVOICE, array(), $refunds ) );
 	}
 
 	private function summary( array $line ): array {

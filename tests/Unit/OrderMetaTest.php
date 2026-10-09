@@ -81,6 +81,21 @@ final class OrderMetaTest extends TestCase {
 		$this->assertFalse( get_option( 'oblio_fgwoo_latest_number_invoice_fv' ) );
 	}
 
+	public function test_netted_refunds_are_recorded_and_cleared_with_the_document(): void {
+		$order = new WC_Order( 1 );
+		$order->update_meta_data( 'oblio_fgwoo_storno_failed_7', 'Factura nu a fost emisă în timp util.' );
+		$order->update_meta_data( 'oblio_fgwoo_storno_failed_permanent_7', '1' );
+		OrderMeta::record_netted_refunds( $order, OrderMeta::TYPE_INVOICE, array( '7', 9 ) );
+
+		$this->assertSame( array( 7, 9 ), OrderMeta::netted_refunds( $order, OrderMeta::TYPE_INVOICE ) );
+		$this->assertSame( '', (string) $order->get_meta( 'oblio_fgwoo_storno_failed_7' ) );
+		$this->assertSame( '', (string) $order->get_meta( 'oblio_fgwoo_storno_failed_permanent_7' ) );
+		$this->assertSame( array(), OrderMeta::netted_refunds( $order, OrderMeta::TYPE_NOTICE ) );
+
+		OrderMeta::clear( $order, OrderMeta::TYPE_INVOICE );
+		$this->assertSame( array(), OrderMeta::netted_refunds( $order, OrderMeta::TYPE_INVOICE ) );
+	}
+
 	public function test_fresh_order_is_not_marked_as_stock_discharging(): void {
 		$this->assertFalse( OrderMeta::invoice_used_stock( new WC_Order() ) );
 	}

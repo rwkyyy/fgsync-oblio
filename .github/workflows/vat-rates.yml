@@ -1,0 +1,44 @@
+name: EU VAT rates
+
+# Monthly refresh of data/eu-vat-rates.json from api.vatcomply.com. Opens (or
+# updates) a pull request when a rate changed; the release ships whatever is
+# merged. The plugin itself never calls the API.
+on:
+  schedule:
+    - cron: '0 6 1 * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Fetch and validate rates
+        run: php bin/update-eu-vat-rates.php
+
+      - name: Open or update the pull request
+        env:
+          # A PAT lets the PR trigger CI; the default token still opens it.
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN || github.token }}
+        run: |
+          if git diff --quiet -- data/eu-vat-rates.json; then
+            echo "No rate changes."
+            exit 0
+          fi
+          branch=vat-rates/update
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -C "$branch"
+          git add data/eu-vat-rates.json
+          git commit -m "Update EU VAT rates ($(date -u +%Y-%m-%d))"
+          git push --force "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$branch"
+          if [ -z "$(gh pr list --head "$branch" --state open --json number --jq '.[].number')" ]; then
+            gh pr create --head "$branch" --base main \
+              --title "Update EU VAT rates" \
+              --body "Monthly refresh from https://api.vatcomply.com/vat_rates. Review the changed rates against the official EU source before merging; shops see an update notice in FGSync → Setări → Taxare after the release."
+          fi

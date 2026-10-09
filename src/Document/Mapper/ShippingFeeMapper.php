@@ -10,30 +10,41 @@ declare( strict_types=1 );
 namespace FGSyncOblio\Document\Mapper;
 
 use FGSyncOblio\Document\BuildContext;
+use FGSyncOblio\Document\PriorRefunds;
 use WC_Abstract_Order;
 use WC_Order;
 use WC_Order_Item_Shipping;
 final class ShippingFeeMapper {
 
-	public function map( WC_Order $order, BuildContext $ctx ): array {
+	/**
+	 * @param WC_Order          $order   Order.
+	 * @param BuildContext      $ctx     Document context.
+	 * @param PriorRefunds|null $refunds Refunds to take off shipping and fees.
+	 * @return array{products:array<int,array<string,mixed>>,total:float}
+	 */
+	public function map( WC_Order $order, BuildContext $ctx, ?PriorRefunds $refunds = null ): array {
+		$refunds  = $refunds ?? PriorRefunds::none();
 		$products = array();
 		$total    = 0.0;
 
-		foreach ( $this->shipping_lines( $order, $ctx ) as $line ) {
+		foreach ( $this->shipping_lines( $order, $ctx, 1, $refunds ) as $line ) {
 			$products[] = $line;
 			$total     += $line['price'];
 		}
 
 		foreach ( $order->get_fees() as $fee ) {
-			$fee_total = (float) $fee->get_total() + (float) $fee->get_total_tax();
-			if ( 0.0 === $fee_total ) {
+			$refunded  = $refunds->for_item( (int) $fee->get_id() );
+			$fee_net   = (float) $fee->get_total() - ( (float) $fee->get_total() < 0 ? -$refunded['total'] : $refunded['total'] );
+			$fee_tax   = (float) $fee->get_total_tax() - ( (float) $fee->get_total_tax() < 0 ? -$refunded['total_tax'] : $refunded['total_tax'] );
+			$fee_total = $fee_net + $fee_tax;
+			if ( abs( $fee_total ) < 0.005 ) {
 				continue;
 			}
 			$products[] = $this->service_line(
 				$fee->get_name(),
 				$fee_total,
-				(float) $fee->get_total(),
-				(float) $fee->get_total_tax(),
+				$fee_net,
+				$fee_tax,
 				$ctx,
 				1,
 				LineVat::item_taxes( $fee )
@@ -54,14 +65,17 @@ final class ShippingFeeMapper {
 	 * @param WC_Abstract_Order $order    Order or refund.
 	 * @param BuildContext      $ctx      Document context.
 	 * @param int               $quantity -1 for storno lines.
+	 * @param PriorRefunds|null $refunds  Refunds to take off an order's shipping.
 	 * @return array<int,array<string,mixed>>
 	 */
-	public function shipping_lines( WC_Abstract_Order $order, BuildContext $ctx, int $quantity = 1 ): array {
+	public function shipping_lines( WC_Abstract_Order $order, BuildContext $ctx, int $quantity = 1, ?PriorRefunds $refunds = null ): array {
+		$refunds = $refunds ?? PriorRefunds::none();
 		$read    = static fn ( $amount ): float => $quantity < 0 ? abs( (float) $amount ) : (float) $amount;
 		$amounts = array();
 		foreach ( $order->get_items( 'shipping' ) as $shipping ) {
 			if ( $shipping instanceof WC_Order_Item_Shipping ) {
-				$amounts[] = array( $shipping->get_name(), $read( $shipping->get_total() ), $read( $shipping->get_total_tax() ), LineVat::item_taxes( $shipping ) );
+				$refunded  = $refunds->for_item( (int) $shipping->get_id() );
+				$amounts[] = array( $shipping->get_name(), $read( $shipping->get_total() ) - $refunded['total'], $read( $shipping->get_total_tax() ) - $refunded['total_tax'], LineVat::item_taxes( $shipping ) );
 			}
 		}
 		if ( empty( $amounts ) ) {

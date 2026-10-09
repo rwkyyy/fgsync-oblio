@@ -32,7 +32,7 @@
   "operatingSystem": "WordPress 6.5+",
   "inLanguage": "ro",
   "description": "Integrare independentă, open-source, între WooCommerce și serviciul de facturare Oblio.eu: facturi, proforme, avize și storno automate, procesare pe coadă și sincronizare stoc pe mai multe gestiuni.",
-  "softwareVersion": "1.3.4",
+  "softwareVersion": "1.4.0",
   "offers": {
     "@type": "Offer",
     "price": "0",
@@ -75,7 +75,7 @@
       "name": "Cum migrez de la vechiul plugin „WooCommerce Oblio”?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Setările includ un buton „Import setări” în ecranul de conectare. Documentele deja emise prin vechiul plugin sunt recunoscute automat, deci nu se re-emit."
+        "text": "Setările includ un buton „Importă setările” în tabul Conectare. Documentele deja emise prin vechiul plugin sunt recunoscute automat, deci nu se re-emit."
       }
     },
     {
@@ -83,7 +83,7 @@
       "name": "Când sunt facturate comenzile WooCommerce prin Oblio?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Trei moduri disponibile, în tabul Documente. „Prin coadă” (implicit) emite factura în câteva secunde de la intrarea comenzii în statusul ales, fără să încetinească acea cerere. „Instant” emite sincron, în aceeași cerere care a schimbat statusul, cu revenire automată la coadă dacă încercarea eșuează. „Scheduled (batch)” emite facturile periodic, util când facturarea se face mai târziu, de exemplu la livrare. O verificare de reconciliere recheamă periodic comenzile recente și reprogramează orice factură omisă de un hook ratat sau de o pană scurtă Oblio."
+        "text": "Trei moduri disponibile, în tabul Documente. „Prin coadă” (implicit) emite factura în câteva secunde de la intrarea comenzii în statusul ales, fără să încetinească acea cerere. „Instant” emite sincron, în aceeași cerere care a schimbat statusul, cu revenire automată la coadă dacă încercarea eșuează. „Programat” emite facturile periodic, util când facturarea se face mai târziu, de exemplu la livrare. Opțional, „Emite și la confirmarea plății” emite factura imediat ce o plată online (card, PayPal etc.) este confirmată. O verificare de reconciliere recheamă periodic comenzile recente și reprogramează orice factură omisă de un hook ratat sau de o pană scurtă Oblio."
       }
     },
     {
@@ -96,10 +96,26 @@
     },
     {
       "@type": "Question",
-      "name": "Ce face setarea OSS EUR?",
+      "name": "Ce se întâmplă când o țară își schimbă cota de TVA?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Este pentru magazinele care folosesc schema TVA UE One-Stop-Shop: când e activată, documentele facturate către o adresă din afara României sunt emise în EUR, indiferent de moneda comenzii, cu echivalentul în RON afișat de Oblio alături. Este dezactivată implicit și relevantă doar pentru vânzări B2C sub pragul OSS."
+        "text": "Oblio nu permite modificarea unei cote TVA odată folosită pe o factură, așa că adaugi o cotă nouă în Oblio → Setări → Cote TVA, numită după procent (de exemplu „21” lângă „19”), și o păstrezi pe cea veche. Actualizezi apoi cota în WooCommerce, manual sau cu butonul de import UE. Comenzile noi folosesc cota nouă, iar facturile deja emise rămân neschimbate."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Cum se facturează vânzările către firme din UE (taxare inversă)?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "FGSync nu verifică codurile de TVA în VIES. Folosește un plugin de checkout care validează codul de TVA UE al clientului în VIES și scoate TVA-ul din comandă; FGSync trimite apoi liniile cu 0%, cu categoria aleasă în tabul TVA (de exemplu „Taxare inversa”)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Ce face setarea „Emite în EUR pentru clienții din afara României”?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Când e activată, documentele pentru o adresă de facturare din afara României (din UE sau din altă parte) se emit în EUR, indiferent de moneda comenzii, cu echivalentul în RON afișat de Oblio alături. Schimbă doar moneda, nu și TVA-ul, care vine în continuare din WooCommerce. Este dezactivată implicit; dacă facturile în EUR se potrivesc magazinului tău decide contabilul."
       }
     },
     {
@@ -107,7 +123,7 @@
       "name": "Cum primesc clienții factura pe email?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Două moduri, în tabul Email: „Standalone” trimite un mesaj separat de la plugin când documentul e emis, sau „Button” adaugă un buton către factura Oblio în emailurile proprii ale comenzii din WooCommerce. În modul „Button”, dacă factura nu a fost încă emisă, pluginul încearcă să o emită în acel moment, astfel încât butonul să trimită de obicei către o factură reală."
+        "text": "Două moduri, în tabul Email: „Email separat” trimite un mesaj separat de la plugin când documentul e emis, sau „Nativ în mail-ul WooCommerce” adaugă un buton către factura Oblio în emailurile proprii ale comenzii din WooCommerce. În acest mod, dacă factura nu a fost încă emisă, pluginul încearcă să o emită în acel moment, astfel încât butonul să trimită de obicei către o factură reală."
       }
     },
     {
@@ -415,7 +431,21 @@
           <div class="card-b"><ul>
             <li>Facturi, proforme, avize (notă de livrare) și storno, automat sau manual din ecranul comenzii</li>
             <li>O proformă se transformă în factură sau se șterge. Nu se emite niciodată o proformă după ce există deja o factură</li>
-            <li>Storno automat la rambursările din WooCommerce, integral sau parțial</li>
+            <li>Factură și la confirmarea plății online (opțional). Pentru o comandă cu aviz, factura se emite pe baza avizului, deci stocul se descarcă o singură dată</li>
+            <li>Fără proforme pentru comenzile deja plătite online: proforma e o cerere de plată</li>
+            <li>Storno automat la rambursările din WooCommerce, integral sau parțial. Rambursările făcute înainte de factură sunt scăzute din factură, fără storno separat</li>
+            <li>Clienții își văd facturile și stornourile în secțiunea „Facturi” din contul lor</li>
+            <li>Produsele virtuale (digitale) pot primi propriul tip, de ex. „Serviciu”, iar conturile Oblio fără gestiuni sunt suportate, cu facturi emise fără descărcare din stoc</li>
+          </ul></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>TVA</h3></div>
+          <div class="card-b"><ul>
+            <li>Fiecare linie primește categoria TVA exactă din contul Oblio, potrivită după cotă (inclusiv 25,5% sau 5,5%)</li>
+            <li>Tabul TVA listează cotele fără categorie în Oblio, cu numele recomandat, înainte să eșueze o factură</li>
+            <li>Categoria 0% pentru liniile fără TVA se alege din setări</li>
+            <li>Import opțional al cotelor TVA standard pentru cele 27 de state UE</li>
+            <li>Persoană fizică / juridică din pluginul gratuit „Facturare - Persoana Fizica sau Juridica”</li>
           </ul></div>
         </div>
         <div class="card">
@@ -446,7 +476,8 @@
           <div class="card-b"><ul>
             <li>HPOS (High-Performance Order Storage) și stocare clasică a comenzilor</li>
             <li>WPML / WooCommerce Multilingual: limba și moneda facturii urmează comanda</li>
-            <li>WooCommerce Bundles și schema de facturare OSS (EUR pentru clienți din afara României)</li>
+            <li>WooCommerce Bundles: componentele sunt facturate, iar prețul fix al pachetului se împarte pe ele</li>
+            <li>Documente în EUR pentru clienții din afara României</li>
           </ul></div>
         </div>
         <div class="card">
@@ -454,6 +485,7 @@
           <div class="card-b"><ul>
             <li>23 de filtre și hook-uri proprii, acoperind facturare, stoc, rezervări, reconciliere, storno și email</li>
             <li>Ajustează o cantitate sau un preț de stoc înainte de scriere, suprascrie moneda sau limba documentului per comandă</li>
+            <li>Tabul „Stare” arată hook-urile suprascrise de alte pluginuri și copiază un raport de diagnoză fără date personale</li>
           </ul></div>
         </div>
       </div>
@@ -471,7 +503,7 @@
             <tr><td class="feat">Emitere factură</td><td class="tag-partial">Sincronă, poate bloca cererea până la ~60s</td><td class="tag-yes">Pe coadă / la rând (Action Scheduler), nu blochează niciodată, cu atât mai puțin checkout-ul!</td></tr>
             <tr><td class="feat">Reîncercare automată la eșec</td><td class="tag-no">Lipsește</td><td class="tag-yes">Automată, cu pauze (eșecuri multiple)</td></tr>
             <tr><td class="feat">Storno (credit note)</td><td class="tag-no">Lipsește</td><td class="tag-yes">Automat la rambursare, integrală sau parțială</td></tr>
-            <tr><td class="feat">Aviz (notă de livrare)</td><td class="tag-partial">Codul există, dar nu e funcțional</td><td class="tag-yes">Funcțional</td></tr>
+            <tr><td class="feat">Aviz (notă de livrare)</td><td class="tag-partial">Codul există, dar nu e funcțional</td><td class="tag-yes">Funcțional, iar factura se emite pe baza lui</td></tr>
             <tr><td class="feat">Reconciliere documente omise</td><td class="tag-no">Lipsește</td><td class="tag-yes">Job recurent / Rutină</td></tr>
             <tr><td class="feat">Interval sincronizare stoc</td><td class="tag-partial">Cron fix, la fiecare oră</td><td class="tag-yes">Configurabil</td></tr>
             <tr><td class="feat">Sincronizare stoc la scară</td><td class="tag-partial">O singură execuție care citește și scrie toate produsele: risc de timeout la cataloage mari / încetinire masivă în server</td><td class="tag-yes">Pe secțiuni, asyncron, neblocant cu progres salvat</td></tr>
@@ -479,7 +511,12 @@
             <tr><td class="feat">Limitare rată API Oblio</td><td class="tag-partial">Doar la paginarea sincronizării de stoc</td><td class="tag-yes">La fiecare emitere (facturi, proforme, avize, storno)</td></tr>
             <tr><td class="feat">Compatibilitate HPOS</td><td class="tag-partial">Parțială</td><td class="tag-yes">Completă</td></tr>
             <tr><td class="feat">WPML / WooCommerce Multilingual</td><td class="tag-no">Lipsește</td><td class="tag-yes">Disponibil</td></tr>
-            <tr><td class="feat">Facturare OSS (EUR)</td><td class="tag-no">Lipsește</td><td class="tag-yes">Setare opțională</td></tr>
+            <tr><td class="feat">WooCommerce Bundles</td><td class="tag-no">Lipsește</td><td class="tag-yes">Componente facturate, prețul fix împărțit pe ele</td></tr>
+            <tr><td class="feat">Tip produs pentru produse virtuale</td><td class="tag-partial">Doar tipul implicit sau setat pe fiecare produs</td><td class="tag-yes">Tip separat, aplicat automat produselor virtuale</td></tr>
+            <tr><td class="feat">Documente în EUR (clienți din afara României)</td><td class="tag-no">Lipsește</td><td class="tag-yes">Setare opțională</td></tr>
+            <tr><td class="feat">Cota TVA pe linie</td><td class="tag-partial">Rotunjită la număr întreg (25,5% devine 26%)</td><td class="tag-yes">Exactă, cu categoria din contul Oblio</td></tr>
+            <tr><td class="feat">Cote TVA lipsă în Oblio</td><td class="tag-no">Nicio verificare</td><td class="tag-yes">Listate în setări, cu mesaj clar la emitere</td></tr>
+            <tr><td class="feat">Persoană fizică / juridică</td><td class="tag-partial">CNP trimis drept CIF, fără bancă și IBAN</td><td class="tag-yes">PF/PJ, CUI, CNP, Reg. Com., bancă și IBAN</td></tr>
             <tr><td class="feat">Filtre / hook-uri proprii</td><td class="tag-partial">2</td><td class="tag-yes">23</td></tr>
             <tr><td class="feat">Stocare cheie API</td><td class="tag-partial">Text simplu</td><td class="tag-yes">Criptată (AES-256-GCM)</td></tr>
             <tr><td class="feat">Filtrare listă comenzi după status Oblio</td><td class="tag-no">Lipsește</td><td class="tag-yes">Disponibilă</td></tr>
@@ -506,8 +543,8 @@
       <ol class="steps">
         <li>Instalează FGSync for Oblio din <a href="https://ro.wordpress.org/plugins/fgsync-oblio/">directorul de plugin-uri WordPress.org</a>, sau încarcă folderul pluginului în <code>/wp-content/plugins/</code>.</li>
         <li>Activează pluginul din meniul Plugin-uri.</li>
-        <li>Deschide setările <strong>FGSync</strong> (meniul principal din admin), introdu emailul contului Oblio și secretul API, apoi testează conexiunea.</li>
-        <li>Folosești deja vechiul plugin „WooCommerce Oblio”? Folosește butonul <strong>Import setări</strong> din ecranul de conectare, ca să migrezi fără să reintroduci configurația.</li>
+        <li>Deschide setările <strong>FGSync</strong> (meniul principal din admin), introdu emailul contului Oblio și secretul API, apoi apasă <strong>Preia ultimele date</strong> ca să încarci firma, seriile și gestiunile.</li>
+        <li>Folosești deja vechiul plugin „WooCommerce Oblio”? Folosește butonul <strong>Importă setările</strong> din tabul Conectare, ca să migrezi fără să reintroduci configurația.</li>
       </ol>
     </section>
 
@@ -526,12 +563,12 @@
 
       <div class="faq-item">
         <h3>Cum migrez de la vechiul plugin „WooCommerce Oblio”?</h3>
-        <p>În pagina de setări apare un buton „Import setări” în ecranul de conectare. Documentele deja emise prin vechiul plugin sunt recunoscute automat, deci nu se re-emit.</p>
+        <p>În pagina de setări apare un buton „Importă setările” în tabul Conectare. Documentele deja emise prin vechiul plugin sunt recunoscute automat, deci nu se re-emit.</p>
       </div>
 
       <div class="faq-item">
         <h3>Ce moduri de facturare sunt disponibile?</h3>
-        <p>Trei moduri disponibile, în tabul Documente. „Prin coadă” (implicit) emite factura în câteva secunde de la intrarea comenzii în statusul ales, fără să încetinească acea cerere. „Instant” emite sincron, în aceeași cerere care a schimbat statusul, cu revenire automată la coadă dacă încercarea eșuează. „Scheduled (batch)” emite facturile periodic, util când facturarea se face mai târziu, de exemplu la expediere. O verificare de reconciliere recheamă periodic comenzile recente și reprogramează orice factură omisă de un hook ratat sau de o pană scurtă în API-ul Oblio.</p>
+        <p>Trei moduri disponibile, în tabul Documente. „Prin coadă” (implicit) emite factura în câteva secunde de la intrarea comenzii în statusul ales, fără să încetinească acea cerere. „Instant” emite sincron, în aceeași cerere care a schimbat statusul, cu revenire automată la coadă dacă încercarea eșuează. „Programat” emite facturile periodic, util când facturarea se face mai târziu, de exemplu la expediere. Opțional, „Emite și la confirmarea plății” emite factura imediat ce o plată online (card, PayPal etc.) este confirmată. O verificare de reconciliere recheamă periodic comenzile recente și reprogramează orice factură omisă de un hook ratat sau de o pană scurtă în API-ul Oblio.</p>
       </div>
 
       <div class="faq-item">
@@ -540,13 +577,23 @@
       </div>
 
       <div class="faq-item">
-        <h3>Ce face setarea OSS EUR?</h3>
-        <p>Este pentru magazinele care folosesc schema TVA UE One-Stop-Shop: când e activată, documentele facturate către o adresă din afara României sunt emise în EUR, indiferent de moneda comenzii, cu echivalentul în RON afișat de Oblio alături. Este dezactivată implicit și relevantă doar pentru vânzări B2C sub pragul OSS.</p>
+        <h3>Ce se întâmplă când o țară își schimbă cota de TVA?</h3>
+        <p>Oblio nu permite modificarea unei cote TVA odată folosită pe o factură, așa că adaugi o cotă nouă în Oblio → Setări → Cote TVA, numită după procent (de exemplu „21” lângă „19”), și o păstrezi pe cea veche. Actualizezi apoi cota în WooCommerce, manual sau cu butonul de import UE. Comenzile noi folosesc cota nouă, iar facturile deja emise rămân neschimbate. Pluginul trimite cota calculată de WooCommerce pe comandă; regulile fiscale (OSS, taxare inversă, export) se configurează în WooCommerce, împreună cu contabilul.</p>
+      </div>
+
+      <div class="faq-item">
+        <h3>Cum se facturează vânzările către firme din UE (taxare inversă)?</h3>
+        <p>FGSync nu verifică codurile de TVA în VIES. Folosește un plugin de checkout care validează codul de TVA UE al clientului în VIES și scoate TVA-ul din comandă; FGSync trimite apoi liniile cu 0%, cu categoria aleasă în tabul TVA (de exemplu „Taxare inversa”). Dovada verificării VIES rămâne în grija acelui plugin și a contabilului.</p>
+      </div>
+
+      <div class="faq-item">
+        <h3>Ce face setarea „Emite în EUR pentru clienții din afara României”?</h3>
+        <p>Când e activată, documentele pentru o adresă de facturare din afara României (din UE sau din altă parte) se emit în EUR, indiferent de moneda comenzii, cu echivalentul în RON afișat de Oblio alături. Schimbă doar moneda, nu și TVA-ul, care vine în continuare din WooCommerce. Este dezactivată implicit; dacă facturile în EUR se potrivesc magazinului tău decide contabilul.</p>
       </div>
 
       <div class="faq-item">
         <h3>Cum primesc clienții factura pe email?</h3>
-        <p>Două moduri, în tabul Email: „Standalone” trimite un mesaj separat de la plugin când documentul e emis, sau „Button” adaugă un buton către factura Oblio în emailurile proprii ale comenzii din WooCommerce. În modul „Button”, dacă factura nu a fost încă emisă, pluginul încearcă să o emită în acel moment, astfel încât butonul să trimită de obicei către o factură reală.</p>
+        <p>Două moduri, în tabul Email: „Email separat” trimite un mesaj separat de la plugin când documentul e emis, sau „Nativ în mail-ul WooCommerce” adaugă un buton către factura Oblio în emailurile proprii ale comenzii din WooCommerce. În acest mod, dacă factura nu a fost încă emisă, pluginul încearcă să o emită în acel moment, astfel încât butonul să trimită de obicei către o factură reală.</p>
       </div>
 
       <div class="faq-item">

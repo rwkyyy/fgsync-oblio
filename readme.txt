@@ -4,7 +4,7 @@ Tags: woocommerce, invoicing, oblio, invoice, romania
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.3.6
+Stable tag: 1.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -17,27 +17,58 @@ FGSync for Oblio is an independent open-source integration between WooCommerce a
 **Documents**
 
 * Issue invoices, proformas, delivery notes and credit notes (storno), automatically or manually from the order screen.
-* Proforma to invoice rule: a proforma is transformed into an invoice or deleted; a proforma is never issued after an invoice.
-* Automatic credit note on WooCommerce refunds (partial and full). Experimental bridge to the WooCommerce Returns feature, activated automatically only when that feature is available in your WooCommerce version.
+* Proforma to invoice rule: a proforma is transformed into an invoice or deleted; a proforma is never issued after an invoice, nor for an order already paid online, since a proforma is a request for payment.
+* When an order already has a delivery note, its invoice is issued based on it in Oblio, so stock is taken out only once.
+* Automatic credit note on WooCommerce refunds (partial and full). Refunds made before the invoice is issued are taken off the invoice instead, and an order refunded in full before invoicing gets no invoice.
+* Experimental bridge to the WooCommerce Returns feature, off by default and available only when your WooCommerce version has that feature.
+* Customers find their invoices and credit notes in a "Facturi" section of their WooCommerce account.
+* Document options: series, document date (issue day or order day), work point, warehouse, unit of measure, due date, notes, "issued by" and delegate, document language and product type.
+* Per product and per variation: Oblio product type and units per package (decimals allowed, for example 2.5 m² per box). Virtual products (for example digital goods) can get their own default type, such as "Serviciu".
+* Works with Oblio accounts without warehouses, for example shops selling only digital products: the stock options are switched off and invoices are issued without stock deduction.
+* Sale discounts are invoiced as the customer saw them at checkout, even if prices change later.
+* Optional: fill in company details from Oblio by CIF.
+
+**VAT**
+
+* Each line is sent with the exact VAT category from your Oblio account, matched by rate (including rates like 25.5% or 5.5%), using the rate recorded on the order.
+* A "TVA" tab lists the WooCommerce rates your Oblio account has no category for, with the name to give each one in Oblio, so a missing rate is caught before an invoice fails.
+* Choose which 0% category is used for lines without VAT (SDD, SFDD, Scutita, Taxare inversa, etc.).
+* Optional one-click import of the standard VAT rates for all 27 EU countries into WooCommerce, refreshed with plugin updates.
+* Company and individual customers (CUI, CNP, registration number, bank, IBAN) from the free "Facturare - Persoana Fizica sau Juridica" plugin, on classic and block checkout.
 
 **Performance**
 
 * Queued processing (Action Scheduler) so issuing never blocks checkout or status changes.
 * Automatic retries with backoff, plus a reconciliation job for missed invoices.
 * Stock synced in batches, across one or more warehouses (locations), matching the WooCommerce SKU with the Oblio product code.
+* Optional price update from Oblio during stock sync, keeping your sale prices.
+* Optional stock reservation for orders not yet invoiced, so the store doesn't oversell.
 * Bulk actions (invoice/proforma/storno for multiple orders at once) are queued per order, not run one after another in the same admin request.
 * Settings and warehouse/series lists are read from a short-lived cache, refreshed on demand, instead of calling Oblio on every page load.
 
 **Collection and notifications**
 
 * Automatic "mark as paid", configurable per payment method, with exceptions.
-* Invoices issued the moment the order reaches a status, or on a schedule (batch), your choice.
+* Invoices issued the moment the order reaches a status, or on a schedule (batch), your choice, and optionally as soon as an online payment is confirmed.
 * Customer notifications two ways: a standalone email from the plugin, or a button linking to the invoice inside WooCommerce's own order emails.
+
+**Orders screen**
+
+* Oblio status column on the orders list, with an error badge and the reason when issuing failed.
+* Filter the orders list by Oblio document (none, proforma, invoice, delivery note, credit note, failed).
+* Issue, view or delete documents from the order screen; the delete button only shows when Oblio allows it (the last document in its series).
+
+**Status and security**
+
+* The API key is stored encrypted (AES-256-GCM).
+* A "Stare" tab with today's log (with live updates), the processing queue, update status, any plugin hooks overridden by other code, and a one-click diagnostics report for support that never includes the API key or personal data.
+* A connection dot in the admin toolbar, and suggested text for your site's privacy policy.
 
 **Compatibility**
 
 * Works with both High-Performance Order Storage (HPOS) and the classic order storage.
 * Compatible with WPML / WooCommerce Multilingual (invoice language and currency from the order).
+* WooCommerce Product Bundles: the components are invoiced and take the stock, and a fixed bundle price is split across them.
 * Logs through WooCommerce (WooCommerce, Status, Logs) and a dedicated status panel.
 * One-click import from the old "WooCommerce Oblio" plugin.
 
@@ -70,7 +101,7 @@ Please review those documents before use. Sending customer and order data to Obl
 
 1. Upload the plugin folder to `/wp-content/plugins/`.
 2. Activate the plugin through the Plugins menu.
-3. Open the FGSync settings (top-level "FGSync" menu), enter your Oblio account email and API secret, then test the connection.
+3. Open the FGSync settings (top-level "FGSync" menu), enter your Oblio account email and API secret, then press "Preia ultimele date" to connect and load your company, series and warehouses.
 
 == Frequently Asked Questions ==
 
@@ -92,13 +123,13 @@ Through WordPress.org, like any plugin. There is no custom updater.
 
 = How do I migrate from the old plugin? =
 
-The settings include an "Import settings" button on the connection screen. Documents already issued are shown automatically.
+The "Conectare" tab has an "Importă setările" button that copies the old plugin's settings. Documents already issued are shown automatically.
 
 = When are invoices issued? =
 
-Three modes, under Documents. "Prin coadă" (the default) queues the invoice the moment the order enters one of the selected statuses; it's issued within seconds, without ever slowing down that request. "Instant" issues it synchronously, in the same request that changed the order's status (checkout, a manual status edit, a payment gateway callback) — useful if you need the invoice to exist the instant the status changes, at the cost of adding a few seconds to that request; if the attempt fails for any reason, it automatically falls back to the queue, so nothing is lost. "Scheduled (batch)" issues invoices periodically at the interval you choose, useful when invoicing happens later, e.g. on delivery. In all three modes a reconciliation scan re-checks recent orders (the last 7 days by default, adjustable with a filter) and re-queues any invoice a missed hook or a brief Oblio outage skipped.
+Three modes, under Documente. "Prin coadă" (the default) queues the invoice the moment the order enters one of the selected statuses; it's issued within seconds, without ever slowing down that request. "Instant" issues it synchronously, in the same request that changed the order's status (checkout, a manual status edit, a payment gateway callback), useful if you need the invoice to exist the instant the status changes, at the cost of adding a few seconds to that request; if the attempt fails for any reason, it automatically falls back to the queue, so nothing is lost. "Programat" issues invoices periodically at the interval you choose, useful when invoicing happens later, e.g. on delivery. Optionally, "Emite și la confirmarea plății" also issues the invoice as soon as an online payment (card, PayPal, etc.) is confirmed, even if the order hasn't reached one of the selected statuses yet; it works in the queued and instant modes, like the old plugin's automatic invoicing. In all three modes a reconciliation scan re-checks recent orders (the last 7 days by default, adjustable with a filter) and re-queues any invoice a missed hook or a brief Oblio outage skipped.
 
-= My order shows a red "!" — what does that mean? =
+= My order shows a red "!". What does that mean? =
 
 The plugin tried to issue that order's invoice and it failed; hover the badge on the orders list (or open the order) to see the stored reason. Recoverable failures are retried automatically through the reconciliation scan and Action Scheduler's own backoff. If the reason points to something on the Oblio side (for example, insufficient stock in the linked gestiune), fix it there, then re-issue manually from the order screen.
 
@@ -106,31 +137,68 @@ The plugin tried to issue that order's invoice and it failed; hover the badge on
 
 Oblio only allows deleting the last document issued in a series. If a newer invoice already exists in the same series, the delete button is hidden for the older one; issue a storno (credit note) instead to reverse it. Proformas are the exception: they can always be deleted, since Oblio treats them separately from the numbered invoice series.
 
+= What happens to a refund made before the invoice is issued? =
+
+It is taken off the invoice: refunded quantities and amounts are left out, and a refund by amount only shows as a discount line. That refund gets no separate credit note. An order refunded in full before invoicing gets no invoice. If the invoice is built on a delivery note or proforma issued before the refund, it keeps that document's values and the refund gets a credit note as usual.
+
 = How are WooCommerce Product Bundles invoiced? =
 
-Under Avansat, "Linia produsului tip pachet" controls this. The default, "Sări peste linia pachetului", invoices only the bundle's individual components, not the bundle product itself, because the bundle product usually has no stock record of its own in Oblio, and deducting stock against it fails. If your store doesn't deduct stock through Oblio, "Include linia pachetului" is worth trying instead: it shows the bundle as a single line with its own name and price, which often reads more clearly on the invoice. If you ever see an error naming the bundle line while "skip" is selected, it means that particular bundle puts its price on the main line rather than on the components (a "fixed price" bundle); switch that store's setting to "include", or get in touch through the support channels above.
+Under Avansat, "Produse pachet (Bundles)" controls this. The default, "AUTOMAT", invoices the bundle's individual components, not the bundle product itself, because the bundle product usually has no stock record of its own in Oblio, and deducting stock against it fails. If the bundle has its own price (a fixed-price or promotional bundle, with the components at 0), that price is split across the components, weighted by their regular prices, so the invoice total matches the order and stock still comes off the real products. Partial refunds of such a bundle are credited on the same components, in the same proportions. If your store doesn't deduct stock through Oblio, "INCLUDE linia pachetului" is worth trying instead: it shows the bundle as a single line with its own name and price, which often reads more clearly on the invoice.
 
-= What does the OSS EUR setting do? =
+= Which VAT categories do I need in Oblio? =
 
-Under Avansat, "Facturare OSS: EUR pentru clienți din afara României" is for stores using the EU One-Stop-Shop VAT scheme: when enabled, documents billed to an address outside Romania are issued in EUR regardless of the order's own currency, with Oblio showing the RON equivalent alongside it. It's off by default, and only relevant to B2C sales under the OSS threshold; the setting's own description links to WooCommerce's tax settings for the VAT-rate side of OSS compliance.
+One per VAT rate your shop uses, under Oblio → Setări → Cote TVA. The plugin matches them by percentage, not by country or name, and the TVA tab lists any rate that has no category yet, with the recommended name (the rate itself, for example "25.5"). After adding one, press "Preia ultimele date" on the Conectare tab.
+
+= What happens when a VAT rate changes? =
+
+Oblio does not allow editing a VAT category once an invoice uses it, so add a new category for the new rate (for example "21" next to "19") and keep the old one. Update the rate in WooCommerce → Setări → Taxe, by hand or with the EU import button. New orders then use the new category; invoices already issued keep their original rate, and documents for orders placed before the change still use the old category. Which rate applies to an order placed before and invoiced after a change is a question for your accountant: the plugin uses the rate recorded on the order.
+
+= Does the plugin decide which VAT rate applies? =
+
+No. WooCommerce calculates the VAT on the order (by your tax settings and any VAT exemption plugin), and FGSync sends that rate to Oblio unchanged. Rules such as OSS, reverse charge for EU companies, or exports are configured in WooCommerce and agreed with your accountant. If taxes are turned off in WooCommerce, lines are sent without a VAT rate and Oblio applies your account's own settings (for example, not a VAT payer); the TVA tab then shows only the OSS and customer settings.
+
+= How are sales to EU companies (reverse charge) handled? =
+
+FGSync does not check VAT numbers in VIES. Use a checkout plugin that validates the customer's EU VAT number in VIES and removes the VAT from the order; FGSync then sends those lines at 0% with the category chosen in the TVA tab (for example "Taxare inversa"). Keeping proof of the VIES check for your records is up to that plugin and your accountant.
+
+= What does "Emite în EUR pentru clienții din afara României" do? =
+
+Under TVA, when enabled, documents for a billing address outside Romania (in the EU or elsewhere) are issued in EUR regardless of the order's currency, with Oblio showing the RON equivalent alongside it. It changes only the currency, never the VAT: the VAT still comes from WooCommerce. It's off by default; whether EUR invoices suit your store is a question for your accountant.
 
 = Why does my WooCommerce stock drop before an order is invoiced? =
 
-If "Rezervă stoc pentru comenzi nefacturate" is enabled (Sincronizare stoc tab), the stock WooCommerce displays is reduced for pending/processing orders that haven't been invoiced with stock deduction yet, so the store doesn't oversell while waiting. The actual deduction inside Oblio only happens once an invoice is issued with stock deduction on; this setting only affects what WooCommerce shows as available in the meantime.
+If "Rezervă stoc pentru comenzi nefacturate" is enabled (Sincronizare tab), the stock WooCommerce displays is reduced for pending/processing orders that haven't been invoiced with stock deduction yet, so the store doesn't oversell while waiting. The actual deduction inside Oblio only happens once an invoice is issued with stock deduction on; this setting only affects what WooCommerce shows as available in the meantime.
 
 = What's the status dot in the admin toolbar? =
 
-A shortcut to the FGSync Status screen, with a small colored dot: green means everything's normal, yellow means the processing queue has a large backlog, and red means the last attempt to reach Oblio failed (it clears as soon as a later call succeeds). It's on by default; turn it off from a checkbox on the Status screen itself.
+A shortcut to the FGSync "Stare" tab, with a small colored dot: green means everything's normal, yellow means the processing queue has a large backlog, and red means the last attempt to reach Oblio failed (it clears as soon as a later call succeeds). It's on by default; turn it off from a checkbox on that tab.
 
 = How do customers get the invoice by email? =
 
-Under Email, pick a mode. "Standalone" sends a separate message from the plugin when the document is issued, using your subject/message templates. "Button" instead adds a button linking to the Oblio invoice inside WooCommerce's own order emails, for the order statuses you select (for example, the Completed order email). In "Button" mode, if the invoice has not been issued yet when that email is sent, the plugin tries to issue it at that moment, even when automatic invoicing is off, so the button usually links to a real invoice. If Oblio's rate limit is busy or that attempt fails, the invoice is queued instead and that particular email goes out without the button; the invoice itself still gets issued shortly after. Use the `oblio_fgwoo_email_button_issue` filter to disable the inline attempt if you only want a button when an invoice already exists.
+Under Email, pick a mode. "Email separat (la emitere)" sends a separate message from the plugin when the document is issued, using your subject/message templates. "Nativ în mail-ul WooCommerce" instead adds a button linking to the Oblio invoice inside WooCommerce's own order emails, for the order statuses you select (for example, the Completed order email). In that mode, if the invoice has not been issued yet when that email is sent, the plugin tries to issue it at that moment, even when automatic invoicing is off, so the button usually links to a real invoice. If Oblio's rate limit is busy or that attempt fails, the invoice is queued instead and that particular email goes out without the button; the invoice itself still gets issued shortly after. Use the `oblio_fgwoo_email_button_issue` filter to disable the inline attempt if you only want a button when an invoice already exists.
 
 = Can I customize FGSync's behavior for my store? =
 
 Yes. A few examples: `oblio_fgwoo_stock_quantity` and `oblio_fgwoo_stock_price` adjust a value right before it's written during stock sync, `oblio_fgwoo_document_currency` and `oblio_fgwoo_document_language` override those per order, and `oblio_fgwoo_email_button_issue` (see above) controls the email button's inline-issue behavior. See the plugin's GitHub repository for the current list.
 
 == Changelog ==
+
+= 1.4.0 =
+* New "TVA" tab in FGSync settings, with the VAT options in one place; the EUR setting for customers outside Romania moved there from Avansat and was renamed from "Facturare OSS" to "Emite în EUR pentru clienții din afara României", since it changes only the currency, not the VAT. When WooCommerce taxes are turned off, the tab explains that and shows only the settings that still apply.
+* New setting: choose which 0% VAT category from your Oblio account is used for lines without VAT (SDD by default, or SFDD, Scutita, Taxare inversa, etc.).
+* Lines added by the plugin (the rounding line on invoices, adjustment lines on credit notes) now use the order's main VAT rate instead of being sent without VAT.
+* Company and individual customers are invoiced correctly with the free "Facturare - Persoana Fizica sau Juridica" plugin (recommended in the TVA tab): its choice of persoană fizică / juridică, CUI, CNP, registration number, bank and IBAN are sent to Oblio, on both the classic and the block checkout. Without it, these details are still looked up in the order fields, and a 13-digit CNP entered as tax code is treated as an individual.
+* New "Importă cotele standard de TVA ale UE" button in the TVA tab: adds the standard VAT rate of every EU country to WooCommerce → Setări → Taxe, plus a rate for the rest of the world at your store country's rate. Before you press it, the tab shows which rates are new, which would change and which of your own rows stay untouched. The rates ship with the plugin and are checked monthly; when an update changes a rate you imported, a notice points you to the TVA tab to apply it.
+* The TVA tab lists the WooCommerce tax rates your Oblio account has no VAT category for, with the name to give each one in Oblio (for example "25.5"), so missing rates are found before an invoice fails. The error shown when a rate is missing now includes the same recommended name.
+* Fixed: an Oblio account without warehouses (for example, a shop selling only digital products) no longer stops the VAT categories and series from loading, and no longer logs an error on every refresh. The warehouse options are disabled with an explanation, and invoices are issued without stock deduction.
+* "Preia ultimele date" now selects the company automatically when the Oblio account has only one, and reloads the page so the new series and categories show up right away.
+* New setting under Avansat: the Oblio product type for virtual products (for example "Serviciu" for digital goods), used unless the product has its own type.
+* New option "Emite și la confirmarea plății": the invoice is issued as soon as WooCommerce confirms an online payment (card, PayPal, etc.), as the old "WooCommerce Oblio" plugin did. Importing settings from the old plugin turns it on when its automatic invoicing was on.
+* No proforma for orders already paid online (card, PayPal, etc.): a proforma is a request for payment, so it isn't issued automatically, offered on the order screen or included in the bulk action for those orders. Cash on delivery, bank transfer and cheque orders are unaffected.
+* When an order already has a delivery note (aviz), its invoice is now issued based on that aviz in Oblio, instead of as a separate document. If the order has both a proforma and an aviz, the aviz is used.
+* Product Bundles: the new default "AUTOMAT" handles fixed-price and promotional bundles too. The bundle's price is split across its components (weighted by their regular prices), so the invoice total matches the order and stock comes off the real products; partial refunds of such a bundle are credited on the same components. Previously these orders stopped with an error. Stores that had "OMITE" selected switch to "AUTOMAT" automatically.
+* Refunds made before the invoice is issued are now taken off the invoice (smaller quantities or amounts, or a discount line for a refund by amount only), and get no separate credit note. An order refunded in full before invoicing gets no invoice and is no longer reported as an error. An invoice built on an aviz or proforma keeps the values of that document, so later refunds still get a credit note.
+* A "Setări" link under the plugin's name on the Plugins screen opens the FGSync settings.
 
 = 1.3.6 =
 * Fixed: lines with 19% VAT were issued by Oblio at 21% without any error. This affected credit notes (storno) for orders invoiced before the August 2025 rate change, and any order still taxed at 19%. Every taxed line is now sent with the exact name of the matching VAT category from your Oblio account, so it keeps its real rate.

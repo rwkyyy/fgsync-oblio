@@ -19,6 +19,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Throwable;
 use WC_Order;
+use WC_Order_Refund;
 
 final class RecordingRefundIssuer implements RefundIssuer {
 
@@ -104,6 +105,51 @@ final class GenerateRefundTest extends TestCase {
 		$this->assertSame( 1, $payload['invoice_wait_attempt'] );
 		$this->assertSame( 'owner-a', $payload['pending_owner'] );
 		$this->assertSame( '', (string) $order->get_meta( 'oblio_fgwoo_storno_failed_5' ) );
+	}
+
+	public function test_a_refund_on_an_order_refunded_in_full_before_any_invoice_stops_waiting(): void {
+		$order = new WC_Order( 1 );
+		$order->set_total( 100.0 );
+		$refund = new WC_Order_Refund( 5, 1 );
+		$refund->set_amount( -100.0 );
+		$order->set_refunds( array( $refund ) );
+		$GLOBALS['oblio_test_orders'][1] = $order;
+		$this->seed_pending_refund( 1, 5 );
+
+		$this->job->run(
+			array(
+				'order_id'      => 1,
+				'refund_id'     => 5,
+				'attempt'       => 1,
+				'pending_owner' => 'owner-a',
+			)
+		);
+
+		$this->assertCount( 0, $this->refunds->calls );
+		$this->assertCount( 0, $GLOBALS['oblio_test_as_calls'] );
+		$this->assertSame( '', (string) $order->get_meta( 'oblio_fgwoo_storno_failed_5' ) );
+	}
+
+	public function test_a_fully_refunded_order_with_an_aviz_still_waits_for_its_invoice(): void {
+		$order = new WC_Order( 1 );
+		$order->set_total( 100.0 );
+		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_NOTICE, 'link' ), 'https://example.test/aviz' );
+		$refund = new WC_Order_Refund( 5, 1 );
+		$refund->set_amount( -100.0 );
+		$order->set_refunds( array( $refund ) );
+		$GLOBALS['oblio_test_orders'][1] = $order;
+		$this->seed_pending_refund( 1, 5 );
+
+		$this->job->run(
+			array(
+				'order_id'      => 1,
+				'refund_id'     => 5,
+				'attempt'       => 1,
+				'pending_owner' => 'owner-a',
+			)
+		);
+
+		$this->assertCount( 1, $GLOBALS['oblio_test_as_calls'] );
 	}
 
 	/**

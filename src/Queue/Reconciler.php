@@ -183,7 +183,8 @@ final class Reconciler {
 			if ( '' !== (string) $order->get_meta( OrderMeta::key( OrderMeta::TYPE_STORNO, 'full' ) ) ) {
 				continue;
 			}
-			if ( '' !== (string) $order->get_meta( 'oblio_fgwoo_storno_refund_' . $refund_id ) ) {
+			if ( '' !== (string) $order->get_meta( 'oblio_fgwoo_storno_refund_' . $refund_id )
+				|| in_array( $refund_id, OrderMeta::netted_refunds( $order, OrderMeta::TYPE_INVOICE ), true ) ) {
 				continue;
 			}
 			if ( '' !== (string) $order->get_meta( 'oblio_fgwoo_storno_failed_permanent_' . $refund_id ) ) {

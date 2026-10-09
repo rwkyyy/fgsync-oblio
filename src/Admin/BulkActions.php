@@ -10,6 +10,7 @@ declare( strict_types=1 );
 namespace FGSyncOblio\Admin;
 
 use FGSyncOblio\Compat\OrderStore;
+use FGSyncOblio\Document\LifecyclePolicy;
 use FGSyncOblio\Order\OrderMeta;
 use FGSyncOblio\Queue\Scheduler;
 use FGSyncOblio\Support\Logger;
@@ -117,7 +118,8 @@ final class BulkActions {
 				return ! OrderMeta::has( $order, OrderMeta::TYPE_INVOICE );
 			case 'proforma':
 				return ! OrderMeta::has( $order, OrderMeta::TYPE_INVOICE )
-					&& ! OrderMeta::has( $order, OrderMeta::TYPE_PROFORMA );
+					&& ! OrderMeta::has( $order, OrderMeta::TYPE_PROFORMA )
+					&& ! LifecyclePolicy::paid_online( $order );
 			case 'storno':
 				return OrderMeta::has( $order, OrderMeta::TYPE_INVOICE )
 					&& null === OrderMeta::get( $order, OrderMeta::TYPE_STORNO );

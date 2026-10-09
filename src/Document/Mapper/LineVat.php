@@ -38,11 +38,7 @@ final class LineVat {
 		}
 
 		if ( 0.0 === $net || $tax / $net <= 0 ) {
-			return array(
-				'vatName'       => 'SDD',
-				'vatPercentage' => 0,
-				'vatIncluded'   => true,
-			);
+			return self::untaxed( $ctx );
 		}
 
 		$percent = self::charged_percent( $taxes, $ctx );
@@ -58,6 +54,45 @@ final class LineVat {
 			'vatPercentage'                => $percent,
 			'vatIncluded'                  => true,
 			VatCategories::TOLERANCE_FIELD => $tolerance,
+		);
+	}
+
+	/**
+	 * VAT for lines not tied to one item (balancing, refund by amount, storno
+	 * adjustment): the order's main rate, the untaxed category when the order
+	 * carried no tax, or Oblio's default when the order has no tax lines.
+	 *
+	 * @param BuildContext $ctx Document context.
+	 * @return array<string,mixed>
+	 */
+	public static function document_fields( BuildContext $ctx ): array {
+		if ( ! $ctx->calc_taxes || null === $ctx->main_tax_rate ) {
+			return array(
+				'vatName'       => '',
+				'vatPercentage' => null,
+				'vatIncluded'   => true,
+			);
+		}
+		if ( $ctx->main_tax_rate <= 0 ) {
+			return self::untaxed( $ctx );
+		}
+		return array(
+			'vatName'                      => '',
+			'vatPercentage'                => $ctx->main_tax_rate,
+			'vatIncluded'                  => true,
+			VatCategories::TOLERANCE_FIELD => self::EXACT_TOLERANCE,
+		);
+	}
+
+	/**
+	 * @param BuildContext $ctx Document context.
+	 * @return array<string,mixed>
+	 */
+	private static function untaxed( BuildContext $ctx ): array {
+		return array(
+			'vatName'       => '' !== $ctx->untaxed_vat_name ? $ctx->untaxed_vat_name : 'SDD',
+			'vatPercentage' => 0,
+			'vatIncluded'   => true,
 		);
 	}
 
