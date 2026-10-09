@@ -1,6 +1,22 @@
 ( function ( $ ) {
 	'use strict';
 
+	// Scrolls a linked setting into view and pulses its row so the eye finds it.
+	function reveal( target ) {
+		var row = target.closest( 'tr' ) || target;
+		row.scrollIntoView( { block: 'center' } );
+		if ( target.matches( 'input, select, textarea, button, a, [tabindex]' ) ) {
+			target.focus( { preventScroll: true } );
+		}
+		row.classList.remove( 'oblio-fgwoo-pulse' );
+		void row.offsetWidth;
+		row.classList.add( 'oblio-fgwoo-pulse' );
+		clearTimeout( row.oblioPulse );
+		row.oblioPulse = setTimeout( function () {
+			row.classList.remove( 'oblio-fgwoo-pulse' );
+		}, 1400 );
+	}
+
 	$( function () {
 		var $button = $( '#oblio_fgwoo_test_connection' );
 		if ( ! $button.length ) {
@@ -75,7 +91,12 @@
 						fail( data && data.message );
 						return;
 					}
-					$result.text( data.message ).css( 'color', '#157347' );
+					if ( data.message_html ) {
+						$result.html( data.message_html );
+					} else {
+						$result.text( data.message );
+					}
+					$result.css( 'color', '#157347' );
 					if ( data.done ) {
 						$sync.prop( 'disabled', false );
 						return;
@@ -133,6 +154,37 @@
 				$btn.prop( 'disabled', false );
 			} );
 		} );
+	} );
+
+	$( function () {
+		var $dot = $( '#wpadminbar .oblio-fgwoo-adminbar-dot' );
+		if ( ! $dot.length ) {
+			return;
+		}
+
+		var TONES = [ 'green', 'yellow', 'red', 'muted' ];
+
+		function refreshTone() {
+			if ( document.hidden ) {
+				return;
+			}
+			$.post( fgsyncOblio.ajaxUrl, {
+				action: 'oblio_fgwoo_admin_bar_tone',
+				nonce: fgsyncOblio.nonce
+			} ).done( function ( response ) {
+				var tone = response && response.success && response.data && response.data.tone;
+				if ( -1 === TONES.indexOf( tone ) ) {
+					return;
+				}
+				$.each( TONES, function ( index, name ) {
+					$dot.removeClass( 'oblio-fgwoo-adminbar-dot-' + name );
+				} );
+				$dot.addClass( 'oblio-fgwoo-adminbar-dot-' + tone );
+			} );
+		}
+
+		setInterval( refreshTone, 60000 );
+		document.addEventListener( 'visibilitychange', refreshTone );
 	} );
 
 	$( function () {
@@ -326,6 +378,17 @@
 			}
 		} );
 
+		// A target on another page (Stare has no settings form) falls through to the href.
+		$( document ).on( 'click', '.oblio-fgwoo-tab-link', function ( e ) {
+			var target = this.hash ? document.getElementById( this.hash.slice( 1 ) ) : null;
+			var $tab   = $tabs.filter( '[data-section="' + $( this ).data( 'section' ) + '"]' );
+			if ( ! target || ! $tab.length || ! activate( $tab, true ) ) {
+				return;
+			}
+			e.preventDefault();
+			reveal( target );
+		} );
+
 		$nav.on( 'keydown', '.oblio-fgwoo-tab', function ( e ) {
 			var idx  = $tabs.index( this );
 			var next = null;
@@ -438,6 +501,13 @@
 			}
 			$temp.remove();
 		} );
+	} );
+
+	$( function () {
+		var target = window.location.hash.length > 1 ? document.getElementById( window.location.hash.slice( 1 ) ) : null;
+		if ( target && target.closest( '.oblio-fgwoo-page' ) ) {
+			reveal( target );
+		}
 	} );
 
 	$( function () {

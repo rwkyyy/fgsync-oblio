@@ -58,7 +58,7 @@ final class StockReservations {
 	 * (see map()), but new orders and invoice stock deductions keep happening
 	 * during that run - without invalidating on those events, a later batch
 	 * would restore stock that just got reserved, or double-subtract a
-	 * reservation an invoice already discharged. Both events are cheap and
+	 * reservation an invoice or aviz already discharged. Both events are cheap and
 	 * infrequent enough that resetting on every one, even outside an active
 	 * sync, isn't worth gating behind the stock-reservation setting.
 	 */
@@ -69,13 +69,16 @@ final class StockReservations {
 	}
 
 	/**
-	 * @param WC_Order            $order   Unused - only the invoice/use_stock combination matters.
+	 * An aviz always moves Oblio stock; an invoice only when issued with use_stock.
+	 *
+	 * @param WC_Order            $order   Unused - only the document type and use_stock matter.
 	 * @param DocumentResult      $result  Issued document result.
 	 * @param array<string,mixed> $options Document build options passed to DocumentService::issue().
 	 */
 	public function on_document_issued( WC_Order $order, DocumentResult $result, array $options ): void {
 		unset( $order );
-		if ( OrderMeta::TYPE_INVOICE === $result->doc_type && ! empty( $options['use_stock'] ) ) {
+		if ( OrderMeta::TYPE_NOTICE === $result->doc_type
+			|| ( OrderMeta::TYPE_INVOICE === $result->doc_type && ! empty( $options['use_stock'] ) ) ) {
 			$this->reset();
 		}
 	}
@@ -89,7 +92,7 @@ final class StockReservations {
 	 */
 	public function on_document_deleted( WC_Order $order, string $doc_type ): void {
 		unset( $order );
-		if ( OrderMeta::TYPE_INVOICE === $doc_type ) {
+		if ( in_array( $doc_type, array( OrderMeta::TYPE_INVOICE, OrderMeta::TYPE_NOTICE ), true ) ) {
 			$this->reset();
 		}
 	}
@@ -164,10 +167,12 @@ final class StockReservations {
 					AND o.{$status_col} IN ($placeholders)
 					AND o.{$date_col} > %s
 					AND NOT EXISTS (
-						SELECT 1 FROM {$meta_table} use_stock
-						WHERE use_stock.{$meta_id_col} = o.{$order_id_col}
-							AND use_stock.meta_key = 'oblio_fgwoo_invoice_use_stock'
-							AND use_stock.meta_value = '1'
+						SELECT 1 FROM {$meta_table} discharged
+						WHERE discharged.{$meta_id_col} = o.{$order_id_col}
+							AND (
+								( discharged.meta_key = 'oblio_fgwoo_invoice_use_stock' AND discharged.meta_value = '1' )
+								OR ( discharged.meta_key = 'oblio_fgwoo_notice_link' AND discharged.meta_value <> '' )
+							)
 					)
 				GROUP BY pid",
 				array_merge( $status_values, array( $cutoff ) )

@@ -69,7 +69,7 @@ final class EuVatImportAction {
 					VatCategories::settings_link()
 				)
 			),
-			esc_url( SettingsPage::url( 'tax' ) ),
+			esc_url( SettingsPage::url( 'tax' ) . '#' . self::FIELD_TYPE ),
 			esc_html__( 'Vezi modificările', 'fgsync-oblio' )
 		);
 	}
@@ -97,7 +97,7 @@ final class EuVatImportAction {
 	 */
 	public function render_field( array $field ): void {
 		unset( $field );
-		echo '<tr valign="top"><th scope="row" class="titledesc">' . esc_html__( 'Import cote standard', 'fgsync-oblio' ) . '</th><td class="forminp">';
+		echo '<tr valign="top" id="' . esc_attr( self::FIELD_TYPE ) . '"><th scope="row" class="titledesc">' . esc_html__( 'Import cote standard', 'fgsync-oblio' ) . '</th><td class="forminp">';
 		echo wp_kses_post( $this->result_notice() );
 
 		try {
@@ -116,7 +116,11 @@ final class EuVatImportAction {
 				esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . self::ACTION ), self::ACTION ) ),
 				esc_html__( 'Importă cotele standard de TVA ale UE', 'fgsync-oblio' )
 			);
-			echo '<p class="description">' . esc_html__( 'După import, verifică lista „Cote lipsă în Oblio” de mai sus.', 'fgsync-oblio' ) . '</p>';
+			echo '<p class="description">' . sprintf(
+				/* translators: %s: link to the "Cote lipsă în Oblio" list */
+				esc_html__( 'După import, verifică lista %s de mai sus.', 'fgsync-oblio' ),
+				SettingsPage::tab_link( 'tax', VatCategoryCheck::FIELD_TYPE, __( '„Cote lipsă în Oblio”', 'fgsync-oblio' ) ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in tab_link().
+			) . '</p>';
 		}
 		echo '</td></tr>';
 	}
@@ -125,7 +129,7 @@ final class EuVatImportAction {
 	 * @param array<string,mixed> $bundle Bundle.
 	 */
 	private function description( array $bundle ): string {
-		$html  = '<p class="description">' . wp_kses_post( __( '<strong>Clienți persoane fizice din UE.</strong> Sub 10.000 € pe an în vânzări la distanță în UE se aplică TVA-ul României, deci nu ai nevoie de import. Peste prag sau dacă ești înregistrat în OSS se aplică cota țării clientului: pentru asta este importul de mai jos.', 'fgsync-oblio' ) ) . '</p>';
+		$html  = '<p class="description">' . wp_kses_post( __( '<strong>Clienți persoane fizice din UE.</strong> Sub 10.000 € pe an în vânzări la distanță în UE se aplică TVA-ul României, deci nu ai nevoie de import. Peste prag sau dacă ești înregistrat în OSS se aplică cota țării clientului: pentru acest lucru există importul de mai jos.', 'fgsync-oblio' ) ) . '</p>';
 		$html .= '<p class="description">' . wp_kses_post( __( '<strong>Firme din UE cu cod de TVA valid.</strong> Taxare inversă, fără TVA, deci cotele importate nu li se aplică. Firma trebuie scutită de TVA la checkout de un plugin care verifică codul în VIES; FGSync nu face acest lucru.', 'fgsync-oblio' ) ) . '</p>';
 		$html .= '<p class="description">' . sprintf(
 			/* translators: 1: link to the WooCommerce standard tax rates, 2: date the bundled rates were fetched */

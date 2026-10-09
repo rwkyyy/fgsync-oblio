@@ -53,12 +53,13 @@ final class VatCategoryCheck {
 			$rows .= sprintf( '<span class="rate">%1$s%%</span> <code>%1$s</code> <span>%2$s</span> ', esc_html( (string) $rate ), esc_html( $where ) );
 		}
 
-		echo '<tr valign="top"><th scope="row" class="titledesc">' . esc_html__( 'Cote lipsă în Oblio', 'fgsync-oblio' ) . '</th><td class="forminp">';
+		echo '<tr valign="top" id="' . esc_attr( self::FIELD_TYPE ) . '"><th scope="row" class="titledesc">' . esc_html__( 'Cote lipsă în Oblio', 'fgsync-oblio' ) . '</th><td class="forminp">';
 		echo '<p class="description">' . wp_kses_post(
 			sprintf(
-				/* translators: %s: link to Oblio's VAT categories page */
-				__( 'În setările site-ului aveți cotele de TVA de mai jos, acestea trebuiesc create și în Oblio!<br><strong>Documentele cu aceste cote de TVA vor <u>EȘUA</u> la emitere deoarece Oblio depinde de existența lor.</strong><br> Adaugă-le în %s, apoi întoarce-te aici și apasă „Preia ultimele date” din secțiunea: <strong>Conectare</strong>.', 'fgsync-oblio' ),
-				VatCategories::settings_link()
+				/* translators: 1: link to Oblio's VAT categories page, 2: link to the "Preia ultimele date" button */
+				__( 'În setările site-ului aveți cotele de TVA de mai jos, acestea trebuiesc create și în Oblio!<br><strong>Documentele cu aceste cote de TVA vor <u>EȘUA</u> la emitere deoarece Oblio depinde de existența lor.</strong><br> Adaugă-le în %1$s, apoi întoarce-te aici și apasă %2$s.', 'fgsync-oblio' ),
+				VatCategories::settings_link(),
+				SettingsPage::tab_link( '', 'oblio_fgwoo_test_connection', __( 'Conectare → „Preia ultimele date”', 'fgsync-oblio' ) )
 			)
 		) . '</p>';
 		echo '<div class="oblio-fgwoo-rates">' . wp_kses_post( $rows ) . '</div></td></tr>';

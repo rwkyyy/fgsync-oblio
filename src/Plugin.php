@@ -276,7 +276,7 @@ final class Plugin {
 		);
 
 		$container->set( LocationAggregator::class, static fn (): LocationAggregator => new LocationAggregator() );
-		$container->set( ProductUpdater::class, static fn ( Container $container ): ProductUpdater => new ProductUpdater( $container->get( Logger::class ) ) );
+		$container->set( ProductUpdater::class, static fn ( Container $container ): ProductUpdater => new ProductUpdater( $container->get( Logger::class ), $container->get( Settings::class ) ) );
 		$container->set(
 			StockReservations::class,
 			static fn ( Container $container ): StockReservations => new StockReservations(
@@ -389,7 +389,8 @@ final class Plugin {
 				$container->get( StatusPanel::class ),
 				$container->get( HookRegistry::class ),
 				$container->get( HookInspector::class ),
-				$container->get( Logger::class )
+				$container->get( Logger::class ),
+				$container->get( ConnectionTest::class )
 			)
 		);
 

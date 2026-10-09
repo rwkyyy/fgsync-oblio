@@ -41,6 +41,9 @@ final class StockSyncBatch {
 
 	private Logger $logger;
 
+	/** @var array<int,string> */
+	private array $type_skips = array();
+
 	public function __construct(
 		Settings $settings,
 		ClientFactory $factory,
@@ -102,7 +105,7 @@ final class StockSyncBatch {
 			$this->handle_failure( $offset, $attempt, $token, $exception->getMessage(), true );
 			return;
 		}
-		$totals = $this->record_progress( count( $products ), $updated, $token );
+		$totals = $this->record_progress( count( $products ), $updated, $this->type_skips, $token );
 		$this->log_page( $offset, count( $products ), $updated, $totals );
 
 		if ( ! $this->token_current( $token ) ) {
@@ -143,6 +146,7 @@ final class StockSyncBatch {
 		$reservations = $this->settings->is_enabled( 'stock_reserve_orders' ) ? $this->reservations->map() : array();
 
 		$sku_map = $this->resolve_skus( $products );
+		$this->updater->take_type_skips();
 
 		$updated = 0;
 		$checked = 0;
@@ -162,6 +166,7 @@ final class StockSyncBatch {
 				++$updated;
 			}
 		}
+		$this->type_skips = $this->updater->take_type_skips();
 		return $updated;
 	}
 
@@ -266,7 +271,13 @@ final class StockSyncBatch {
 		AtomicLock::release( StockSyncCoordinator::RUN_LOCK, $token );
 	}
 
-	private function record_progress( int $scanned, int $updated, string $token ): array {
+	/**
+	 * @param int               $scanned    Products on this page.
+	 * @param int               $updated    Products changed on this page.
+	 * @param array<int,string> $type_skips Codes skipped on this page for a type mismatch.
+	 * @param string            $token      Run token.
+	 */
+	private function record_progress( int $scanned, int $updated, array $type_skips, string $token ): array {
 		$progress = get_transient( StockSyncCoordinator::PROGRESS_TRANSIENT );
 		$progress = is_array( $progress ) ? $progress : array(
 			'scanned' => 0,
@@ -279,6 +290,8 @@ final class StockSyncBatch {
 
 		$progress['scanned'] = (int) ( $progress['scanned'] ?? 0 ) + $scanned;
 		$progress['updated'] = (int) ( $progress['updated'] ?? 0 ) + $updated;
+		$progress['skipped'] = (int) ( $progress['skipped'] ?? 0 ) + count( $type_skips );
+		$progress['codes']   = array_slice( array_merge( (array) ( $progress['codes'] ?? array() ), $type_skips ), 0, StockSyncCoordinator::SKIPPED_CODES_SHOWN );
 
 		set_transient( StockSyncCoordinator::PROGRESS_TRANSIENT, $progress, DAY_IN_SECONDS );
 
@@ -294,11 +307,11 @@ final class StockSyncBatch {
 		}
 
 		$progress = get_transient( StockSyncCoordinator::PROGRESS_TRANSIENT );
-		$scanned  = is_array( $progress ) ? (int) ( $progress['scanned'] ?? 0 ) : 0;
-		$updated  = is_array( $progress ) ? (int) ( $progress['updated'] ?? 0 ) : 0;
+		$result   = StockSyncCoordinator::result( is_array( $progress ) ? $progress : array() );
 
 		update_option( StockSyncCoordinator::LAST_SYNC_OPTION, time(), false );
-		$this->logger->info( sprintf( 'Stock sync finished: %d out of %d products updated', $updated, $scanned ) );
+		update_option( StockSyncCoordinator::LAST_RESULT_OPTION, $result, false );
+		$this->logger->info( sprintf( 'Stock sync finished: %d out of %d products updated, %d skipped for a different product type', $result['updated'], $result['scanned'], $result['skipped'] ) );
 
 		delete_transient( StockSyncCoordinator::PROGRESS_TRANSIENT );
 		AtomicLock::release( StockSyncCoordinator::RUN_LOCK, $token );

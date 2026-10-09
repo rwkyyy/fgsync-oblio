@@ -119,4 +119,23 @@ final class NomenclatureCacheTest extends TestCase {
 		$this->assertSame( array(), $this->cache->vat_categories() );
 		$this->assertArrayNotHasKey( VatCategories::TRANSIENT, $GLOBALS['oblio_test_transients'] );
 	}
+
+	/**
+	 * Lists cached for one account must not survive a switch to another.
+	 */
+	public function test_changed_credentials_clear_the_cached_lists(): void {
+		$this->cache->register();
+		$callbacks = array_column( $GLOBALS['oblio_test_add_action_calls'], 'callback', 'hook' );
+
+		foreach ( array( 'update_option_oblio_fgwoo_email', 'update_option_oblio_fgwoo_secret' ) as $hook ) {
+			$this->assertSame( array( $this->cache, 'refresh' ), $callbacks[ $hook ] ?? null, $hook );
+
+			oblio_test_seed_vat_categories();
+			set_transient( 'oblio_fgwoo_series', array( array( 'name' => 'FCT' ) ) );
+			call_user_func( $callbacks[ $hook ] );
+
+			$this->assertArrayNotHasKey( 'oblio_fgwoo_series', $GLOBALS['oblio_test_transients'], $hook );
+			$this->assertArrayNotHasKey( VatCategories::TRANSIENT, $GLOBALS['oblio_test_transients'], $hook );
+		}
+	}
 }

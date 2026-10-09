@@ -24,6 +24,10 @@ final class StatusPanel {
 	 * into a public support ticket, so these are omitted outright rather
 	 * than masked.
 	 */
+	public const LOG_CARD = 'oblio-fgwoo-log';
+
+	public const HOOKS_CARD = 'oblio-fgwoo-hooks';
+
 	private const OMIT_FROM_DUMP = array(
 		'email',
 		'secret',
@@ -99,7 +103,11 @@ final class StatusPanel {
 		$this->tile(
 			__( 'Conexiune', 'fgsync-oblio' ),
 			$connected ? esc_html__( 'Configurată', 'fgsync-oblio' ) : esc_html__( 'Neconfigurată', 'fgsync-oblio' ),
-			$connected ? esc_html( (string) $this->settings->get( 'cif' ) ) : esc_html__( 'Introdu datele în secțiunea "Conectare"', 'fgsync-oblio' )
+			$connected ? esc_html( (string) $this->settings->get( 'cif' ) ) : sprintf(
+				/* translators: %s: link to the Conectare tab */
+				esc_html__( 'Introdu datele în %s', 'fgsync-oblio' ),
+				SettingsPage::tab_link( '', 'oblio_fgwoo_email', __( 'Conectare', 'fgsync-oblio' ) )
+			)
 		);
 
 		$this->tile(
@@ -122,6 +130,14 @@ final class StatusPanel {
 			'purple'
 		);
 		echo '</div>';
+
+		$skipped = StockSyncCoordinator::skipped_message(
+			StockSyncCoordinator::result( (array) get_option( StockSyncCoordinator::LAST_RESULT_OPTION, array() ) ),
+			SettingsPage::type_skip_links()
+		);
+		if ( '' !== $skipped ) {
+			echo '<div class="notice notice-warning inline"><p>' . wp_kses_post( $skipped ) . '</p></div>';
+		}
 	}
 
 	private function tile( string $label, string $value, string $sub, string $tone = 'ink' ): void {
@@ -137,7 +153,7 @@ final class StatusPanel {
 	private function log_card( array $entries ): void {
 		$logs_url = admin_url( 'admin.php?page=wc-status&tab=logs' );
 
-		echo '<div class="oblio-fgwoo-card"><div class="oblio-fgwoo-card-h"><h2>' . esc_html__( 'Jurnal activitate · azi', 'fgsync-oblio' ) . '</h2>';
+		echo '<div class="oblio-fgwoo-card" id="' . esc_attr( self::LOG_CARD ) . '"><div class="oblio-fgwoo-card-h"><h2>' . esc_html__( 'Jurnal activitate · azi', 'fgsync-oblio' ) . '</h2>';
 		echo '<span class="oblio-fgwoo-spacer"></span>';
 		echo '<label class="oblio-fgwoo-autoupdate"><input type="checkbox" id="oblio-fgwoo-log-autoupdate"> ' . esc_html__( 'Actualizare automată', 'fgsync-oblio' ) . '</label>';
 		echo '<a class="oblio-fgwoo-link" href="' . esc_url( $logs_url ) . '" target="_blank">' . esc_html__( 'Jurnal complet ↗', 'fgsync-oblio' ) . '</a></div>';
@@ -203,7 +219,7 @@ final class StatusPanel {
 	}
 
 	private function hooks_card( array $overrides ): void {
-		echo '<div class="oblio-fgwoo-card"><div class="oblio-fgwoo-card-h"><h2>' . esc_html__( 'Suprascrieri acțiuni', 'fgsync-oblio' ) . '</h2>';
+		echo '<div class="oblio-fgwoo-card" id="' . esc_attr( self::HOOKS_CARD ) . '"><div class="oblio-fgwoo-card-h"><h2>' . esc_html__( 'Suprascrieri acțiuni', 'fgsync-oblio' ) . '</h2>';
 		echo '<span class="oblio-fgwoo-spacer"></span><span class="oblio-fgwoo-count-warn">' . (int) count( $overrides ) . '</span></div>';
 
 		if ( empty( $overrides ) ) {

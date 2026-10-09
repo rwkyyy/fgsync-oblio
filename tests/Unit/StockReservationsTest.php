@@ -59,8 +59,8 @@ final class StockReservationsTest extends TestCase {
 
 		$sql = $GLOBALS['wpdb']->get_results_calls[0];
 		$this->assertStringContainsString( 'NOT EXISTS', $sql );
-		$this->assertStringContainsString( 'FROM wp_wc_orders_meta use_stock', $sql );
-		$this->assertStringContainsString( 'use_stock.order_id = o.id', $sql );
+		$this->assertStringContainsString( 'FROM wp_wc_orders_meta discharged', $sql );
+		$this->assertStringContainsString( 'discharged.order_id = o.id', $sql );
 	}
 
 	public function test_legacy_query_excludes_stock_discharged_orders_via_the_postmeta_table(): void {
@@ -68,8 +68,8 @@ final class StockReservationsTest extends TestCase {
 
 		$sql = $GLOBALS['wpdb']->get_results_calls[0];
 		$this->assertStringContainsString( 'NOT EXISTS', $sql );
-		$this->assertStringContainsString( 'FROM wp_postmeta use_stock', $sql );
-		$this->assertStringContainsString( 'use_stock.post_id = o.ID', $sql );
+		$this->assertStringContainsString( 'FROM wp_postmeta discharged', $sql );
+		$this->assertStringContainsString( 'discharged.post_id = o.ID', $sql );
 	}
 
 	/**
@@ -287,5 +287,39 @@ final class StockReservationsTest extends TestCase {
 		$this->reservations->map();
 
 		$this->assertCount( 1, $GLOBALS['wpdb']->get_results_calls );
+	}
+
+	/**
+	 * An aviz already moved the goods out of Oblio stock, so its order must
+	 * not be subtracted a second time as a reservation.
+	 */
+	public function test_the_query_excludes_orders_with_an_aviz(): void {
+		$this->reservations->map();
+
+		$sql = $GLOBALS['wpdb']->get_results_calls[0];
+		$this->assertStringContainsString( "discharged.meta_key = 'oblio_fgwoo_notice_link' AND discharged.meta_value <> ''", $sql );
+	}
+
+	public function test_an_issued_aviz_invalidates_the_cached_map(): void {
+		$this->reservations->map();
+
+		$order  = new WC_Order( 1 );
+		$result = new DocumentResult( OrderMeta::TYPE_NOTICE, 'A', '1', 'https://example.test/doc' );
+		$this->reservations->on_document_issued( $order, $result, array() );
+
+		$this->reservations->map();
+
+		$this->assertCount( 2, $GLOBALS['wpdb']->get_results_calls );
+	}
+
+	public function test_a_deleted_aviz_invalidates_the_cached_map(): void {
+		$this->reservations->map();
+
+		$order = new WC_Order( 1 );
+		$this->reservations->on_document_deleted( $order, OrderMeta::TYPE_NOTICE );
+
+		$this->reservations->map();
+
+		$this->assertCount( 2, $GLOBALS['wpdb']->get_results_calls );
 	}
 }

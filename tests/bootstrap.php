@@ -102,7 +102,7 @@ if ( ! function_exists( 'wp_salt' ) ) {
 }
 if ( ! function_exists( 'wp_generate_password' ) ) {
 	function wp_generate_password( $length = 12, $special_chars = true ) {
-		return substr( str_replace( '.', '', uniqid( 'p', true ) ), 0, max( 1, $length ) );
+		return substr( bin2hex( random_bytes( max( 1, $length ) ) ), 0, max( 1, $length ) );
 	}
 }
 if ( ! function_exists( 'wp_cache_delete' ) ) {
@@ -309,6 +309,24 @@ if ( ! function_exists( '_n' ) ) {
 if ( ! function_exists( 'sanitize_email' ) ) {
 	function sanitize_email( $email ) {
 		return trim( (string) $email );
+	}
+}
+if ( ! function_exists( 'check_admin_referer' ) ) {
+	function check_admin_referer( $action = -1, $query_arg = '_wpnonce' ) {
+		return 1;
+	}
+}
+if ( ! function_exists( 'get_current_user_id' ) ) {
+	function get_current_user_id() {
+		return 1;
+	}
+}
+if ( ! class_exists( 'WC_Admin_Settings' ) ) {
+	class WC_Admin_Settings {
+		public static function save_fields( $options, $data = null ) {
+			$GLOBALS['oblio_test_saved_fields'][] = array_column( $options, 'id' );
+			return true;
+		}
 	}
 }
 if ( ! function_exists( 'check_ajax_referer' ) ) {
@@ -1439,6 +1457,7 @@ function oblio_test_reset(): void {
 	$GLOBALS['oblio_test_http_calls']          = array();
 	$GLOBALS['oblio_test_mail_calls']          = array();
 	$GLOBALS['oblio_test_mail_result']         = true;
+	$GLOBALS['oblio_test_saved_fields']          = array();
 	$_POST                                     = array();
 }
 

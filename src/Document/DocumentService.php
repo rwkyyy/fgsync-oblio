@@ -144,7 +144,10 @@ final class DocumentService implements DocumentIssuer {
 			(string) $this->settings->get( 'cif' ),
 			$doc['series'],
 			$doc['number'],
-			array( 'deleteCollect' => 1 )
+			array(
+				'deleteCollect'  => 1,
+				'idempotencyKey' => OrderMeta::issued_idempotency_key( $order, $doc_type ),
+			)
 		);
 
 		OrderMeta::clear( $order, $doc_type );

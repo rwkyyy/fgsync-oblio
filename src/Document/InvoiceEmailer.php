@@ -36,9 +36,11 @@ final class InvoiceEmailer {
 			return;
 		}
 
-		$type = OrderMeta::TYPE_PROFORMA === $result->doc_type
-			? __( 'Proforma', 'fgsync-oblio' )
-			: __( 'Factura', 'fgsync-oblio' );
+		$labels = array(
+			OrderMeta::TYPE_PROFORMA => __( 'Proforma', 'fgsync-oblio' ),
+			OrderMeta::TYPE_NOTICE   => __( 'Avizul', 'fgsync-oblio' ),
+		);
+		$type   = $labels[ $result->doc_type ] ?? __( 'Factura', 'fgsync-oblio' );
 
 		// The order's creation date can predate the actual issue date (e.g.
 		// "issue today" or a delayed/queued issuance) - OrderMeta::save() (run

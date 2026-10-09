@@ -11,6 +11,7 @@ namespace FGSyncOblio\Admin;
 
 use FGSyncOblio\Api\ClientFactory;
 use FGSyncOblio\Api\Exception\ApiException;
+use FGSyncOblio\Api\OblioClient;
 use FGSyncOblio\Document\VatCategories;
 use FGSyncOblio\Queue\Scheduler;
 use FGSyncOblio\Support\Logger;
@@ -42,6 +43,9 @@ final class NomenclatureCache {
 	public function register(): void {
 		add_action( 'update_option_oblio_fgwoo_cif', array( $this, 'on_cif_change' ) );
 		add_action( 'add_option_oblio_fgwoo_cif', array( $this, 'on_cif_change' ) );
+		foreach ( array( 'email', 'secret' ) as $credential ) {
+			add_action( 'update_option_oblio_fgwoo_' . $credential, array( $this, 'refresh' ) );
+		}
 		add_action( Scheduler::HOOK_NOMENCLATURE, array( $this, 'refresh_with_backoff' ) );
 	}
 
@@ -52,14 +56,17 @@ final class NomenclatureCache {
 		}
 	}
 
-	public function prime(): bool {
+	/**
+	 * @param OblioClient|null $client Client to load with; the saved credentials when null.
+	 */
+	public function prime( ?OblioClient $client = null ): bool {
 		$cif = (string) $this->settings->get( 'cif' );
-		if ( '' === $cif || ! $this->settings->has_credentials() ) {
+		if ( '' === $cif || ( null === $client && ! $this->settings->has_credentials() ) ) {
 			return false;
 		}
 
-		$client = $this->factory->create();
-		$loaded = $this->load( self::SERIES_TRANSIENT, 'series', static fn (): array => (array) $client->series( $cif ), self::TTL );
+		$client ??= $this->factory->create();
+		$loaded   = $this->load( self::SERIES_TRANSIENT, 'series', static fn (): array => (array) $client->series( $cif ), self::TTL );
 		if ( false === self::uses_stock() ) {
 			set_transient( self::MANAGEMENT_TRANSIENT, array(), self::TTL );
 		} else {

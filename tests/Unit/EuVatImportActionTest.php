@@ -8,6 +8,7 @@ declare( strict_types=1 );
 namespace FGSyncOblio\Tests\Unit;
 
 use FGSyncOblio\Admin\EuVatImportAction;
+use FGSyncOblio\Admin\VatCategoryCheck;
 use FGSyncOblio\Support\Logger;
 use FGSyncOblio\Tax\EuVatRateImporter;
 use FGSyncOblio\Tax\EuVatRates;
@@ -45,6 +46,13 @@ final class EuVatImportActionTest extends TestCase {
 		$this->assertStringContainsString( 'action=' . EuVatImportAction::ACTION, $html );
 		$this->assertStringContainsString( EuVatRates::bundled()['fetched_at'], $html );
 		$this->assertStringContainsString( 'page=wc-settings&amp;tab=tax&amp;section=standard', $html );
+	}
+
+	public function test_links_to_the_missing_rates_list_after_the_button(): void {
+		$html = $this->render();
+
+		$this->assertStringContainsString( '<tr valign="top" id="' . EuVatImportAction::FIELD_TYPE . '">', $html );
+		$this->assertStringContainsString( 'section=tax#' . VatCategoryCheck::FIELD_TYPE . '" class="oblio-fgwoo-tab-link" data-section="tax">„Cote lipsă în Oblio”</a>', $html );
 	}
 
 	public function test_the_button_comes_after_the_explanation_and_the_planned_changes(): void {
@@ -105,6 +113,7 @@ final class EuVatImportActionTest extends TestCase {
 		$_GET = array( 'page' => 'fgsync-oblio' );
 		$this->assertStringContainsString( 'cote TVA UE noi', $this->notice() );
 		$this->assertStringContainsString( 'adaugă și o categorie în <a href="https://www.oblio.eu/account/cote_tva"', $this->notice() );
+		$this->assertStringContainsString( 'section=tax#' . EuVatImportAction::FIELD_TYPE . '">Vezi modificările</a>', $this->notice() );
 
 		$_GET = array(
 			'page' => 'wc-settings',

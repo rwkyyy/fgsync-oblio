@@ -34,7 +34,7 @@ final class StockSyncAction {
 		}
 
 		if ( ! $this->settings->stock_sync_configured() ) {
-			wp_send_json_error( array( 'message' => __( 'Sincronizarea stocului este dezactivată. Activeaz-o din tabul Stoc.', 'fgsync-oblio' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Sincronizarea stocului este dezactivată. Alege un mod de sincronizare mai sus.', 'fgsync-oblio' ) ) );
 		}
 
 		$result = $this->coordinator->begin_full_sync();
@@ -53,22 +53,27 @@ final class StockSyncAction {
 
 		$result = $this->coordinator->progress();
 
-		$scanned = (int) ( $result['scanned'] ?? 0 );
-		$updated = (int) ( $result['updated'] ?? 0 );
-		$done    = ! empty( $result['done'] );
+		$scanned  = (int) ( $result['scanned'] ?? 0 );
+		$updated  = (int) ( $result['updated'] ?? 0 );
+		$done     = ! empty( $result['done'] );
+		$complete = sprintf(
+			/* translators: 1: updated product count, 2: scanned product count */
+			__( 'Sincronizare completă: %1$d din %2$d produse actualizate.', 'fgsync-oblio' ),
+			$updated,
+			$scanned
+		);
+		$skipped = $done ? StockSyncCoordinator::skipped_message( $result ) : '';
 
 		wp_send_json_success(
 			array(
-				'done'    => $done,
-				'scanned' => $scanned,
-				'updated' => $updated,
-				'message' => $done
-					? sprintf(
-						/* translators: 1: updated product count, 2: scanned product count */
-						__( 'Sincronizare completă: %1$d din %2$d produse actualizate.', 'fgsync-oblio' ),
-						$updated,
-						$scanned
-					)
+				'done'         => $done,
+				'scanned'      => $scanned,
+				'updated'      => $updated,
+				'message_html' => '' !== $skipped
+					? esc_html( $complete ) . ' ' . StockSyncCoordinator::skipped_message( $result, SettingsPage::type_skip_links() )
+					: '',
+				'message'      => $done
+					? trim( $complete . ' ' . $skipped )
 					: sprintf(
 						/* translators: 1: scanned product count so far, 2: updated product count so far */
 						__( '%1$d produse verificate, %2$d actualizate…', 'fgsync-oblio' ),

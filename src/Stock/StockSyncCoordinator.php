@@ -17,7 +17,11 @@ final class StockSyncCoordinator {
 
 	public const PROGRESS_TRANSIENT = 'oblio_fgwoo_stock_progress';
 	public const LAST_SYNC_OPTION   = 'oblio_fgwoo_stock_last_sync';
-	public const RUN_LOCK           = 'oblio_fgwoo_stock_run_lock';
+
+	public const LAST_RESULT_OPTION = 'oblio_fgwoo_stock_last_result';
+
+	public const SKIPPED_CODES_SHOWN = 10;
+	public const RUN_LOCK            = 'oblio_fgwoo_stock_run_lock';
 
 	public const RUN_TOKEN_OPTION = 'oblio_fgwoo_stock_run_token';
 
@@ -110,15 +114,59 @@ final class StockSyncCoordinator {
 	 * behind.
 	 */
 	public function progress(): array {
+		$done     = '' === (string) get_option( self::RUN_TOKEN_OPTION, '' );
 		$progress = get_transient( self::PROGRESS_TRANSIENT );
-		$scanned  = is_array( $progress ) ? (int) ( $progress['scanned'] ?? 0 ) : 0;
-		$updated  = is_array( $progress ) ? (int) ( $progress['updated'] ?? 0 ) : 0;
+		if ( $done && ! is_array( $progress ) ) {
+			// finalize() has already dropped the counters and kept the totals.
+			$progress = get_option( self::LAST_RESULT_OPTION );
+		}
 
 		return array(
-			'ok'      => true,
-			'done'    => '' === (string) get_option( self::RUN_TOKEN_OPTION, '' ),
-			'scanned' => $scanned,
-			'updated' => $updated,
+			'ok'   => true,
+			'done' => $done,
+		) + self::result( is_array( $progress ) ? $progress : array() );
+	}
+
+	/**
+	 * Why products were left out of a run, or '' when none were.
+	 *
+	 * Plain text, or escaped HTML when the two settings come as links.
+	 *
+	 * @param array{skipped:int,codes:array<int,string>} $result Run result.
+	 * @param array{type?:string,match?:string}          $links  HTML links to the default type and to the type-match setting.
+	 */
+	public static function skipped_message( array $result, array $links = array() ): string {
+		if ( $result['skipped'] <= 0 ) {
+			return '';
+		}
+		$html  = isset( $links['type'], $links['match'] );
+		$codes = implode( ', ', $result['codes'] ) . ( $result['skipped'] > count( $result['codes'] ) ? ', …' : '' );
+		/* translators: 1: number of skipped products, 2: their codes, 3: the Avansat tab (default product type), 4: the "Sincronizează doar produsele cu același tip" setting */
+		$format = _n(
+			'%1$d produs sărit, tipul din Oblio diferă de cel din magazin: %2$s. Setează tipul pe produs sau tipul implicit din %3$s, ori dezactivează %4$s.',
+			'%1$d produse sărite, tipul din Oblio diferă de cel din magazin: %2$s. Setează tipul pe produs sau tipul implicit din %3$s, ori dezactivează %4$s.',
+			$result['skipped'],
+			'fgsync-oblio'
+		);
+		return sprintf(
+			$html ? esc_html( $format ) : $format,
+			$result['skipped'],
+			$html ? esc_html( $codes ) : $codes,
+			$html ? $links['type'] : __( 'Avansat', 'fgsync-oblio' ),
+			$html ? $links['match'] : __( '„Sincronizează doar produsele cu același tip” din Sincronizare', 'fgsync-oblio' )
+		);
+	}
+
+	/**
+	 * @param array<string,mixed> $progress Run counters.
+	 * @return array{scanned:int,updated:int,skipped:int,codes:array<int,string>}
+	 */
+	public static function result( array $progress ): array {
+		return array(
+			'scanned' => (int) ( $progress['scanned'] ?? 0 ),
+			'updated' => (int) ( $progress['updated'] ?? 0 ),
+			'skipped' => (int) ( $progress['skipped'] ?? 0 ),
+			'codes'   => array_map( 'strval', (array) ( $progress['codes'] ?? array() ) ),
 		);
 	}
 

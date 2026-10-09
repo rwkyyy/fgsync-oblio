@@ -9,6 +9,7 @@ namespace FGSyncOblio\Tests\Unit;
 
 use FGSyncOblio\Stock\ProductUpdater;
 use FGSyncOblio\Support\Logger;
+use FGSyncOblio\Support\Settings;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -35,7 +36,7 @@ final class ProductUpdaterTest extends TestCase {
 			'quantity'      => 0,
 		);
 
-		return ( new ProductUpdater( new Logger() ) )->update( array( 'code' => 'SKU-7' ), $agg, true, array(), array( 'SKU-7' => 7 ) );
+		return ( new ProductUpdater( new Logger(), new Settings() ) )->update( array( 'code' => 'SKU-7' ), $agg, true, array(), array( 'SKU-7' => 7 ) );
 	}
 
 	public function test_an_active_sale_below_the_new_regular_price_is_kept(): void {
@@ -148,7 +149,7 @@ final class ProductUpdaterTest extends TestCase {
 			)
 		);
 
-		( new ProductUpdater( new Logger() ) )->update( array( 'code' => 'SKU-7' ), array( 'quantity' => $oblio_quantity ), false, array(), array( 'SKU-7' => 7 ) );
+		( new ProductUpdater( new Logger(), new Settings() ) )->update( array( 'code' => 'SKU-7' ), array( 'quantity' => $oblio_quantity ), false, array(), array( 'SKU-7' => 7 ) );
 
 		$this->assertSame( $expected, $product->get_stock_quantity() );
 	}
@@ -271,6 +272,97 @@ final class ProductUpdaterTest extends TestCase {
 			'vatIncluded'   => false,
 			'quantity'      => 0.0,
 		);
-		return ( new ProductUpdater( new Logger() ) )->update( array( 'code' => 'SKU-7' ), $agg, $update_price, array(), array( 'SKU-7' => 7 ) );
+		return ( new ProductUpdater( new Logger(), new Settings() ) )->update( array( 'code' => 'SKU-7' ), $agg, $update_price, array(), array( 'SKU-7' => 7 ) );
+	}
+	private function sync_typed( string $oblio_type, ?Settings $settings = null, ?ProductUpdater $updater = null ): bool {
+		$agg = array(
+			'price'         => 50.0,
+			'vatPercentage' => 21,
+			'vatIncluded'   => false,
+			'quantity'      => 0,
+		);
+
+		return ( $updater ?? new ProductUpdater( new Logger(), $settings ?? new Settings() ) )->update(
+			array(
+				'code'        => 'SKU-7',
+				'productType' => $oblio_type,
+			),
+			$agg,
+			true,
+			array(),
+			array( 'SKU-7' => 7 )
+		);
+	}
+
+	/**
+	 * The same code on another type is different stock, like raw goods
+	 * stored as Marfa next to the finished product sold in the shop.
+	 */
+	public function test_an_oblio_product_of_another_type_is_skipped_and_reported(): void {
+		$product = $this->product( array( 'regular_price' => '10' ) );
+		$updater = new ProductUpdater( new Logger(), new Settings() );
+
+		$this->assertFalse( $this->sync_typed( 'Produs finit', null, $updater ) );
+
+		$this->assertSame( '10', $product->get_regular_price() );
+		$this->assertSame( 0, $product->saves );
+		$this->assertSame( array( 'SKU-7' ), $updater->take_type_skips() );
+		$this->assertSame( array(), $updater->take_type_skips() );
+	}
+
+	public function test_an_oblio_product_of_the_same_type_syncs(): void {
+		$product = $this->product( array( 'regular_price' => '10' ) );
+
+		$this->assertTrue( $this->sync_typed( 'Marfa' ) );
+
+		$this->assertSame( '50', $product->get_regular_price() );
+	}
+
+	public function test_the_type_check_can_be_turned_off(): void {
+		$settings = new Settings();
+		$settings->set( 'stock_match_product_type', 'no' );
+		$product = $this->product( array( 'regular_price' => '10' ) );
+
+		$this->assertTrue( $this->sync_typed( 'Produs finit', $settings ) );
+
+		$this->assertSame( '50', $product->get_regular_price() );
+	}
+
+	public function test_an_oblio_product_without_a_type_syncs(): void {
+		$this->product( array( 'regular_price' => '10' ) );
+
+		$this->assertTrue( $this->sync_typed( '' ) );
+	}
+
+	public function test_the_products_own_type_wins_over_the_default(): void {
+		$GLOBALS['oblio_test_post_meta'][7]['oblio_fgwoo_product_type'] = 'Serviciu';
+		$product = $this->product( array( 'regular_price' => '10' ) );
+
+		$this->assertFalse( $this->sync_typed( 'Marfa' ) );
+		$this->assertTrue( $this->sync_typed( 'Serviciu' ) );
+
+		$this->assertSame( '50', $product->get_regular_price() );
+	}
+
+	public function test_a_variation_uses_its_parents_type(): void {
+		$GLOBALS['oblio_test_post_meta'][5]['oblio_fgwoo_product_type'] = 'Produs finit';
+		$this->product(
+			array(
+				'type'      => 'variation',
+				'parent_id' => 5,
+			)
+		);
+
+		$this->assertFalse( $this->sync_typed( 'Marfa' ) );
+		$this->assertTrue( $this->sync_typed( 'Produs finit' ) );
+	}
+
+	public function test_a_virtual_product_uses_the_virtual_type(): void {
+		$settings = new Settings();
+		$settings->set( 'product_type_virtual', 'Serviciu' );
+		$this->product( array( 'virtual' => true ) );
+
+		$this->assertFalse( $this->sync_typed( 'Marfa', $settings ) );
+		$this->assertTrue( $this->sync_typed( 'Serviciu', $settings ) );
 	}
 }

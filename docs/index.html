@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Oblio WooCommerce: integrare gratuită și open-source (FGSync)</title>
-<meta name="description" content="FGSync este o integrare Oblio WooCommerce gratuită și open-source: facturi, proforme, avize și storno automate, sincronizare stoc pe mai multe gestiuni, procesare pe coadă fără blocarea checkout-ului.">
+<meta name="description" content="Integrare Oblio WooCommerce gratuită și open-source: facturi, proforme, avize și storno automate, stoc sincronizat pe mai multe gestiuni, procesare pe coadă.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://rwkyyy.github.io/fgsync-oblio/">
 <meta name="theme-color" content="#2e143c">
@@ -15,12 +15,20 @@
 <meta property="og:description" content="Facturi, proforme, avize și storno automate, plus sincronizare stoc pe mai multe gestiuni, între WooCommerce și Oblio.eu. Procesare pe coadă, compatibil HPOS, GPL-2.0.">
 <meta property="og:url" content="https://rwkyyy.github.io/fgsync-oblio/">
 <meta property="og:locale" content="ro_RO">
+<meta property="og:image" content="https://rwkyyy.github.io/fgsync-oblio/assets/og-1200x630.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="FGSync pentru Oblio.eu: documente, stoc sincronizat, performanță, încasare și email, compatibilitate, siguranță">
 
-<meta name="twitter:card" content="summary">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Oblio WooCommerce: FGSync">
 <meta name="twitter:description" content="Integrare gratuită și open-source WooCommerce cu Oblio.eu: facturare automată și sincronizare stoc pe mai multe gestiuni.">
+<meta name="twitter:image" content="https://rwkyyy.github.io/fgsync-oblio/assets/og-1200x630.jpg">
+<meta name="twitter:image:alt" content="FGSync pentru Oblio.eu: documente, stoc sincronizat, performanță, încasare și email, compatibilitate, siguranță">
 
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232e143c'/%3E%3Ctext x='32' y='44' font-family='Arial, sans-serif' font-size='34' font-weight='700' fill='%23f36e21' text-anchor='middle'%3EF%3C/text%3E%3C/svg%3E">
+<link rel="icon" type="image/png" sizes="96x96" href="assets/icon-96x96.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon-180x180.png">
+<link rel="preconnect" href="https://img.shields.io">
 
 <script type="application/ld+json">
 {
@@ -32,11 +40,14 @@
   "operatingSystem": "WordPress 6.5+",
   "inLanguage": "ro",
   "description": "Integrare independentă, open-source, între WooCommerce și serviciul de facturare Oblio.eu: facturi, proforme, avize și storno automate, procesare pe coadă și sincronizare stoc pe mai multe gestiuni.",
-  "softwareVersion": "1.4.0",
+  "softwareVersion": "1.4.1",
+  "dateModified": "2026-10-09",
+  "image": "https://rwkyyy.github.io/fgsync-oblio/assets/icon-256x256.jpg",
+  "screenshot": "https://rwkyyy.github.io/fgsync-oblio/assets/screenshot-1-conectare.png",
   "offers": {
     "@type": "Offer",
     "price": "0",
-    "priceCurrency": "USD"
+    "priceCurrency": "RON"
   },
   "license": "https://www.gnu.org/licenses/gpl-2.0.html",
   "url": "https://rwkyyy.github.io/fgsync-oblio/",
@@ -44,102 +55,16 @@
   "codeRepository": "https://github.com/rwkyyy/fgsync-oblio",
   "author": {
     "@type": "Person",
-    "name": "Eduard Doloc"
+    "name": "Eduard Doloc",
+    "url": "https://github.com/rwkyyy"
   }
 }
 </script>
 
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": [
-    {
-      "@type": "Question",
-      "name": "Acest plugin este realizat sau susținut de Oblio?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Nu. FGSync for Oblio este o integrare independentă, open-source, construită de comunitate. Nu este dezvoltat, aprobat, întreținut sau susținut de Oblio.eu. Oblio este un serviciu terț de facturare, accesat prin API-ul său public; este necesar un cont Oblio activ pentru a folosi acest plugin."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "FGSync este compatibil cu HPOS în WooCommerce?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Da, atât cu High-Performance Order Storage (HPOS), cât și cu stocarea clasică a comenzilor."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "Cum migrez de la vechiul plugin „WooCommerce Oblio”?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Setările includ un buton „Importă setările” în tabul Conectare. Documentele deja emise prin vechiul plugin sunt recunoscute automat, deci nu se re-emit."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "Când sunt facturate comenzile WooCommerce prin Oblio?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Trei moduri disponibile, în tabul Documente. „Prin coadă” (implicit) emite factura în câteva secunde de la intrarea comenzii în statusul ales, fără să încetinească acea cerere. „Instant” emite sincron, în aceeași cerere care a schimbat statusul, cu revenire automată la coadă dacă încercarea eșuează. „Programat” emite facturile periodic, util când facturarea se face mai târziu, de exemplu la livrare. Opțional, „Emite și la confirmarea plății” emite factura imediat ce o plată online (card, PayPal etc.) este confirmată. O verificare de reconciliere recheamă periodic comenzile recente și reprogramează orice factură omisă de un hook ratat sau de o pană scurtă Oblio."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "De ce nu pot șterge o factură Oblio mai veche din WooCommerce?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Oblio permite ștergerea doar a ultimului document emis dintr-o serie. Dacă există deja o factură mai nouă în aceeași serie, butonul de ștergere e ascuns pentru cea veche; emite în schimb un storno pentru a o anula. Proformele sunt excepția și pot fi șterse oricând."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "Ce se întâmplă când o țară își schimbă cota de TVA?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Oblio nu permite modificarea unei cote TVA odată folosită pe o factură, așa că adaugi o cotă nouă în Oblio → Setări → Cote TVA, numită după procent (de exemplu „21” lângă „19”), și o păstrezi pe cea veche. Actualizezi apoi cota în WooCommerce, manual sau cu butonul de import UE. Comenzile noi folosesc cota nouă, iar facturile deja emise rămân neschimbate."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "Cum se facturează vânzările către firme din UE (taxare inversă)?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "FGSync nu verifică codurile de TVA în VIES. Folosește un plugin de checkout care validează codul de TVA UE al clientului în VIES și scoate TVA-ul din comandă; FGSync trimite apoi liniile cu 0%, cu categoria aleasă în tabul TVA (de exemplu „Taxare inversa”)."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "Ce face setarea „Emite în EUR pentru clienții din afara României”?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Când e activată, documentele pentru o adresă de facturare din afara României (din UE sau din altă parte) se emit în EUR, indiferent de moneda comenzii, cu echivalentul în RON afișat de Oblio alături. Schimbă doar moneda, nu și TVA-ul, care vine în continuare din WooCommerce. Este dezactivată implicit; dacă facturile în EUR se potrivesc magazinului tău decide contabilul."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "Cum primesc clienții factura pe email?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Două moduri, în tabul Email: „Email separat” trimite un mesaj separat de la plugin când documentul e emis, sau „Nativ în mail-ul WooCommerce” adaugă un buton către factura Oblio în emailurile proprii ale comenzii din WooCommerce. În acest mod, dacă factura nu a fost încă emisă, pluginul încearcă să o emită în acel moment, astfel încât butonul să trimită de obicei către o factură reală."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "Ce suport este disponibil pentru FGSync for Oblio?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Suport community/best-effort, prin forumul de suport de pe WordPress.org sau prin issue tracker-ul public de pe GitHub. Nu există un timp de răspuns garantat sau un SLA."
-      }
-    }
-  ]
-}
-</script>
 
 <style>
   :root {
+    color-scheme: light;
     --ink: #130b17;
     --ink-2: #4c4553;
     --ink-3: #6b6577;
@@ -161,6 +86,7 @@
     --radius: 8px;
   }
   :root[data-theme="dark"] {
+    color-scheme: dark;
     --ink: #f3eef8;
     --ink-2: #cbc0d9;
     --ink-3: #9a8fac;
@@ -175,7 +101,9 @@
     --link: #c9a6ee;
   }
   * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: no-preference) {
+    html { scroll-behavior: smooth; }
+  }
   body {
     margin: 0;
     background: var(--panel-2);
@@ -214,8 +142,22 @@
     color: var(--accent);
     flex: 0 0 auto;
   }
+  img.page-logo { width: 40px; height: 40px; }
+  .shots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; align-items: start; }
+  .shot { margin: 0; }
+  .shot img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: var(--radius); }
+  .shot figcaption { margin-top: 8px; color: var(--ink-2); font-size: 13px; }
+  @media (max-width: 700px) { .shots { grid-template-columns: 1fr; } }
+  .shot a { cursor: zoom-in; }
+  .lightbox { display: none; position: fixed; inset: 0; z-index: 100; padding: 16px; align-items: center; justify-content: center; background: rgba(19, 11, 23, 0.9); }
+  .lightbox:target { display: flex; }
+  .lightbox-backdrop { position: absolute; inset: 0; cursor: zoom-out; }
+  .lightbox img { position: relative; pointer-events: none; max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; border-radius: var(--radius); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); }
+  .lightbox-close { position: absolute; top: 8px; right: 12px; padding: 0 8px; color: #fff; font-size: 34px; line-height: 1; text-decoration: none; }
+  body:has(.lightbox:target) { overflow: hidden; }
   .page-title-group { margin-right: auto; }
   .page-title { font-size: 22px; font-weight: 800; letter-spacing: -.01em; }
+  .page-title { margin: 0; }
   .page-sub { font-size: 13px; color: rgba(255, 255, 255, .72); margin-top: 2px; }
   .page-ver-badge { height: 20px; flex: 0 0 auto; }
 
@@ -259,8 +201,8 @@
     white-space: nowrap;
     border-bottom: 2.5px solid transparent;
   }
-  nav.tabs a:hover { color: var(--accent); }
-  nav.tabs a.active { color: var(--link); border-bottom-color: var(--link); }
+  nav.tabs a:hover { color: var(--link); }
+  nav.tabs a[aria-current] { color: var(--link); border-bottom-color: var(--link); }
   nav.tabs a.ext { margin-left: auto; }
 
   .page-body {
@@ -271,13 +213,13 @@
     padding: 28px 26px 8px;
   }
 
-  section { padding-bottom: 34px; }
-  section h2 { font-size: 18px; font-weight: 700; margin: 0 0 6px; color: var(--ink); }
+  section { padding-bottom: 34px; scroll-margin-top: 60px; }
+  section h1, section h2 { font-size: 18px; font-weight: 700; margin: 0 0 6px; color: var(--ink); }
   section p.lede { color: var(--ink-2); font-size: 14px; max-width: 680px; margin: 0 0 18px; }
 
   .intro p { color: var(--ink-2); font-size: 14.5px; max-width: 700px; }
   .disclaimer {
-    font-size: 12px;
+    font-size: 13px;
     color: var(--ink-3);
     background: var(--panel-2);
     border: 1px solid var(--line);
@@ -310,7 +252,7 @@
 
   .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
   .card-h { padding: 11px 15px; border-bottom: 1px solid var(--line); }
-  .card-h h3 { margin: 0; font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--ink); }
+  .card-h h3 { margin: 0; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--ink); }
   .card-b { padding: 14px 15px; }
   .card-b ul { margin: 0; padding-left: 18px; color: var(--ink-2); font-size: 13.5px; }
   .card-b li { margin-bottom: 6px; }
@@ -318,19 +260,20 @@
 
   .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 10px; }
   .tile { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
-  .tile .lab { font-size: 11px; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); font-weight: 700; }
+  .tile .lab { font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); font-weight: 700; }
   .tile .val { font-size: 24px; font-weight: 800; margin-top: 6px; }
-  .tile .sub { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+  .tile .sub { font-size: 13px; color: var(--ink-3); margin-top: 2px; }
 
   table.compare { width: 100%; border-collapse: collapse; font-size: 13px; }
   table.compare th, table.compare td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line-2); vertical-align: top; }
-  table.compare thead th { color: var(--ink-3); font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .03em; }
-  table.compare td.feat { font-weight: 600; color: var(--ink); }
+  table.compare thead th { color: var(--ink-3); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; }
+  table.compare th.feat { font-size: 13px; }
+  table.compare .feat { font-weight: 600; color: var(--ink); }
   .tag-yes { color: var(--success); font-weight: 600; }
   .tag-partial { color: var(--warn); font-weight: 600; }
   .tag-no { color: var(--ink-3); }
   .table-scroll { overflow-x: auto; }
-  .compare-note { font-size: 12px; color: var(--ink-3); margin-top: 12px; }
+  .compare-note { font-size: 13px; color: var(--ink-3); margin-top: 12px; }
 
   ol.steps { padding-left: 20px; color: var(--ink-2); font-size: 14px; }
   ol.steps li { margin-bottom: 8px; }
@@ -344,7 +287,7 @@
     max-width: 1120px;
     margin: 24px auto 40px;
     padding: 0 20px;
-    font-size: 12.5px;
+    font-size: 13px;
     color: var(--ink-3);
   }
   footer .legal { max-width: 760px; margin-bottom: 10px; }
@@ -352,10 +295,37 @@
   footer .links a:hover { text-decoration: underline; }
   footer a { color: var(--ink-3); }
 
-  a:focus, button:focus {
-    outline: 2px solid var(--accent);
+  :focus-visible {
+    outline: 2px solid var(--link);
     outline-offset: 2px;
   }
+  .page-head :focus-visible, .lightbox :focus-visible { outline-color: #fff; }
+  .table-scroll:focus-visible { outline-offset: 0; }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  .skip-link {
+    position: absolute;
+    top: -100px;
+    left: 16px;
+    z-index: 200;
+    padding: 8px 14px;
+    background: var(--panel);
+    color: var(--link);
+    border-radius: 6px;
+    font-weight: 600;
+  }
+  .skip-link:focus { top: 8px; }
+  main:focus { outline: none; }
 
   @media (max-width: 700px) {
     .shell, footer { padding: 0 14px; }
@@ -366,31 +336,34 @@
 </style>
 <script>
 (function () {
-  var stored = localStorage.getItem('fgsync-theme');
+  var stored = null;
+  try { stored = localStorage.getItem('fgsync-theme'); } catch (error) {}
   var theme = stored || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
   document.documentElement.setAttribute('data-theme', theme);
 })();
 </script>
 </head>
 <body>
+<a class="skip-link" href="#main">Sari la conținut</a>
 
 <div class="shell">
   <header class="page-head">
-    <div class="page-logo">F</div>
+    <img class="page-logo" src="assets/icon-80x80.jpg" alt="" width="40" height="40">
     <div class="page-title-group">
-      <div class="page-title">FGSync for Oblio</div>
+      <p class="page-title">FGSync for Oblio</p>
       <div class="page-sub">Integrare Oblio WooCommerce, gratuită și open-source</div>
     </div>
-    <img class="page-ver-badge" src="https://img.shields.io/wordpress/plugin/v/fgsync-oblio.svg?label=versiune&labelColor=2e143c&color=f36e21" alt="Versiune curentă FGSync, publicată pe WordPress.org" loading="lazy">
-    <button type="button" class="theme-toggle" id="theme-toggle" aria-pressed="false" aria-label="Comută tema deschis/întunecat">
+    <img class="page-ver-badge" src="https://img.shields.io/wordpress/plugin/v/fgsync-oblio.svg?label=versiune&labelColor=2e143c&color=f36e21" alt="Versiune curentă FGSync, publicată pe WordPress.org" height="20">
+    <button type="button" class="theme-toggle" id="theme-toggle" aria-pressed="false" aria-label="Temă întunecată">
       <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
       <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"/></svg>
     </button>
   </header>
 
-  <nav class="tabs">
-    <a href="#intro" class="active">Prezentare</a>
+  <nav class="tabs" aria-label="Secțiuni">
+    <a href="#intro" aria-current="location">Prezentare</a>
     <a href="#features">Funcționalități</a>
+    <a href="#screenshots">Capturi</a>
     <a href="#comparison">Comparație</a>
     <a href="#requirements">Cerințe</a>
     <a href="#install">Instalare</a>
@@ -398,24 +371,24 @@
     <a href="https://github.com/rwkyyy/fgsync-oblio" class="ext">GitHub</a>
   </nav>
 
-  <main class="page-body">
+  <main class="page-body" id="main" tabindex="-1">
     <section id="intro" class="intro">
-      <h2>Oblio WooCommerce: facturare și stoc sincronizate automat</h2>
-      <p>Oblio.eu este un serviciu românesc de facturare și gestiune a stocurilor. FGSync (Facturare Gestiune Sincronizare) este pluginul care permite conectarea și emiterea documentelor Oblio din comenzile WooCommerce, menține stocul WooCommerce sincronizat cu gestiunea/gestiunile din Oblio: facturi, proforme, avize și storno automate, plus sincronizare stoc pe mai multe gestiuni, fără să încetinească website-ul în vre-un fel.</p>
+      <h1>Oblio WooCommerce: facturare și stoc sincronizate automat</h1>
+      <p>Oblio.eu este un serviciu românesc de facturare și gestiune a stocurilor. FGSync (Facturare Gestiune Sincronizare) este pluginul care permite conectarea și emiterea documentelor Oblio din comenzile WooCommerce, menține stocul WooCommerce sincronizat cu gestiunea/gestiunile din Oblio: facturi, proforme, avize și storno automate, plus sincronizare stoc pe mai multe gestiuni, fără să încetinească website-ul în vreun fel.</p>
       <p>Aceasta este o reconstrucție independentă, nu un fork/derivat, scrisă pentru magazinele unde cererile sincrone ale pluginului original „WooCommerce Oblio” au devenit un blocaj. Noua variantă este o reinventare modernă prin cod scris de la zero, PHP 8.1+ cu tipare stricte, testat cu PHPUnit, cu emiterea documentelor și sincronizarea stocului rulând pe grupuri (schedulers - Action Scheduler).</p>
 
       <div class="badges">
         <img src="https://img.shields.io/wordpress/plugin/tested/fgsync-oblio.svg?label=testat%20p%C3%A2n%C4%83%20la" alt="Testat până la versiunea WordPress" loading="lazy">
         <img src="https://img.shields.io/wordpress/plugin/dt/fgsync-oblio.svg?label=desc%C4%83rc%C4%83ri" alt="Număr descărcări" loading="lazy">
         <img src="https://img.shields.io/wordpress/plugin/rating/fgsync-oblio.svg?label=rating" alt="Rating WordPress.org" loading="lazy">
-        <img src="https://img.shields.io/badge/HPOS-compatibil-4c1" alt="Compatibil HPOS" loading="lazy">
-        <img src="https://img.shields.io/badge/licen%C8%9B%C4%83-GPL--2.0--or--later-blue" alt="Licență GPL-2.0-or-later" loading="lazy">
+        <img src="https://img.shields.io/badge/HPOS-compatibil-4c1" alt="Compatibil HPOS" width="108" height="20" loading="lazy">
+        <img src="https://img.shields.io/badge/licen%C8%9B%C4%83-GPL--2.0--or--later-blue" alt="Licență GPL-2.0-or-later" width="148" height="20" loading="lazy">
       </div>
 
       <div class="cta-row">
-        <a class="btn btn-primary" href="https://ro.wordpress.org/plugins/fgsync-oblio/">↓ Descarcă de pe WordPress.org</a>
-        <a class="btn btn-secondary" href="https://github.com/rwkyyy/fgsync-oblio">↗ Vezi codul sursă pe GitHub</a>
-        <a class="btn btn-playground" href="https://playground.wordpress.net/?blueprint-url=https://rwkyyy.github.io/fgsync-oblio/blueprint.json" target="_blank" rel="noopener">⚡ Testează live în WordPress Playground</a>
+        <a class="btn btn-primary" href="https://ro.wordpress.org/plugins/fgsync-oblio/"><span aria-hidden="true">↓</span> Descarcă de pe WordPress.org</a>
+        <a class="btn btn-secondary" href="https://github.com/rwkyyy/fgsync-oblio"><span aria-hidden="true">↗</span> Vezi codul sursă pe GitHub</a>
+        <a class="btn btn-playground" href="https://playground.wordpress.net/?blueprint-url=https://rwkyyy.github.io/fgsync-oblio/blueprint.json" target="_blank" rel="noopener"><span aria-hidden="true">⚡</span> Testează live în WordPress Playground</a>
       </div>
       <p class="compare-note" style="margin:0 0 6px;">Pornește o instalare WordPress temporară, direct în browser, cu WooCommerce și FGSync deja instalate și activate, moneda setată pe RON și țara magazinului pe România, direct pe ecranul de setări FGSync (fără wizard-ul de configurare WooCommerce). Nicio modificare nu e salvată; conectarea la Oblio necesită un cont real.</p>
 
@@ -491,37 +464,85 @@
       </div>
     </section>
 
+    <section id="screenshots">
+      <h2>Capturi de ecran</h2>
+      <p class="lede">Fiecare tab din setările FGSync. Click pe o captură pentru dimensiunea completă.</p>
+      <div class="shots">
+        <figure class="shot">
+          <a href="#shot-1"><img src="assets/screenshot-1-conectare.webp" alt="Tabul Conectare din setările FGSync" width="1171" height="893" loading="lazy"></a>
+          <figcaption><strong>Conectare</strong>: emailul Oblio, secretul API, apoi „Preia ultimele date” încarcă firma, seriile și gestiunile.</figcaption>
+        </figure>
+        <figure class="shot">
+          <a href="#shot-2"><img src="assets/screenshot-2-documente.webp" alt="Tabul Documente din setările FGSync" width="1184" height="1129" loading="lazy"></a>
+          <figcaption><strong>Documente</strong>: seriile pentru facturi, proforme și avize, data documentului, punctul de lucru și gestiunea.</figcaption>
+        </figure>
+        <figure class="shot">
+          <a href="#shot-3"><img src="assets/screenshot-3-tva.webp" alt="Tabul TVA din setările FGSync" width="1200" height="885" loading="lazy"></a>
+          <figcaption><strong>TVA</strong>: cotele din WooCommerce fără categorie în Oblio, cu numele recomandat, și categoria 0%.</figcaption>
+        </figure>
+        <figure class="shot">
+          <a href="#shot-4"><img src="assets/screenshot-4-incasare.webp" alt="Tabul Încasare din setările FGSync" width="1159" height="530" loading="lazy"></a>
+          <figcaption><strong>Încasare</strong>: marcarea facturilor ca încasate în Oblio, după metoda de plată.</figcaption>
+        </figure>
+        <figure class="shot">
+          <a href="#shot-5"><img src="assets/screenshot-5-sincronizare.webp" alt="Tabul Sincronizare din setările FGSync" width="1184" height="1217" loading="lazy"></a>
+          <figcaption><strong>Sincronizare</strong>: stocul și prețul din Oblio, gestiunile și rezervarea stocului pentru comenzile nefacturate.</figcaption>
+        </figure>
+        <figure class="shot">
+          <a href="#shot-6"><img src="assets/screenshot-6-email.webp" alt="Tabul Email din setările FGSync" width="1221" height="592" loading="lazy"></a>
+          <figcaption><strong>Email</strong>: factura trimisă clientului într-un email separat sau ca buton în emailul WooCommerce.</figcaption>
+        </figure>
+        <figure class="shot">
+          <a href="#shot-7"><img src="assets/screenshot-7-avansat.webp" alt="Tabul Avansat din setările FGSync" width="1187" height="1253" loading="lazy"></a>
+          <figcaption><strong>Avansat</strong>: limba documentului, tipul de produs Oblio (separat pentru produsele virtuale), mențiuni, întocmit de și delegat.</figcaption>
+        </figure>
+        <figure class="shot">
+          <a href="#shot-8"><img src="assets/screenshot-8-stare.webp" alt="Tabul Stare din setările FGSync" width="1159" height="1160" loading="lazy"></a>
+          <figcaption><strong>Stare</strong>: conexiunea, coada, jurnalul live, actualizările, hook-urile suprascrise și raportul de diagnoză.</figcaption>
+        </figure>
+      </div>
+      <div class="lightbox" id="shot-1" role="dialog" aria-modal="true" aria-label="Tabul Conectare din setările FGSync"><a href="#_" class="lightbox-backdrop" tabindex="-1" aria-hidden="true"></a><img src="assets/screenshot-1-conectare.webp" alt="Tabul Conectare din setările FGSync" loading="lazy"><a href="#_" class="lightbox-close" aria-label="Închide">&times;</a></div>
+      <div class="lightbox" id="shot-2" role="dialog" aria-modal="true" aria-label="Tabul Documente din setările FGSync"><a href="#_" class="lightbox-backdrop" tabindex="-1" aria-hidden="true"></a><img src="assets/screenshot-2-documente.webp" alt="Tabul Documente din setările FGSync" loading="lazy"><a href="#_" class="lightbox-close" aria-label="Închide">&times;</a></div>
+      <div class="lightbox" id="shot-3" role="dialog" aria-modal="true" aria-label="Tabul TVA din setările FGSync"><a href="#_" class="lightbox-backdrop" tabindex="-1" aria-hidden="true"></a><img src="assets/screenshot-3-tva.webp" alt="Tabul TVA din setările FGSync" loading="lazy"><a href="#_" class="lightbox-close" aria-label="Închide">&times;</a></div>
+      <div class="lightbox" id="shot-4" role="dialog" aria-modal="true" aria-label="Tabul Încasare din setările FGSync"><a href="#_" class="lightbox-backdrop" tabindex="-1" aria-hidden="true"></a><img src="assets/screenshot-4-incasare.webp" alt="Tabul Încasare din setările FGSync" loading="lazy"><a href="#_" class="lightbox-close" aria-label="Închide">&times;</a></div>
+      <div class="lightbox" id="shot-5" role="dialog" aria-modal="true" aria-label="Tabul Sincronizare din setările FGSync"><a href="#_" class="lightbox-backdrop" tabindex="-1" aria-hidden="true"></a><img src="assets/screenshot-5-sincronizare.webp" alt="Tabul Sincronizare din setările FGSync" loading="lazy"><a href="#_" class="lightbox-close" aria-label="Închide">&times;</a></div>
+      <div class="lightbox" id="shot-6" role="dialog" aria-modal="true" aria-label="Tabul Email din setările FGSync"><a href="#_" class="lightbox-backdrop" tabindex="-1" aria-hidden="true"></a><img src="assets/screenshot-6-email.webp" alt="Tabul Email din setările FGSync" loading="lazy"><a href="#_" class="lightbox-close" aria-label="Închide">&times;</a></div>
+      <div class="lightbox" id="shot-7" role="dialog" aria-modal="true" aria-label="Tabul Avansat din setările FGSync"><a href="#_" class="lightbox-backdrop" tabindex="-1" aria-hidden="true"></a><img src="assets/screenshot-7-avansat.webp" alt="Tabul Avansat din setările FGSync" loading="lazy"><a href="#_" class="lightbox-close" aria-label="Închide">&times;</a></div>
+      <div class="lightbox" id="shot-8" role="dialog" aria-modal="true" aria-label="Tabul Stare din setările FGSync"><a href="#_" class="lightbox-backdrop" tabindex="-1" aria-hidden="true"></a><img src="assets/screenshot-8-stare.webp" alt="Tabul Stare din setările FGSync" loading="lazy"><a href="#_" class="lightbox-close" aria-label="Închide">&times;</a></div>
+    </section>
+
     <section id="comparison">
       <h2>FGSync vs. pluginul original „WooCommerce Oblio”</h2>
       <p>FGSync este o reconstrucție, nu un fork/derivat, scrisă special cu performanța ca și target principal, tocmai pentru a rezolva punctele unde pluginul original blochează / încetinește site-ul.</p>
-      <div class="table-scroll">
+      <div class="table-scroll" tabindex="0" role="region" aria-label="Comparație FGSync vs. pluginul original">
         <table class="compare">
+          <caption class="sr-only">Comparație funcționalități: pluginul original „WooCommerce Oblio” și FGSync</caption>
           <thead>
-            <tr><th>Funcționalitate</th><th>Integrarea Oblio.eu (pluginul vechi)</th><th>FGSync</th></tr>
+            <tr><th scope="col">Funcționalitate</th><th scope="col">Integrarea Oblio.eu (pluginul vechi)</th><th scope="col">FGSync</th></tr>
           </thead>
           <tbody>
-            <tr><td class="feat">Emitere factură</td><td class="tag-partial">Sincronă, poate bloca cererea până la ~60s</td><td class="tag-yes">Pe coadă / la rând (Action Scheduler), nu blochează niciodată, cu atât mai puțin checkout-ul!</td></tr>
-            <tr><td class="feat">Reîncercare automată la eșec</td><td class="tag-no">Lipsește</td><td class="tag-yes">Automată, cu pauze (eșecuri multiple)</td></tr>
-            <tr><td class="feat">Storno (credit note)</td><td class="tag-no">Lipsește</td><td class="tag-yes">Automat la rambursare, integrală sau parțială</td></tr>
-            <tr><td class="feat">Aviz (notă de livrare)</td><td class="tag-partial">Codul există, dar nu e funcțional</td><td class="tag-yes">Funcțional, iar factura se emite pe baza lui</td></tr>
-            <tr><td class="feat">Reconciliere documente omise</td><td class="tag-no">Lipsește</td><td class="tag-yes">Job recurent / Rutină</td></tr>
-            <tr><td class="feat">Interval sincronizare stoc</td><td class="tag-partial">Cron fix, la fiecare oră</td><td class="tag-yes">Configurabil</td></tr>
-            <tr><td class="feat">Sincronizare stoc la scară</td><td class="tag-partial">O singură execuție care citește și scrie toate produsele: risc de timeout la cataloage mari / încetinire masivă în server</td><td class="tag-yes">Pe secțiuni, asyncron, neblocant cu progres salvat</td></tr>
-            <tr><td class="feat">Agregare pe mai multe gestiuni</td><td class="tag-no">Lipsește</td><td class="tag-yes">Disponibilă</td></tr>
-            <tr><td class="feat">Limitare rată API Oblio</td><td class="tag-partial">Doar la paginarea sincronizării de stoc</td><td class="tag-yes">La fiecare emitere (facturi, proforme, avize, storno)</td></tr>
-            <tr><td class="feat">Compatibilitate HPOS</td><td class="tag-partial">Parțială</td><td class="tag-yes">Completă</td></tr>
-            <tr><td class="feat">WPML / WooCommerce Multilingual</td><td class="tag-no">Lipsește</td><td class="tag-yes">Disponibil</td></tr>
-            <tr><td class="feat">WooCommerce Bundles</td><td class="tag-no">Lipsește</td><td class="tag-yes">Componente facturate, prețul fix împărțit pe ele</td></tr>
-            <tr><td class="feat">Tip produs pentru produse virtuale</td><td class="tag-partial">Doar tipul implicit sau setat pe fiecare produs</td><td class="tag-yes">Tip separat, aplicat automat produselor virtuale</td></tr>
-            <tr><td class="feat">Documente în EUR (clienți din afara României)</td><td class="tag-no">Lipsește</td><td class="tag-yes">Setare opțională</td></tr>
-            <tr><td class="feat">Cota TVA pe linie</td><td class="tag-partial">Rotunjită la număr întreg (25,5% devine 26%)</td><td class="tag-yes">Exactă, cu categoria din contul Oblio</td></tr>
-            <tr><td class="feat">Cote TVA lipsă în Oblio</td><td class="tag-no">Nicio verificare</td><td class="tag-yes">Listate în setări, cu mesaj clar la emitere</td></tr>
-            <tr><td class="feat">Persoană fizică / juridică</td><td class="tag-partial">CNP trimis drept CIF, fără bancă și IBAN</td><td class="tag-yes">PF/PJ, CUI, CNP, Reg. Com., bancă și IBAN</td></tr>
-            <tr><td class="feat">Filtre / hook-uri proprii</td><td class="tag-partial">2</td><td class="tag-yes">23</td></tr>
-            <tr><td class="feat">Stocare cheie API</td><td class="tag-partial">Text simplu</td><td class="tag-yes">Criptată (AES-256-GCM)</td></tr>
-            <tr><td class="feat">Filtrare listă comenzi după status Oblio</td><td class="tag-no">Lipsește</td><td class="tag-yes">Disponibilă</td></tr>
-            <tr><td class="feat">Monitorizare erori</td><td class="tag-no">Lipsește</td><td class="tag-yes">Disponibilă</td></tr>
-            <tr><td class="feat">Bază de cod</td><td class="tag-partial">Fără versiune minimă de PHP, procedural, fără teste automate</td><td class="tag-yes">PHP 8.1+, tipare stricte, testat cu PHPUnit</td></tr>
+            <tr><th scope="row" class="feat">Emitere factură</th><td class="tag-partial">Sincronă, poate bloca cererea până la ~60s</td><td class="tag-yes">Pe coadă / la rând (Action Scheduler), nu blochează niciodată, cu atât mai puțin checkout-ul!</td></tr>
+            <tr><th scope="row" class="feat">Reîncercare automată la eșec</th><td class="tag-no">Lipsește</td><td class="tag-yes">Automată, cu pauze (eșecuri multiple)</td></tr>
+            <tr><th scope="row" class="feat">Storno (credit note)</th><td class="tag-no">Lipsește</td><td class="tag-yes">Automat la rambursare, integrală sau parțială</td></tr>
+            <tr><th scope="row" class="feat">Aviz (notă de livrare)</th><td class="tag-partial">Codul există, dar nu e funcțional</td><td class="tag-yes">Funcțional, iar factura se emite pe baza lui</td></tr>
+            <tr><th scope="row" class="feat">Reconciliere documente omise</th><td class="tag-no">Lipsește</td><td class="tag-yes">Job recurent / Rutină</td></tr>
+            <tr><th scope="row" class="feat">Interval sincronizare stoc</th><td class="tag-partial">Cron fix, la fiecare oră</td><td class="tag-yes">Configurabil</td></tr>
+            <tr><th scope="row" class="feat">Sincronizare stoc la scară</th><td class="tag-partial">O singură execuție care citește și scrie toate produsele: risc de timeout la cataloage mari / încetinire masivă în server</td><td class="tag-yes">Pe secțiuni, asincron, neblocant cu progres salvat</td></tr>
+            <tr><th scope="row" class="feat">Agregare pe mai multe gestiuni</th><td class="tag-no">Lipsește</td><td class="tag-yes">Disponibilă</td></tr>
+            <tr><th scope="row" class="feat">Limitare rată API Oblio</th><td class="tag-partial">Doar la paginarea sincronizării de stoc</td><td class="tag-yes">La fiecare emitere (facturi, proforme, avize, storno)</td></tr>
+            <tr><th scope="row" class="feat">Compatibilitate HPOS</th><td class="tag-partial">Parțială</td><td class="tag-yes">Completă</td></tr>
+            <tr><th scope="row" class="feat">WPML / WooCommerce Multilingual</th><td class="tag-no">Lipsește</td><td class="tag-yes">Disponibil</td></tr>
+            <tr><th scope="row" class="feat">WooCommerce Bundles</th><td class="tag-no">Lipsește</td><td class="tag-yes">Componente facturate, prețul fix împărțit pe ele</td></tr>
+            <tr><th scope="row" class="feat">Tip produs pentru produse virtuale</th><td class="tag-partial">Doar tipul implicit sau setat pe fiecare produs</td><td class="tag-yes">Tip separat, aplicat automat produselor virtuale</td></tr>
+            <tr><th scope="row" class="feat">Documente în EUR (clienți din afara României)</th><td class="tag-no">Lipsește</td><td class="tag-yes">Setare opțională</td></tr>
+            <tr><th scope="row" class="feat">Cota TVA pe linie</th><td class="tag-partial">Rotunjită la număr întreg (25,5% devine 26%)</td><td class="tag-yes">Exactă, cu categoria din contul Oblio</td></tr>
+            <tr><th scope="row" class="feat">Cote TVA lipsă în Oblio</th><td class="tag-no">Nicio verificare</td><td class="tag-yes">Listate în setări, cu mesaj clar la emitere</td></tr>
+            <tr><th scope="row" class="feat">Persoană fizică / juridică</th><td class="tag-partial">CNP trimis drept CIF, fără bancă și IBAN</td><td class="tag-yes">PF/PJ, CUI, CNP, Reg. Com., bancă și IBAN</td></tr>
+            <tr><th scope="row" class="feat">Filtre / hook-uri proprii</th><td class="tag-partial">2</td><td class="tag-yes">23</td></tr>
+            <tr><th scope="row" class="feat">Stocare cheie API</th><td class="tag-partial">Text simplu</td><td class="tag-yes">Criptată (AES-256-GCM)</td></tr>
+            <tr><th scope="row" class="feat">Filtrare listă comenzi după status Oblio</th><td class="tag-no">Lipsește</td><td class="tag-yes">Disponibilă</td></tr>
+            <tr><th scope="row" class="feat">Monitorizare erori</th><td class="tag-no">Lipsește</td><td class="tag-yes">Disponibilă</td></tr>
+            <tr><th scope="row" class="feat">Bază de cod</th><td class="tag-partial">Fără versiune minimă de PHP, procedural, fără teste automate</td><td class="tag-yes">PHP 8.1+, tipare stricte, testat cu PHPUnit</td></tr>
           </tbody>
         </table>
       </div>
@@ -627,15 +648,75 @@
 
   setTheme(root.getAttribute('data-theme') || 'light');
 
+  function storedTheme() {
+    try { return localStorage.getItem('fgsync-theme'); } catch (error) { return null; }
+  }
+
   btn.addEventListener('click', function () {
     var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    localStorage.setItem('fgsync-theme', next);
+    try { localStorage.setItem('fgsync-theme', next); } catch (error) {}
     setTheme(next);
   });
 
-  mql.addEventListener('change', function (e) {
-    if (!localStorage.getItem('fgsync-theme')) {
-      setTheme(e.matches ? 'dark' : 'light');
+  mql.addEventListener('change', function (event) {
+    if (!storedTheme()) {
+      setTheme(event.matches ? 'dark' : 'light');
+    }
+  });
+})();
+
+(function () {
+  var opener = null;
+
+  function openLightbox() {
+    var target = location.hash.length > 1 ? document.getElementById(location.hash.slice(1)) : null;
+    if (target && target.classList.contains('lightbox')) {
+      opener = document.querySelector('a[href="#' + target.id + '"]');
+      target.querySelector('.lightbox-close').focus();
+    } else if (opener) {
+      opener.focus({ preventScroll: true });
+      opener = null;
+    }
+  }
+
+  window.addEventListener('hashchange', openLightbox);
+  openLightbox();
+
+  document.addEventListener('keydown', function (event) {
+    if (!opener) {
+      return;
+    }
+    if (event.key === 'Escape') {
+      location.hash = '_';
+    } else if (event.key === 'Tab') {
+      event.preventDefault();
+    }
+  });
+})();
+
+(function () {
+  var links = document.querySelectorAll('nav.tabs a[href^="#"]');
+  if (!('IntersectionObserver' in window)) {
+    return;
+  }
+  var observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (!entry.isIntersecting) {
+        return;
+      }
+      links.forEach(function (link) {
+        if (link.getAttribute('href') === '#' + entry.target.id) {
+          link.setAttribute('aria-current', 'location');
+        } else {
+          link.removeAttribute('aria-current');
+        }
+      });
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  links.forEach(function (link) {
+    var section = document.getElementById(link.getAttribute('href').slice(1));
+    if (section) {
+      observer.observe(section);
     }
   });
 })();

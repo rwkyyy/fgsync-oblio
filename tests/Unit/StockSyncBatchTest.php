@@ -16,6 +16,7 @@ use FGSyncOblio\Stock\ProductUpdater;
 use FGSyncOblio\Stock\ReservationUnavailableException;
 use FGSyncOblio\Stock\StockReservations;
 use FGSyncOblio\Stock\StockSyncCoordinator;
+use FGSyncOblio\Support\AtomicLock;
 use FGSyncOblio\Support\ConnectionHealth;
 use FGSyncOblio\Support\Encryption;
 use FGSyncOblio\Support\Logger;
@@ -40,7 +41,7 @@ final class StockSyncBatchTest extends TestCase {
 			new ClientFactory( $this->settings, new Encryption(), new Logger(), new ConnectionHealth(), new RateLimiter() ),
 			new Scheduler(),
 			new LocationAggregator(),
-			new ProductUpdater( new Logger() ),
+			new ProductUpdater( new Logger(), $this->settings ),
 			new StockReservations( new OrderStore(), new Logger() ),
 			new Logger()
 		);
@@ -88,5 +89,51 @@ final class StockSyncBatchTest extends TestCase {
 		$this->expectException( \Error::class );
 
 		$this->process_page( array( array( 'code' => 'SKU-1', 'price' => '10' ) ), 'token' );
+	}
+
+	/**
+	 * Two pages, each skipping products for a type mismatch: the run keeps
+	 * the total and the first codes, and they outlive the run for the
+	 * completion message and the Stare tab.
+	 */
+	public function test_a_finished_run_keeps_the_products_skipped_for_their_type(): void {
+		$owner = AtomicLock::acquire( StockSyncCoordinator::RUN_LOCK, StockSyncCoordinator::RUN_LOCK_TTL );
+		update_option( StockSyncCoordinator::RUN_TOKEN_OPTION, $owner );
+		$record = new ReflectionMethod( StockSyncBatch::class, 'record_progress' );
+
+		$codes = array_map( static fn ( int $index ): string => 'TORT-' . $index, range( 1, 12 ) );
+		$record->invoke( $this->batch, 250, 3, array_slice( $codes, 0, 8 ), $owner );
+		$record->invoke( $this->batch, 40, 1, array_slice( $codes, 8 ), $owner );
+		( new ReflectionMethod( StockSyncBatch::class, 'finalize' ) )->invoke( $this->batch, $owner );
+
+		$result = get_option( StockSyncCoordinator::LAST_RESULT_OPTION );
+		$this->assertSame( 290, $result['scanned'] );
+		$this->assertSame( 4, $result['updated'] );
+		$this->assertSame( 12, $result['skipped'] );
+		$this->assertSame( array_slice( $codes, 0, StockSyncCoordinator::SKIPPED_CODES_SHOWN ), $result['codes'] );
+	}
+
+	public function test_a_page_hands_its_type_skips_to_the_run_counters(): void {
+		update_option( StockSyncCoordinator::RUN_TOKEN_OPTION, 'token' );
+		$GLOBALS['oblio_test_products'][7]        = new \WC_Product( array( 'id' => 7 ) );
+		$GLOBALS['wpdb']->next_get_results_return = array(
+			array(
+				'sku'        => 'TORT-05',
+				'product_id' => 7,
+			),
+		);
+
+		$this->process_page(
+			array(
+				array(
+					'code'        => 'TORT-05',
+					'productType' => 'Produs finit',
+					'price'       => '10',
+				),
+			),
+			'token'
+		);
+
+		$this->assertSame( array( 'TORT-05' ), ( new \ReflectionProperty( StockSyncBatch::class, 'type_skips' ) )->getValue( $this->batch ) );
 	}
 }

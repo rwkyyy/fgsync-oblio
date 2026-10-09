@@ -12,15 +12,29 @@ namespace FGSyncOblio\Stock;
 use FGSyncOblio\Admin\ProductFields;
 use FGSyncOblio\Document\BuildContext;
 use FGSyncOblio\Support\Logger;
+use FGSyncOblio\Support\Settings;
 use WC_Product;
 final class ProductUpdater {
 
 	private Logger $logger;
 
-	public function __construct( Logger $logger ) {
-		$this->logger = $logger;
+	private Settings $settings;
+
+	/** @var array<int,string> */
+	private array $type_skips = array();
+
+	public function __construct( Logger $logger, Settings $settings ) {
+		$this->logger   = $logger;
+		$this->settings = $settings;
 	}
 
+	/**
+	 * @param array<string,mixed> $product       Oblio product.
+	 * @param array<string,mixed> $agg           Stock and price aggregated over the selected warehouses.
+	 * @param bool                $update_price  Whether to write the price too.
+	 * @param array<int,int>      $reservations  Reserved quantity per product ID.
+	 * @param array<string,int>   $sku_map       Product ID per SKU.
+	 */
 	public function update( array $product, array $agg, bool $update_price, array $reservations = array(), array $sku_map = array() ): bool {
 		$code = (string) ( $product['code'] ?? '' );
 		if ( '' === $code ) {
@@ -38,6 +52,17 @@ final class ProductUpdater {
 		$wc = wc_get_product( $product_id );
 		if ( ! $wc instanceof WC_Product ) {
 			return false;
+		}
+
+		// The same code on another type is different stock, e.g. raw goods vs the finished product.
+		$oblio_type = (string) ( $product['productType'] ?? '' );
+		if ( '' !== $oblio_type && $this->settings->is_enabled( 'stock_match_product_type' ) ) {
+			$shop_type = $this->product_type( $wc );
+			if ( $oblio_type !== $shop_type ) {
+				$this->type_skips[] = $code;
+				$this->logger->info( sprintf( 'Stock sync: skipped %s, the Oblio product is "%s" and the WooCommerce product is "%s"', $code, $oblio_type, $shop_type ) );
+				return false;
+			}
 		}
 
 		$manages   = $wc->get_manage_stock();
@@ -123,6 +148,17 @@ final class ProductUpdater {
 		return $changed;
 	}
 
+	/**
+	 * Codes skipped for a type mismatch since the last call.
+	 *
+	 * @return array<int,string>
+	 */
+	public function take_type_skips(): array {
+		$skips            = $this->type_skips;
+		$this->type_skips = array();
+		return $skips;
+	}
+
 	private function stock_status( WC_Product $wc, int $quantity ): string {
 		if ( $quantity > 0 ) {
 			return 'instock';
@@ -155,6 +191,23 @@ final class ProductUpdater {
 			return $price * ( 1 + $vat_percent / 100 );
 		}
 		return $price;
+	}
+
+	/**
+	 * Resolved as on invoice lines, so it names the Oblio product the shop issues.
+	 *
+	 * @param WC_Product $wc Product.
+	 */
+	private function product_type( WC_Product $wc ): string {
+		$custom = ProductFields::product_type( $wc->get_parent_id() > 0 ? $wc->get_parent_id() : $wc->get_id() );
+		if ( '' !== $custom ) {
+			return $custom;
+		}
+		$virtual = (string) $this->settings->get( 'product_type_virtual', '' );
+		if ( '' !== $virtual && $wc->is_virtual() ) {
+			return $virtual;
+		}
+		return (string) $this->settings->get( 'product_type', 'Marfa' );
 	}
 
 	private function package_number( WC_Product $wc ): float {

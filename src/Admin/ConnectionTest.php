@@ -11,6 +11,7 @@ namespace FGSyncOblio\Admin;
 
 use FGSyncOblio\Api\ClientFactory;
 use FGSyncOblio\Api\Exception\ApiException;
+use FGSyncOblio\Api\OblioClient;
 use FGSyncOblio\Support\Logger;
 use FGSyncOblio\Support\Settings;
 final class ConnectionTest {
@@ -57,32 +58,24 @@ final class ConnectionTest {
 		}
 
 		try {
-			$client    = $this->factory->create_with( $email, $secret );
-			$companies = $client->test_connection();
+			$client = $this->factory->create_with( $email, $secret );
+			if ( $saved_credentials ) {
+				$sync   = $this->sync( $client );
+				$map    = $sync['companies'];
+				$loaded = $sync['loaded'];
+			} else {
+				// Unsaved credentials only fill the dropdown; saving them runs sync().
+				$map    = self::parse( $client->test_connection() )['companies'];
+				$loaded = false;
+			}
 		} catch ( ApiException $exception ) {
 			$this->logger->error( 'Connection test failed: ' . $exception->status_message() );
 			wp_send_json_error( array( 'message' => $exception->status_message() ) );
 		}
 
-		$map       = array();
-		$use_stock = array();
-		foreach ( $companies as $company ) {
-			if ( ! empty( $company['cif'] ) ) {
-				$map[ (string) $company['cif'] ] = (string) ( $company['company'] ?? $company['cif'] );
-				if ( isset( $company['useStock'] ) && is_scalar( $company['useStock'] ) ) {
-					$use_stock[ (string) $company['cif'] ] = (bool) (int) $company['useStock'];
-				}
-			}
-		}
-		update_option( self::COMPANIES_OPTION, $map, false );
-		update_option( self::USE_STOCK_OPTION, $use_stock, false );
-
-		if ( '' === (string) $this->settings->get( 'cif' ) && 1 === count( $map ) ) {
-			$this->settings->set( 'cif', (string) array_key_first( $map ) );
-			$loaded = $this->nomenclature->is_complete();
-		} else {
-			$this->nomenclature->refresh();
-			$loaded = $this->nomenclature->prime();
+		$cif = (string) $this->settings->get( 'cif' );
+		if ( ! $saved_credentials && ! isset( $map[ $cif ] ) ) {
+			$cif = 1 === count( $map ) ? (string) array_key_first( $map ) : '';
 		}
 
 		$this->logger->info( sprintf( 'Connection test succeeded, %d compan%s found', count( $map ), 1 === count( $map ) ? 'y' : 'ies' ) );
@@ -95,9 +88,59 @@ final class ConnectionTest {
 					count( $map )
 				),
 				'companies' => $map,
-				'cif'       => (string) $this->settings->get( 'cif' ),
+				'cif'       => $cif,
 				'reload'    => $loaded && $saved_credentials,
 			)
+		);
+	}
+
+	/**
+	 * Stores the account's companies and reloads the nomenclature with the
+	 * same client, so every cached list comes from one account.
+	 *
+	 * @param OblioClient $client Client for the account being stored.
+	 * @throws ApiException If Oblio rejects the credentials.
+	 * @return array{companies: array<string,string>, loaded: bool}
+	 */
+	public function sync( OblioClient $client ): array {
+		$parsed = self::parse( $client->test_connection() );
+		$map    = $parsed['companies'];
+		update_option( self::COMPANIES_OPTION, $map, false );
+		update_option( self::USE_STOCK_OPTION, $parsed['use_stock'], false );
+
+		if ( '' === (string) $this->settings->get( 'cif' ) && 1 === count( $map ) ) {
+			// The CIF hook primes the nomenclature from the now-saved credentials.
+			$this->settings->set( 'cif', (string) array_key_first( $map ) );
+			$loaded = $this->nomenclature->is_complete();
+		} else {
+			$this->nomenclature->refresh();
+			$loaded = $this->nomenclature->prime( $client );
+		}
+
+		return array(
+			'companies' => $map,
+			'loaded'    => $loaded,
+		);
+	}
+
+	/**
+	 * @param array<int,array<string,mixed>> $companies Oblio company list.
+	 * @return array{companies: array<string,string>, use_stock: array<string,bool>}
+	 */
+	private static function parse( array $companies ): array {
+		$map       = array();
+		$use_stock = array();
+		foreach ( $companies as $company ) {
+			if ( ! empty( $company['cif'] ) ) {
+				$map[ (string) $company['cif'] ] = (string) ( $company['company'] ?? $company['cif'] );
+				if ( isset( $company['useStock'] ) && is_scalar( $company['useStock'] ) ) {
+					$use_stock[ (string) $company['cif'] ] = (bool) (int) $company['useStock'];
+				}
+			}
+		}
+		return array(
+			'companies' => $map,
+			'use_stock' => $use_stock,
 		);
 	}
 }

@@ -105,6 +105,63 @@ final class StockSyncCoordinatorTest extends TestCase {
 		$this->assertTrue( $progress['done'] );
 	}
 
+	/**
+	 * finalize() drops the counters, so a finished run reports its saved
+	 * totals instead of 0 out of 0.
+	 */
+	public function test_a_finished_run_reports_its_saved_totals(): void {
+		update_option(
+			StockSyncCoordinator::LAST_RESULT_OPTION,
+			array(
+				'scanned' => 290,
+				'updated' => 4,
+				'skipped' => 2,
+				'codes'   => array( 'TORT-05', 'CAF-01' ),
+			)
+		);
+
+		$progress = $this->coordinator->progress();
+
+		$this->assertTrue( $progress['done'] );
+		$this->assertSame( 290, $progress['scanned'] );
+		$this->assertSame( 4, $progress['updated'] );
+		$this->assertSame( 2, $progress['skipped'] );
+	}
+
+	public function test_a_running_sync_reports_its_live_counters(): void {
+		update_option( StockSyncCoordinator::RUN_TOKEN_OPTION, 'some-owner' );
+		update_option( StockSyncCoordinator::LAST_RESULT_OPTION, array( 'scanned' => 290 ) );
+		set_transient( StockSyncCoordinator::PROGRESS_TRANSIENT, array( 'scanned' => 250, 'updated' => 3 ) );
+
+		$progress = $this->coordinator->progress();
+
+		$this->assertFalse( $progress['done'] );
+		$this->assertSame( 250, $progress['scanned'] );
+	}
+
+	public function test_the_skipped_message_names_the_codes_and_the_way_out(): void {
+		$this->assertSame( '', StockSyncCoordinator::skipped_message( StockSyncCoordinator::result( array() ) ) );
+
+		$message = StockSyncCoordinator::skipped_message( StockSyncCoordinator::result( array( 'skipped' => 12, 'codes' => array( 'TORT-05', 'CAF-01' ) ) ) );
+
+		$this->assertStringStartsWith( '12 produse sărite', $message );
+		$this->assertStringContainsString( 'TORT-05, CAF-01, …', $message );
+		$this->assertStringContainsString( 'Sincronizează doar produsele cu același tip', $message );
+	}
+
+	public function test_the_linked_skipped_message_escapes_the_codes_and_keeps_the_links(): void {
+		$message = StockSyncCoordinator::skipped_message(
+			StockSyncCoordinator::result( array( 'skipped' => 1, 'codes' => array( '<b>X</b>' ) ) ),
+			array(
+				'type'  => '<a href="#type">Avansat</a>',
+				'match' => '<a href="#match">setarea</a>',
+			)
+		);
+
+		$this->assertStringContainsString( '&lt;b&gt;X&lt;/b&gt;', $message );
+		$this->assertStringContainsString( 'tipul implicit din <a href="#type">Avansat</a>, ori dezactivează <a href="#match">setarea</a>.', $message );
+	}
+
 	public function test_cancel_run_does_not_touch_scheduled_batches_without_a_matching_token(): void {
 		$this->coordinator->cancel_run();
 

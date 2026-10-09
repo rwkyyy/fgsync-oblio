@@ -10,6 +10,7 @@ declare( strict_types=1 );
 namespace FGSyncOblio\Admin;
 
 use FGSyncOblio\Api\ClientFactory;
+use FGSyncOblio\Api\Exception\ApiException;
 use FGSyncOblio\Document\VatCategories;
 use FGSyncOblio\Extensibility\HookInspector;
 use FGSyncOblio\Extensibility\HookRegistry;
@@ -36,6 +37,10 @@ final class SettingsPage {
 
 	private ?array $sections_cache = null;
 
+	private ?string $account_error = null;
+
+	private ConnectionTest $connection;
+
 	public function __construct(
 		Settings $settings,
 		ClientFactory $factory,
@@ -43,7 +48,8 @@ final class SettingsPage {
 		StatusPanel $status_panel,
 		HookRegistry $hook_registry,
 		HookInspector $hook_inspector,
-		Logger $logger
+		Logger $logger,
+		ConnectionTest $connection
 	) {
 		$this->settings       = $settings;
 		$this->factory        = $factory;
@@ -52,6 +58,7 @@ final class SettingsPage {
 		$this->hook_registry  = $hook_registry;
 		$this->hook_inspector = $hook_inspector;
 		$this->logger         = $logger;
+		$this->connection     = $connection;
 	}
 
 	public function register(): void {
@@ -80,6 +87,35 @@ final class SettingsPage {
 		$url = admin_url( 'admin.php?page=' . self::PAGE_SLUG );
 
 		return '' !== $section ? add_query_arg( 'section', $section, $url ) : $url;
+	}
+
+	/**
+	 * Link to a setting or card on another tab. The tab script switches in place
+	 * and pulses the target; a target on another page pulses after the load.
+	 *
+	 * @param string $section Tab to open, '' for Conectare.
+	 * @param string $target  ID of the element to bring into view.
+	 * @param string $label   Link text.
+	 */
+	public static function tab_link( string $section, string $target, string $label ): string {
+		return sprintf(
+			'<a href="%s" class="oblio-fgwoo-tab-link" data-section="%s">%s</a>',
+			esc_url( self::url( $section ) . '#' . $target ),
+			esc_attr( '' === $section ? 'connection' : $section ),
+			esc_html( $label )
+		);
+	}
+
+	/**
+	 * Links for the type-skip message: the default type and the type-match setting.
+	 *
+	 * @return array{type:string,match:string}
+	 */
+	public static function type_skip_links(): array {
+		return array(
+			'type'  => self::tab_link( 'advanced', 'oblio_fgwoo_product_type', __( 'Avansat', 'fgsync-oblio' ) ),
+			'match' => self::tab_link( 'stock', 'oblio_fgwoo_stock_match_product_type', __( '„Sincronizează doar produsele cu același tip”', 'fgsync-oblio' ) ),
+		);
 	}
 
 	private function current_section(): string {
@@ -171,6 +207,13 @@ final class SettingsPage {
 				if ( $saved ) {
 					echo '<div class="notice notice-success inline oblio-fgwoo-saved"><p>' . esc_html__( 'Setările au fost salvate.', 'fgsync-oblio' ) . '</p></div>';
 				}
+				if ( null !== $this->account_error ) {
+					printf(
+						'<div class="notice notice-error inline"><p>%s %s</p></div>',
+						esc_html__( 'Datele firmei nu au putut fi preluate cu noile date de conectare:', 'fgsync-oblio' ),
+						esc_html( $this->account_error )
+					);
+				}
 
 				if ( 'status' === $section ) {
 					$this->status_panel->render();
@@ -212,10 +255,53 @@ final class SettingsPage {
 		if ( '' !== $raw_secret ) {
 			$this->factory->set_secret( sanitize_text_field( $raw_secret ) );
 		}
+		$email = isset( $_POST['oblio_fgwoo_email'] ) ? sanitize_email( wp_unslash( $_POST['oblio_fgwoo_email'] ) ) : null;
+		if ( '' !== $raw_secret || ( null !== $email && $email !== (string) $this->settings->get( 'email' ) ) ) {
+			$this->sync_account( $email );
+		}
 
+		WC_Admin_Settings::save_fields( $this->saveable_fields() );
+
+		delete_transient( \FGSyncOblio\Queue\Scheduler::SCHEDULE_CHECK );
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only, only used for the log message; the save itself was already nonce-checked above.
+		$tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : '';
+		$this->logger->info( sprintf( 'Settings saved (tab: %s) by user #%d', '' !== $tab ? $tab : 'general', get_current_user_id() ) );
+
+		return true;
+	}
+
+	/**
+	 * The new account's companies must be stored before the fields are saved,
+	 * or its CIF isn't an allowed option yet and gets rejected.
+	 *
+	 * @param string|null $email Submitted email, null when not on this tab.
+	 */
+	private function sync_account( ?string $email ): void {
+		if ( null !== $email ) {
+			$this->settings->set( 'email', $email );
+		}
+		if ( ! $this->settings->has_credentials() ) {
+			return;
+		}
+		try {
+			$this->connection->sync( $this->factory->create() );
+		} catch ( ApiException $exception ) {
+			$this->logger->warning( 'Settings save: credentials changed but the account could not be loaded - ' . $exception->status_message() );
+			$this->account_error = $exception->status_message();
+		}
+		$this->sections_cache = null;
+	}
+
+	/**
+	 * Browsers don't submit disabled controls, and WooCommerce would save them
+	 * as no / [] / the default, losing the setting kept for when it applies again.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	private function saveable_fields(): array {
 		$secret_id = $this->settings->option_name( 'secret' );
-
-		$display = array( 'oblio_fgwoo_secret', 'oblio_fgwoo_test', 'oblio_fgwoo_import', 'oblio_fgwoo_stock_sync', 'title', 'sectionend' );
+		$display   = array( 'oblio_fgwoo_secret', 'oblio_fgwoo_test', 'oblio_fgwoo_import', 'oblio_fgwoo_stock_sync', 'title', 'sectionend' );
 
 		$fields = array();
 		foreach ( $this->settings_sections() as $section_fields ) {
@@ -226,19 +312,13 @@ final class SettingsPage {
 				if ( in_array( $field['type'] ?? '', $display, true ) ) {
 					continue;
 				}
+				if ( ! empty( $field['custom_attributes']['disabled'] ) ) {
+					continue;
+				}
 				$fields[] = $field;
 			}
 		}
-
-		WC_Admin_Settings::save_fields( $fields );
-
-		delete_transient( \FGSyncOblio\Queue\Scheduler::SCHEDULE_CHECK );
-
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only, only used for the log message; the save itself was already nonce-checked above.
-		$tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : '';
-		$this->logger->info( sprintf( 'Settings saved (tab: %s) by user #%d', '' !== $tab ? $tab : 'general', get_current_user_id() ) );
-
-		return true;
+		return $fields;
 	}
 
 	private function settings_sections(): array {
@@ -286,7 +366,11 @@ final class SettingsPage {
 			'<div class="notice notice-info inline"><p>%s <code>%s</code>. %s</p></div>',
 			esc_html__( 'Comportament personalizat prin filtre:', 'fgsync-oblio' ),
 			implode( '</code>, <code>', array_map( 'esc_html', $overridden ) ),
-			esc_html__( 'Vezi tabul „Stare” pentru sursă.', 'fgsync-oblio' )
+			sprintf(
+				/* translators: %s: link to the overrides card on the Stare tab */
+				esc_html__( 'Sursa este în %s.', 'fgsync-oblio' ),
+				self::tab_link( 'status', StatusPanel::HOOKS_CARD, __( 'Stare → Suprascrieri acțiuni', 'fgsync-oblio' ) ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in tab_link().
+			)
 		);
 	}
 
@@ -577,13 +661,15 @@ final class SettingsPage {
 			'desc_tip' => __( 'Documentele pentru adrese de facturare din afara României se emit <strong>în EUR</strong>. Oblio afișează și echivalentul în RON pe document. Această setare <strong>nu impactează TVA-ul.</strong>', 'fgsync-oblio' ),
 		);
 
+		$advice = '<p><u>' . esc_html__( 'Înainte să luați decizii în această secțiune, vă recomandăm să discutați cu dezvoltatorul magazinului și contabilul firmei!', 'fgsync-oblio' ) . '</u></p>';
+
 		if ( 'yes' !== get_option( 'woocommerce_calc_taxes' ) ) {
 			return array_merge(
 				array(
 					array(
 						'title' => __( 'Cote TVA', 'fgsync-oblio' ),
 						'type'  => 'title',
-						'desc'  => sprintf(
+						'desc'  => $advice . sprintf(
 							/* translators: %s: link to the WooCommerce general settings */
 							__( '<strong>Taxele sunt dezactivate în WooCommerce.</strong> Liniile se trimit fără TVA, iar Oblio aplică setările contului. Le poți activa din %s.', 'fgsync-oblio' ),
 							'<a href="' . esc_url( admin_url( 'admin.php?page=wc-settings&tab=general' ) ) . '">' . esc_html__( 'WooCommerce → Setări → General', 'fgsync-oblio' ) . '</a>'
@@ -614,7 +700,7 @@ final class SettingsPage {
 				array(
 					'title' => __( 'Cote TVA', 'fgsync-oblio' ),
 					'type'  => 'title',
-					'desc'  => __( 'Fiecare poziție de pe documentele emise, primesc ca și TVA categoria din Oblio cu <strong>același procent</strong>!<br> O cotă de TVA nouă sau schimbată înseamnă o <strong>categorie nouă</strong> în Oblio, numită după procent (de ex. „25.5”).', 'fgsync-oblio' ),
+					'desc'  => $advice . __( 'Fiecare poziție de pe documentele emise, primesc ca și TVA categoria din Oblio cu <strong>același procent</strong>!<br> O cotă de TVA nouă sau schimbată înseamnă o <strong>categorie nouă</strong> în Oblio, numită după procent (de ex. „25.5”).', 'fgsync-oblio' ),
 					'id'    => 'oblio_fgwoo_tax',
 				),
 				array(
@@ -772,6 +858,17 @@ final class SettingsPage {
 				'type'  => 'checkbox',
 				'id'    => $opt( 'stock_update_price' ),
 				'desc'  => __( 'Preia prețul produsului din Oblio ca preț normal. Prețul promoțional se păstrează, cu excepția cazului în care devine mai mare sau egal cu noul preț.', 'fgsync-oblio' ),
+			),
+			array(
+				'title'   => __( 'Sincronizează doar produsele cu același tip', 'fgsync-oblio' ),
+				'type'    => 'checkbox',
+				'id'      => $opt( 'stock_match_product_type' ),
+				'default' => 'yes',
+				'desc'    => sprintf(
+					/* translators: %s: link to the Avansat settings tab */
+					__( 'Un produs din Oblio cu alt tip decât cel din magazin (de ex. Marfa față de Produs finit) este sărit, chiar dacă are același cod. Tipul din magazin este cel setat pe produs sau tipul implicit din %s.', 'fgsync-oblio' ),
+					self::tab_link( 'advanced', 'oblio_fgwoo_product_type', __( 'Avansat', 'fgsync-oblio' ) )
+				),
 			),
 			array(
 				'title' => __( 'Rezervă stoc pentru comenzi nefacturate', 'fgsync-oblio' ),
@@ -969,7 +1066,11 @@ final class SettingsPage {
 				'title' => __( 'Jurnalizare / debug', 'fgsync-oblio' ),
 				'type'  => 'checkbox',
 				'id'    => $opt( 'debug_logging' ),
-				'desc'  => __( 'Adaugă intrări detaliate în jurnalul WooCommerce, le poți vedea în secțiunea "Stare".', 'fgsync-oblio' ),
+				'desc'  => sprintf(
+					/* translators: %s: link to the activity log on the Stare tab */
+					__( 'Adaugă intrări detaliate în jurnalul WooCommerce, le poți vedea în %s.', 'fgsync-oblio' ),
+					self::tab_link( 'status', StatusPanel::LOG_CARD, __( 'Stare → Jurnal activitate', 'fgsync-oblio' ) )
+				),
 			),
 			array(
 				'type' => 'sectionend',
@@ -1196,7 +1297,15 @@ final class SettingsPage {
 						</p>
 					<?php endif; ?>
 				<?php else : ?>
-					<p class="description"><?php esc_html_e( 'Alege un mod de declanșare mai sus (altul decât „Dezactivată”) pentru a putea sincroniza manual.', 'fgsync-oblio' ); ?></p>
+					<p class="description">
+						<?php
+						printf(
+							/* translators: %s: link to the "Mod sincronizare" setting */
+							esc_html__( 'Alege un %s (altul decât „Dezactivată”) pentru a putea sincroniza manual.', 'fgsync-oblio' ),
+							self::tab_link( 'stock', 'oblio_fgwoo_stock_sync_trigger', __( 'mod de sincronizare', 'fgsync-oblio' ) ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in tab_link().
+						);
+						?>
+					</p>
 				<?php endif; ?>
 			</td>
 		</tr>

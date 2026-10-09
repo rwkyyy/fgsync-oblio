@@ -14,6 +14,7 @@ use FGSyncOblio\Admin\UpdateChecker;
 use FGSyncOblio\Compat\OrderStore;
 use FGSyncOblio\Extensibility\HookInspector;
 use FGSyncOblio\Extensibility\HookRegistry;
+use FGSyncOblio\Stock\StockSyncCoordinator;
 use FGSyncOblio\Support\ConnectionHealth;
 use FGSyncOblio\Support\Settings;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -216,5 +217,44 @@ final class StatusPanelTest extends TestCase {
 		$this->assertSame( '—', $this->format_setting_value( array() ) );
 		$this->assertSame( '—', $this->format_setting_value( '' ) );
 		$this->assertSame( 'yes', $this->format_setting_value( 'yes' ) );
+	}
+
+	private function render_summary(): string {
+		ob_start();
+		( new ReflectionMethod( StatusPanel::class, 'summary' ) )->invoke(
+			$this->panel,
+			array(
+				'pending'     => 0,
+				'in-progress' => 0,
+				'failed'      => 0,
+			),
+			0
+		);
+		return (string) ob_get_clean();
+	}
+
+	public function test_the_last_syncs_type_skips_are_shown(): void {
+		update_option( StockSyncCoordinator::LAST_RESULT_OPTION, array( 'skipped' => 1, 'codes' => array( 'TORT-05' ) ) );
+
+		$this->assertStringContainsString( '1 produs sărit, tipul din Oblio diferă de cel din magazin: TORT-05.', $this->render_summary() );
+	}
+
+	public function test_no_warning_when_nothing_was_skipped(): void {
+		update_option( StockSyncCoordinator::LAST_RESULT_OPTION, array( 'skipped' => 0 ) );
+
+		$this->assertStringNotContainsString( 'notice-warning', $this->render_summary() );
+	}
+
+	public function test_the_skip_warning_links_to_both_settings(): void {
+		update_option( StockSyncCoordinator::LAST_RESULT_OPTION, array( 'skipped' => 1, 'codes' => array( 'TORT-05' ) ) );
+
+		$html = $this->render_summary();
+
+		$this->assertStringContainsString( 'section=advanced#oblio_fgwoo_product_type" class="oblio-fgwoo-tab-link" data-section="advanced">Avansat</a>', $html );
+		$this->assertStringContainsString( 'section=stock#oblio_fgwoo_stock_match_product_type" class="oblio-fgwoo-tab-link" data-section="stock">„Sincronizează doar produsele cu același tip”</a>', $html );
+	}
+
+	public function test_an_unconfigured_connection_links_to_the_email_field(): void {
+		$this->assertStringContainsString( 'page=fgsync-oblio#oblio_fgwoo_email" class="oblio-fgwoo-tab-link" data-section="connection">Conectare</a>', $this->render_summary() );
 	}
 }

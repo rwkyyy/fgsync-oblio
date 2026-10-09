@@ -145,4 +145,31 @@ final class OrderMetaTest extends TestCase {
 
 		$this->assertTrue( OrderMeta::invoice_used_stock( $order ) );
 	}
+	public function test_clearing_a_document_gives_it_a_new_key_in_the_same_format(): void {
+		$order = new WC_Order( 42 );
+		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_NOTICE, 'idempotency' ), 'abc123-woocommerce-000000000000042-notice' );
+
+		OrderMeta::clear( $order, OrderMeta::TYPE_NOTICE );
+		$first = (string) $order->get_meta( OrderMeta::key( OrderMeta::TYPE_NOTICE, 'idempotency' ) );
+		OrderMeta::clear( $order, OrderMeta::TYPE_NOTICE );
+		$second = (string) $order->get_meta( OrderMeta::key( OrderMeta::TYPE_NOTICE, 'idempotency' ) );
+
+		$this->assertMatchesRegularExpression( '/^abc123-woocommerce-000000000000042-notice-r[A-Za-z0-9]{8}$/', $first );
+		$this->assertMatchesRegularExpression( '/^abc123-woocommerce-000000000000042-notice-r[A-Za-z0-9]{8}$/', $second );
+		$this->assertNotSame( $first, $second );
+	}
+
+	/**
+	 * The old plugin issued every document type with the bare order key and
+	 * never stored it.
+	 */
+	public function test_a_document_from_the_old_plugin_is_deleted_with_the_bare_order_key(): void {
+		$order = new WC_Order( 42 );
+
+		$this->assertSame( 'woocommerce-000000000000042', OrderMeta::issued_idempotency_key( $order, OrderMeta::TYPE_PROFORMA ) );
+
+		OrderMeta::clear( $order, OrderMeta::TYPE_PROFORMA );
+
+		$this->assertStringStartsWith( 'woocommerce-000000000000042-r', (string) $order->get_meta( OrderMeta::key( OrderMeta::TYPE_PROFORMA, 'idempotency' ) ) );
+	}
 }

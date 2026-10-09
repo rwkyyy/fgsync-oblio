@@ -4,7 +4,7 @@ Tags: woocommerce, invoicing, oblio, invoice, romania
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.4.0
+Stable tag: 1.4.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -78,6 +78,10 @@ FGSync for Oblio is an independent open-source integration between WooCommerce a
 
 This plugin uses the Oblio.eu API. You need an Oblio account and an API secret.
 
+Project page, with features and a comparison with the old plugin: https://rwkyyy.github.io/fgsync-oblio/
+Source code and issue tracker: https://github.com/rwkyyy/fgsync-oblio
+Try it in your browser in WordPress Playground: https://playground.wordpress.net/?blueprint-url=https://rwkyyy.github.io/fgsync-oblio/blueprint.json
+
 == External services ==
 
 This plugin connects to the Oblio.eu invoicing service (https://www.oblio.eu) through its API (https://www.oblio.eu/api) to create and manage your accounting documents. Sending data to Oblio is the core purpose of the plugin and happens only for the actions you enable.
@@ -111,7 +115,7 @@ No. FGSync for Oblio is an independent, community-built open-source integration.
 
 = What support is available? =
 
-Support is community/best-effort, through the WordPress.org support forum or the plugin's public issue tracker. There is no guaranteed response time or SLA.
+Support is community/best-effort, through the WordPress.org support forum or the plugin's public issue tracker (https://github.com/rwkyyy/fgsync-oblio/issues). There is no guaranteed response time or SLA.
 
 = Is it compatible with HPOS? =
 
@@ -179,9 +183,32 @@ Under Email, pick a mode. "Email separat (la emitere)" sends a separate message 
 
 = Can I customize FGSync's behavior for my store? =
 
-Yes. A few examples: `oblio_fgwoo_stock_quantity` and `oblio_fgwoo_stock_price` adjust a value right before it's written during stock sync, `oblio_fgwoo_document_currency` and `oblio_fgwoo_document_language` override those per order, and `oblio_fgwoo_email_button_issue` (see above) controls the email button's inline-issue behavior. See the plugin's GitHub repository for the current list.
+Yes. A few examples: `oblio_fgwoo_stock_quantity` and `oblio_fgwoo_stock_price` adjust a value right before it's written during stock sync, `oblio_fgwoo_document_currency` and `oblio_fgwoo_document_language` override those per order, and `oblio_fgwoo_email_button_issue` (see above) controls the email button's inline-issue behavior. See the plugin's GitHub repository (https://github.com/rwkyyy/fgsync-oblio) for the current list.
+
+== Screenshots ==
+
+1. Conectare: connect your Oblio account with its email and API secret, then load your company, series and warehouses with "Preia ultimele date".
+2. Documente: series for invoices, proformas and delivery notes, document date, work point and warehouse. On an account without warehouses, the stock options are switched off with an explanation.
+3. TVA: the WooCommerce VAT rates that have no category in your Oblio account, with the name to give each one, and the 0% category for lines without VAT.
+4. Încasare: mark invoices as paid in Oblio by payment method.
+5. Sincronizare: stock (and optionally price) sync from Oblio, warehouses, and stock reservation for orders not yet invoiced.
+6. Email: send the invoice to the customer in a separate email, or as a button in WooCommerce's own order email.
+7. Avansat: document language, Oblio product type (with a separate type for virtual products), notes, "issued by" and delegate.
+8. Stare: connection, today's documents, queue and stock sync status, the live activity log, update status, overridden hooks and the diagnostics report.
 
 == Changelog ==
+
+= 1.4.1 =
+* The plugin page now links to the project page, the source code, the issue tracker and a live WordPress Playground demo, and shows screenshots of each settings tab.
+* Fixed: with stock reservations on, an order that already had a delivery note (aviz) was subtracted twice during stock sync, once by Oblio and once as reserved. Orders with an aviz are no longer counted as reserved.
+* Fixed: testing new connection details with "Preia ultimele date" without saving them no longer replaces the companies loaded for your saved account. When you save a new email or API key, the companies, series, warehouses and VAT categories are all loaded again from the new account, so they no longer mix with data from the previous one.
+* Fixed: settings shown as disabled (the warehouse options on an account without warehouses, the bundle option without Product Bundles) keep their values when you save. Previously they were reset, so a selected warehouse list could turn back into "all warehouses".
+* Fixed: the email sent for a delivery note now calls it "Avizul" instead of "Factura".
+* Fixed: issuing an invoice, proforma or aviz again after deleting it no longer reuses the deleted document's idempotency key, which could make Oblio answer with the deleted document instead of creating a new one. The key is also sent with the delete, as the old plugin did.
+* Changed: stock sync now skips an Oblio product whose type differs from the WooCommerce product's (set on the product, or the default type in Avansat), like the old plugin did. The same code on another type is different stock, for example raw goods stored as Marfa next to the finished product you sell. The skipped codes are shown when a manual sync ends and on the Stare tab. To sync regardless of type, turn off "Sincronizează doar produsele cu același tip" on the Sincronizare tab.
+* Fixed: the message at the end of a manual stock sync showed 0 out of 0 products instead of the real totals.
+* Settings and messages that mention another tab or setting now link to it. The link switches to that tab without reloading the page and briefly highlights the setting, for example the default product type, the activity log or the „Preia ultimele date” button.
+* The TVA tab now opens with a recommendation to talk to your store developer and your accountant before changing its settings.
 
 = 1.4.0 =
 * New "TVA" tab in FGSync settings, with the VAT options in one place; the EUR setting for customers outside Romania moved there from Avansat and was renamed from "Facturare OSS" to "Emite în EUR pentru clienții din afara României", since it changes only the currency, not the VAT. When WooCommerce taxes are turned off, the tab explains that and shows only the settings that still apply.

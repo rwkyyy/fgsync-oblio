@@ -1,3 +1,5 @@
+![FGSync pentru Oblio.eu](docs/assets/banner-1544x500.jpg)
+
 # FGSync for Oblio 
 ## Facturare Gestiune Sincronizare pentru Oblio 
 
@@ -48,6 +50,10 @@ versiunea stabilă de instalat. Descrierea completă și changelog-ul publicate 
 * Tabul „Stare”: jurnalul zilei cu actualizare live, coada de procesare, hook-urile suprascrise de alte pluginuri și un raport de diagnoză fără date personale, gata de atașat la un issue.
 
 Lista completă e în [`readme.txt`](readme.txt), secțiunea `== Description ==`.
+
+![Tabul Conectare din setările FGSync](docs/assets/screenshot-1-conectare.png)
+
+Capturi pentru toate taburile de setări: [pagina proiectului](https://rwkyyy.github.io/fgsync-oblio/#screenshots).
 
 ## Diferențe față de pluginul original
 

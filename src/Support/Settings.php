@@ -68,6 +68,7 @@ final class Settings {
 		'stock_interval'               => 'hourly',
 		'stock_locations'              => array(),
 		'stock_update_price'           => 'no',
+		'stock_match_product_type'     => 'yes',
 		'stock_reserve_orders'         => 'no',
 		'stock_reserve_days'           => 30,
 

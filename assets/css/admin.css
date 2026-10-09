@@ -172,6 +172,34 @@
     border-bottom: 1px solid var(--line-2);
 }
 
+.oblio-fgwoo-page .oblio-fgwoo-pulse {
+    animation: oblio-fgwoo-pulse 0.7s ease-in-out 2;
+}
+
+.oblio-fgwoo-page-body .form-table tr.oblio-fgwoo-pulse {
+    border-radius: 2px;
+}
+
+@keyframes oblio-fgwoo-pulse {
+    0%,
+    100% {
+        background-color: rgba(243, 110, 33, 0);
+        box-shadow: 0 0 0 8px rgba(243, 110, 33, 0);
+    }
+    50% {
+        background-color: rgba(243, 110, 33, 0.14);
+        box-shadow: 0 0 0 8px rgba(243, 110, 33, 0.14);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .oblio-fgwoo-page .oblio-fgwoo-pulse {
+        animation: none;
+        background-color: rgba(243, 110, 33, 0.14);
+        box-shadow: 0 0 0 8px rgba(243, 110, 33, 0.14);
+    }
+}
+
 .oblio-fgwoo-page-body .form-table tr:last-child {
     border-bottom: 0;
     padding-bottom: 4px;

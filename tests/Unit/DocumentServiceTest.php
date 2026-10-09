@@ -116,6 +116,44 @@ final class DocumentServiceTest extends TestCase {
 		$this->assertSame( 'https://example.test/doc', $order->get_meta( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'link' ) ) );
 	}
 
+	/**
+	 * @param array<string,mixed> $data
+	 */
+	private function respond( array $data ): void {
+		$GLOBALS['oblio_test_http_responses'][] = array(
+			'response' => array( 'code' => 200 ),
+			'body'     => wp_json_encode( $data ),
+		);
+	}
+
+	/**
+	 * The old plugin sent the document's key with every delete, and a new
+	 * key keeps Oblio from answering the reissue with the deleted document.
+	 */
+	public function test_a_document_issued_again_after_a_delete_gets_a_new_key(): void {
+		$order = $this->order_with_one_line_item( 1 );
+		$GLOBALS['oblio_test_orders'][1] = $order;
+		$this->respond( array( 'access_token' => 'tok', 'token_type' => 'Bearer', 'expires_in' => 3600 ) );
+		$this->respond( array( 'data' => array( 'seriesName' => 'FCT', 'number' => '1', 'link' => 'https://example.test/doc/1' ) ) );
+		$this->respond( array( 'data' => array() ) );
+		$this->respond( array( 'data' => array( 'seriesName' => 'FCT', 'number' => '1', 'link' => 'https://example.test/doc/2' ) ) );
+
+		$this->service()->issue( $order, OrderMeta::TYPE_INVOICE, array(), true );
+		$this->service()->delete( $order, OrderMeta::TYPE_INVOICE );
+		$this->service()->issue( $order, OrderMeta::TYPE_INVOICE, array(), true );
+
+		$calls = array_values( array_filter( $GLOBALS['oblio_test_http_calls'], static fn ( array $call ): bool => str_contains( (string) $call['url'], '/api/docs/invoice' ) ) );
+		$this->assertCount( 3, $calls );
+		$first_key = json_decode( (string) $calls[0]['args']['body'], true )['idempotencyKey'];
+		parse_str( (string) parse_url( (string) $calls[1]['url'], PHP_URL_QUERY ), $delete_query );
+		$second_key = json_decode( (string) $calls[2]['args']['body'], true )['idempotencyKey'];
+
+		$this->assertSame( 'DELETE', $calls[1]['args']['method'] );
+		$this->assertSame( $first_key, $delete_query['idempotencyKey'] );
+		$this->assertNotSame( $first_key, $second_key );
+		$this->assertStringStartsWith( $first_key . '-r', $second_key );
+	}
+
 	public function test_issue_records_the_refunds_the_invoice_netted(): void {
 		$order = $this->order_with_one_line_item( 1 );
 		$order->set_total( 150.0 );

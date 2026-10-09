@@ -30,6 +30,19 @@ final class AdminBarStatus {
 
 	public function register(): void {
 		add_action( 'admin_bar_menu', array( $this, 'add_node' ), 90 );
+		add_action( 'wp_ajax_oblio_fgwoo_admin_bar_tone', array( $this, 'handle_tone' ) );
+	}
+
+	/**
+	 * Polled by the plugin's admin pages, so an open page doesn't keep
+	 * showing the tone it was rendered with.
+	 */
+	public function handle_tone(): void {
+		if ( ! check_ajax_referer( ConnectionTest::NONCE_ACTION, 'nonce', false ) || ! current_user_can( 'manage_woocommerce' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Acțiune neautorizată.', 'fgsync-oblio' ) ), 403 );
+		}
+
+		wp_send_json_success( array( 'tone' => $this->tone() ) );
 	}
 
 	public function add_node( WP_Admin_Bar $admin_bar ): void {
@@ -50,7 +63,7 @@ final class AdminBarStatus {
 		$this->print_style();
 	}
 
-	private function tone(): string {
+	public function tone(): string {
 		if ( ! $this->settings->has_credentials() || '' === (string) $this->settings->get( 'cif' ) ) {
 			return 'muted';
 		}

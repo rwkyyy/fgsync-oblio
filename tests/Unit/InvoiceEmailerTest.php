@@ -13,6 +13,7 @@ use FGSyncOblio\Order\OrderMeta;
 use FGSyncOblio\Support\Logger;
 use FGSyncOblio\Support\Settings;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use WC_Order;
 
@@ -88,5 +89,25 @@ final class InvoiceEmailerTest extends TestCase {
 		$this->emailer->maybe_send( $order, $result );
 
 		$this->assertCount( 0, $GLOBALS['oblio_test_mail_calls'] );
+	}
+
+	/**
+	 * @return array<string,array{0:string,1:string}>
+	 */
+	public static function document_labels(): array {
+		return array(
+			'invoice'  => array( OrderMeta::TYPE_INVOICE, 'S-a emis Factura FCT 1' ),
+			'proforma' => array( OrderMeta::TYPE_PROFORMA, 'S-a emis Proforma FCT 1' ),
+			'aviz'     => array( OrderMeta::TYPE_NOTICE, 'S-a emis Avizul FCT 1' ),
+		);
+	}
+
+	#[DataProvider( 'document_labels' )]
+	public function test_the_type_token_names_the_issued_document( string $doc_type, string $subject ): void {
+		$order = $this->order_with_billing_email( 'customer@example.test' );
+
+		$this->emailer->maybe_send( $order, new DocumentResult( $doc_type, 'FCT', '1', 'https://example.test/doc' ) );
+
+		$this->assertSame( $subject, $GLOBALS['oblio_test_mail_calls'][0]['subject'] );
 	}
 }

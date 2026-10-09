@@ -58,6 +58,16 @@ final class VatCategoryCheckTest extends TestCase {
 		$this->assertStringNotContainsString( '<code>21</code>', $html );
 	}
 
+	public function test_links_to_the_button_that_reloads_the_categories(): void {
+		oblio_test_seed_vat_categories();
+		$this->store->add_row( 'FR', 20.0 );
+
+		$html = $this->render();
+
+		$this->assertStringContainsString( '<tr valign="top" id="' . VatCategoryCheck::FIELD_TYPE . '">', $html );
+		$this->assertStringContainsString( 'page=fgsync-oblio#oblio_fgwoo_test_connection" class="oblio-fgwoo-tab-link" data-section="connection">Conectare → „Preia ultimele date”</a>', $html );
+	}
+
 	public function test_renders_nothing_when_every_rate_has_a_category(): void {
 		oblio_test_seed_vat_categories();
 		$this->store->add_row( 'RO', 21.0 );

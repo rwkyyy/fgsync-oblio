@@ -196,8 +196,26 @@ final class OrderMeta {
 		return $fresh;
 	}
 
+	/**
+	 * The key a document was issued with. The old plugin never stored one and
+	 * used the bare order key for every document type.
+	 *
+	 * @param WC_Order $order Order.
+	 * @param string   $type  Document type.
+	 */
+	public static function issued_idempotency_key( WC_Order $order, string $type ): string {
+		$key = (string) $order->get_meta( self::key( $type, 'idempotency' ) );
+		return '' !== $key ? $key : sprintf( 'woocommerce-%s', str_pad( (string) $order->get_id(), 15, '0', STR_PAD_LEFT ) );
+	}
+
 	public static function clear( WC_Order $order, string $type ): void {
 		$series = (string) $order->get_meta( self::key( $type, 'series' ) );
+
+		if ( in_array( $type, array( self::TYPE_INVOICE, self::TYPE_PROFORMA, self::TYPE_NOTICE ), true ) ) {
+			// Oblio answers a reused key with the deleted document instead of issuing a new one.
+			$base = (string) preg_replace( '/-r[A-Za-z0-9]{8}$/', '', self::issued_idempotency_key( $order, $type ) );
+			$order->update_meta_data( self::key( $type, 'idempotency' ), $base . '-r' . wp_generate_password( 8, false ) );
+		}
 
 		foreach ( array( 'series', 'number', 'link', 'date', 'netted_refunds' ) as $field ) {
 			$order->delete_meta_data( self::key( $type, $field ) );
