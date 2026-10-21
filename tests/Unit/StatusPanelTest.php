@@ -257,4 +257,20 @@ final class StatusPanelTest extends TestCase {
 	public function test_an_unconfigured_connection_links_to_the_email_field(): void {
 		$this->assertStringContainsString( 'page=fgsync-oblio#oblio_fgwoo_email" class="oblio-fgwoo-tab-link" data-section="connection">Conectare</a>', $this->render_summary() );
 	}
+
+	public function test_sync_and_update_buttons_are_not_styled_as_save(): void {
+		update_option( 'oblio_fgwoo_stock_sync_trigger', 'schedule' );
+		$GLOBALS['oblio_test_transients']['update_plugins'] = (object) array(
+			'response' => array( 'fgsync-oblio/fgsync-oblio.php' => (object) array( 'new_version' => '9.9.9' ) ),
+		);
+
+		ob_start();
+		( new ReflectionMethod( StatusPanel::class, 'queue_card' ) )->invoke( $this->panel, array(), array() );
+		( new ReflectionMethod( StatusPanel::class, 'update_card' ) )->invoke( $this->panel );
+		$html = (string) ob_get_clean();
+
+		$this->assertStringContainsString( 'oblio-fgwoo-sync-now', $html );
+		$this->assertStringContainsString( 'Actualizează', $html );
+		$this->assertStringNotContainsString( 'button-primary', $html );
+	}
 }

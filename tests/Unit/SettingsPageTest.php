@@ -320,4 +320,25 @@ final class SettingsPageTest extends TestCase {
 
 		$this->assertStringContainsString( 'versiunea 1.3.1, activ', $notice );
 	}
+
+	public function test_the_api_key_hint_sits_under_the_secret_field(): void {
+		ob_start();
+		$this->page->render_secret_field( array( 'id' => 'oblio_fgwoo_secret' ) );
+		$html = (string) ob_get_clean();
+
+		$this->assertStringContainsString( 'Contul meu → Setări → Date cont', $html );
+		$this->assertStringContainsString( 'href="https://www.oblio.eu/account/settings"', $html );
+
+		$fields = ( new ReflectionMethod( SettingsPage::class, 'connection_fields' ) )->invoke( $this->page, static fn ( string $key ): string => 'oblio_fgwoo_' . $key );
+		$this->assertArrayNotHasKey( 'desc', $fields[0] );
+	}
+
+	public function test_preia_ultimele_date_is_not_styled_as_save(): void {
+		ob_start();
+		$this->page->render_test_field( array() );
+		$html = (string) ob_get_clean();
+
+		$this->assertStringContainsString( 'id="oblio_fgwoo_test_connection"', $html );
+		$this->assertStringNotContainsString( 'button-primary', $html );
+	}
 }

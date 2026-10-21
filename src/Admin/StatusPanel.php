@@ -179,7 +179,7 @@ final class StatusPanel {
 		echo '<div class="oblio-fgwoo-qactions">';
 
 		if ( $this->settings->stock_sync_configured() ) {
-			echo '<button type="button" class="button button-primary oblio-fgwoo-sync-now" title="' . esc_attr__( 'Rulează întregul catalog acum, prin pași succesivi; poate dura câteva minute pe cataloage mari.', 'fgsync-oblio' ) . '">' . esc_html__( 'Sincronizează stoc', 'fgsync-oblio' ) . '</button>';
+			echo '<button type="button" class="button oblio-fgwoo-sync-now" title="' . esc_attr__( 'Rulează întregul catalog acum, prin pași succesivi; poate dura câteva minute pe cataloage mari.', 'fgsync-oblio' ) . '">' . esc_html__( 'Sincronizează stoc', 'fgsync-oblio' ) . '</button>';
 			echo '<span class="oblio-fgwoo-sync-result"></span>';
 			if ( StockSyncCoordinator::is_run_stale() ) {
 				echo '<button type="button" class="button oblio-fgwoo-sync-unlock" title="' . esc_attr__( 'O sincronizare pare blocată (probabil întreruptă de server înainte să termine).', 'fgsync-oblio' ) . '">' . esc_html__( 'Deblochează sincronizarea', 'fgsync-oblio' ) . '</button>';
@@ -204,7 +204,7 @@ final class StatusPanel {
 		echo '</div><div class="oblio-fgwoo-upd">';
 		if ( $available ) {
 			printf( '<div class="verline"><span class="cur">%s</span><span class="arrow">→</span><span class="new">%s</span></div>', esc_html( $installed ), esc_html( $latest ) );
-			echo '<a class="button button-primary" href="' . esc_url( admin_url( 'plugins.php' ) ) . '">' . esc_html__( 'Actualizează', 'fgsync-oblio' ) . '</a>';
+			echo '<a class="button" href="' . esc_url( admin_url( 'plugins.php' ) ) . '">' . esc_html__( 'Actualizează', 'fgsync-oblio' ) . '</a>';
 		} else {
 			printf( '<div class="verline"><span class="cur">%s</span> <span class="oblio-fgwoo-ok">%s</span></div>', esc_html( $installed ), esc_html__( 'la zi', 'fgsync-oblio' ) );
 		}
@@ -240,7 +240,7 @@ final class StatusPanel {
 			}
 		}
 
-		echo '<div class="oblio-fgwoo-hooknote">' . esc_html__( 'Suprascrierile sunt permise, listate aici ca să nu fie niciodată tăcute.', 'fgsync-oblio' ) . '</div></div>';
+		echo '<div class="oblio-fgwoo-hooknote">' . esc_html__( 'Suprascrierile sunt permise, acestea sunt listate aici.', 'fgsync-oblio' ) . '</div></div>';
 	}
 
 	/**

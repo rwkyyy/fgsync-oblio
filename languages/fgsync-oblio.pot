@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: FGSync for Oblio 1.4.1\n"
+"Project-Id-Version: FGSync for Oblio 1.4.2\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/fgsync-oblio\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-09T18:59:14+00:00\n"
+"POT-Creation-Date: 2026-10-21T19:36:44+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: fgsync-oblio\n"
@@ -263,13 +263,13 @@ msgid "Acțiune necunoscută."
 msgstr ""
 
 #: src/Admin/OrderListColumn.php:31
-#: src/Admin/SettingsShortcut.php:32
+#: src/Admin/SettingsShortcut.php:40
 msgid "Oblio"
 msgstr ""
 
 #: src/Admin/OrderListColumn.php:62
 #: src/Admin/OrderMetaBox.php:87
-#: src/Admin/SettingsPage.php:515
+#: src/Admin/SettingsPage.php:510
 msgid "Proformă"
 msgstr ""
 
@@ -332,7 +332,7 @@ msgid "Cererea a eșuat"
 msgstr ""
 
 #: src/Admin/OrderMetaBox.php:84
-#: src/Admin/SettingsPage.php:557
+#: src/Admin/SettingsPage.php:552
 #: src/Frontend/AccountInvoices.php:94
 msgid "Factură"
 msgstr ""
@@ -416,12 +416,13 @@ msgstr ""
 #: src/Admin/SettingsPage.php:77
 #: src/Admin/SettingsPage.php:78
 #: src/Admin/SettingsPage.php:179
+#: src/Admin/SettingsShortcut.php:36
 msgid "FGSync"
 msgstr ""
 
 #: src/Admin/SettingsPage.php:116
 #: src/Admin/SettingsPage.php:162
-#: src/Admin/SettingsPage.php:870
+#: src/Admin/SettingsPage.php:865
 #: src/Stock/StockSyncCoordinator.php:155
 msgid "Avansat"
 msgstr ""
@@ -439,8 +440,8 @@ msgid "Se sincronizează integral, poate dura…"
 msgstr ""
 
 #: src/Admin/SettingsPage.php:145
-#: src/Admin/SettingsPage.php:1083
-#: src/Admin/SettingsPage.php:1096
+#: src/Admin/SettingsPage.php:1078
+#: src/Admin/SettingsPage.php:1091
 msgid "Selectează"
 msgstr ""
 
@@ -466,7 +467,7 @@ msgid "Sincronizare"
 msgstr ""
 
 #: src/Admin/SettingsPage.php:161
-#: src/Admin/SettingsPage.php:413
+#: src/Admin/SettingsPage.php:408
 msgid "Email"
 msgstr ""
 
@@ -522,730 +523,730 @@ msgstr ""
 msgid "Conectare Oblio"
 msgstr ""
 
-#. translators: %s: link to the Oblio account settings page
-#: src/Admin/SettingsPage.php:407
-#, php-format
-msgid "Cheia API se găsește în Oblio → Contul meu → Setări → Date cont. %s"
-msgstr ""
-
-#: src/Admin/SettingsPage.php:408
-msgid "Deschide setările Oblio ↗"
-msgstr ""
-
-#: src/Admin/SettingsPage.php:416
+#: src/Admin/SettingsPage.php:411
 msgid "Emailul contului Oblio."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:419
+#: src/Admin/SettingsPage.php:414
 msgid "Cheie API"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:429
+#: src/Admin/SettingsPage.php:424
 msgid "Firmă (CIF)"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:433
+#: src/Admin/SettingsPage.php:428
 msgid "Firma pentru care se emit documentele. Apasă „Preia ultimele date” ca să o încarci."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:450
+#: src/Admin/SettingsPage.php:445
 msgid "Serii și date document"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:452
+#: src/Admin/SettingsPage.php:447
 msgid "Aici poți configura setările comune ale documentelor, dar și opțiuni per document."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:456
+#: src/Admin/SettingsPage.php:451
 msgid "Serie factură"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:460
+#: src/Admin/SettingsPage.php:455
 msgid "Seria pe care se emit facturile."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:463
+#: src/Admin/SettingsPage.php:458
 msgid "Serie proformă"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:467
+#: src/Admin/SettingsPage.php:462
 msgid "Seria pe care se emit proformele."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:470
+#: src/Admin/SettingsPage.php:465
 msgid "Serie aviz"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:474
+#: src/Admin/SettingsPage.php:469
 msgid "Seria pe care se emit avizele de însoțire."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:477
+#: src/Admin/SettingsPage.php:472
 msgid "Data documentului"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:481
+#: src/Admin/SettingsPage.php:476
 msgid "Data emiterii"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:482
+#: src/Admin/SettingsPage.php:477
 msgid "Data comenzii"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:484
+#: src/Admin/SettingsPage.php:479
 msgid "Ce dată apare pe document: ziua emiterii sau ziua comenzii."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:488
+#: src/Admin/SettingsPage.php:483
 msgid "Punct de lucru"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:491
-#: src/Admin/SettingsPage.php:498
+#: src/Admin/SettingsPage.php:486
+#: src/Admin/SettingsPage.php:493
 msgid "Implicit"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:492
+#: src/Admin/SettingsPage.php:487
 msgid "Punctul de lucru pe care se emit documentele. „Implicit” folosește setarea din Oblio."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:495
+#: src/Admin/SettingsPage.php:490
 msgid "Gestiune (emitere)"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:499
+#: src/Admin/SettingsPage.php:494
 msgid "Gestiunea din care se descarcă stocul la emiterea documentelor."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:502
+#: src/Admin/SettingsPage.php:497
 msgid "Unitate de măsură"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:505
+#: src/Admin/SettingsPage.php:500
 msgid "Unitatea implicită pentru produsele fără una setată."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:520
+#: src/Admin/SettingsPage.php:515
 msgid "Emite proformă automat"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:523
+#: src/Admin/SettingsPage.php:518
 msgid "Generează o proformă automat, după regulile de mai jos."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:526
+#: src/Admin/SettingsPage.php:521
 msgid "La primirea comenzii"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:530
+#: src/Admin/SettingsPage.php:525
 msgid "Emite proforma la recepționarea comenzii. Debifează pentru a o emite când comanda intră în anumite statusuri (alese mai jos)."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:533
+#: src/Admin/SettingsPage.php:528
 msgid "Statusuri pentru proformă"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:538
+#: src/Admin/SettingsPage.php:533
 msgid "Proforma se emite când comanda intră într-unul dintre aceste statusuri. Folosit doar când „La primirea comenzii” este debifat."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:541
+#: src/Admin/SettingsPage.php:536
 msgid "Când se facturează o comandă cu proformă"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:546
+#: src/Admin/SettingsPage.php:541
 msgid "Emite factura pe baza proformei"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:547
+#: src/Admin/SettingsPage.php:542
 msgid "Șterge proforma, apoi emite o factură nouă"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:549
+#: src/Admin/SettingsPage.php:544
 msgid "Implicit, factura se generează pe baza proformei, iar proforma rămâne în Oblio, legată de factură (așa funcționează Oblio). „Șterge” elimină proforma din Oblio și emite o factură separată, fără legătură cu proforma."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:562
+#: src/Admin/SettingsPage.php:557
 msgid "Emite factură automat"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:565
+#: src/Admin/SettingsPage.php:560
 msgid "Când comanda ajunge la unul din statusurile alese mai jos."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:568
+#: src/Admin/SettingsPage.php:563
 msgid "Când se emit facturile"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:572
+#: src/Admin/SettingsPage.php:567
 msgid "La schimbarea statusului, prin coadă (recomandat)"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:573
+#: src/Admin/SettingsPage.php:568
 msgid "Instant, fără coadă"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:574
+#: src/Admin/SettingsPage.php:569
 msgid "Programat (în loturi, la interval)"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:576
+#: src/Admin/SettingsPage.php:571
 msgid "„Prin coadă” emite factura la câteva secunde după ce comanda intră în status, fără să încetinească pagina. <br>„Instant” emite pe loc, în cadrul aceleiași cereri (checkout, schimbare status); poate încetini acel moment cu câteva secunde, dar dacă eșuează trece automat pe coadă, nu se pierde. <br>„Programat” emite periodic, util dacă factura se face abia la livrare."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:579
+#: src/Admin/SettingsPage.php:574
 msgid "Interval programare"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:583
+#: src/Admin/SettingsPage.php:578
 msgid "Folosit doar în modul „Programat”. Independent de acest interval, factura se emite mai devreme dacă o altă acțiune are nevoie de ea (de exemplu, trimiterea emailului cu factura)."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:586
+#: src/Admin/SettingsPage.php:581
 msgid "Statusuri pentru emitere"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:592
+#: src/Admin/SettingsPage.php:587
 msgid "Se poate selecta unul sau mai multe statusuri."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:595
+#: src/Admin/SettingsPage.php:590
 msgid "Emite și la confirmarea plății"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:598
+#: src/Admin/SettingsPage.php:593
 msgid "Factura se emite imediat ce WooCommerce confirmă o <strong>plată online</strong> (card, PayPal etc.), chiar dacă statusul comenzii nu este încă în lista de mai sus. Plata ramburs și transferul bancar nu declanșează această opțiune. Funcționează în modurile „Prin coadă” și „Instant”."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:601
+#: src/Admin/SettingsPage.php:596
 msgid "Descarcă din stoc la factura automată"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:604
+#: src/Admin/SettingsPage.php:599
 msgid "Scade cantitățile din gestiunea Oblio când factura se emite automat."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:607
+#: src/Admin/SettingsPage.php:602
 msgid "Scadență (zile)"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:611
+#: src/Admin/SettingsPage.php:606
 msgid "Numărul de zile până la scadență. 0 = fără termen."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:619
+#: src/Admin/SettingsPage.php:614
 msgid "Storno (rambursări)"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:624
+#: src/Admin/SettingsPage.php:619
 msgid "Emite storno automat la rambursări"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:627
+#: src/Admin/SettingsPage.php:622
 msgid "La o rambursare WooCommerce (parțială sau totală) se emite un storno în Oblio."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:644
+#: src/Admin/SettingsPage.php:639
 msgid "Emite storno la retururi (experimental)"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:647
+#: src/Admin/SettingsPage.php:642
 msgid "Experimental: funcția „Returns” din WooCommerce nu are încă un API stabil, așa că integrarea folosește hook-uri presupuse (filtrabile). Necesită funcția „Returns” activă. A nu se folosi în producție fără testare."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:658
+#: src/Admin/SettingsPage.php:653
 msgid "OSS: Emite în EUR pentru clienții din afara României"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:661
+#: src/Admin/SettingsPage.php:656
 msgid "Documentele pentru adrese de facturare din afara României se emit <strong>în EUR</strong>. Oblio afișează și echivalentul în RON pe document. Această setare <strong>nu impactează TVA-ul.</strong>"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:664
+#: src/Admin/SettingsPage.php:659
 msgid "Înainte să luați decizii în această secțiune, vă recomandăm să discutați cu dezvoltatorul magazinului și contabilul firmei!"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:670
-#: src/Admin/SettingsPage.php:701
+#: src/Admin/SettingsPage.php:665
+#: src/Admin/SettingsPage.php:696
 msgid "Cote TVA"
 msgstr ""
 
 #. translators: %s: link to the WooCommerce general settings
-#: src/Admin/SettingsPage.php:674
+#: src/Admin/SettingsPage.php:669
 #, php-format
 msgid "<strong>Taxele sunt dezactivate în WooCommerce.</strong> Liniile se trimit fără TVA, iar Oblio aplică setările contului. Le poți activa din %s."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:675
+#: src/Admin/SettingsPage.php:670
 msgid "WooCommerce → Setări → General"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:684
+#: src/Admin/SettingsPage.php:679
 msgid "Monedă documente"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:703
+#: src/Admin/SettingsPage.php:698
 msgid "Fiecare poziție de pe documentele emise, primesc ca și TVA categoria din Oblio cu <strong>același procent</strong>!<br> O cotă de TVA nouă sau schimbată înseamnă o <strong>categorie nouă</strong> în Oblio, numită după procent (de ex. „25.5”)."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:711
+#: src/Admin/SettingsPage.php:706
 msgid "Categorie de taxare pentru produse fără TVA"
 msgstr ""
 
 #. translators: %s: link to Oblio's VAT categories page
-#: src/Admin/SettingsPage.php:718
+#: src/Admin/SettingsPage.php:713
 #, php-format
 msgid "Categoria de <strong>0%%</strong> folosită pentru liniile fără TVA. Lista provine din: %s."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:721
+#: src/Admin/SettingsPage.php:716
 msgid "De exemplu SDD (scutit cu drept de deducere), SFDD (scutit fără drept de deducere), Scutita sau Taxare inversa."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:728
+#: src/Admin/SettingsPage.php:723
 msgid "Cote TVA UE"
 msgstr ""
 
 #. translators: 1: plugin link, 2: plugin version
-#: src/Admin/SettingsPage.php:768
+#: src/Admin/SettingsPage.php:763
 #, php-format
 msgid "Persoană fizică / juridică, CUI, CNP, Reg. Com., bancă și IBAN se preiau din <strong>%1$s</strong> (versiunea %2$s, activ)."
 msgstr ""
 
 #. translators: %s: plugin link
-#: src/Admin/SettingsPage.php:775
+#: src/Admin/SettingsPage.php:770
 #, php-format
 msgid "<strong>Recomandăm:</strong> pluginul gratuit %s, pentru posibilitatea selecției tipului de facturare: persoană fizică / juridică, dar și a câmpurilor specifice: CNP, CUI, Reg. Com., bancă și IBAN. Fără acest plugin (sau altul) FGSync va căuta în câmpurile din comandă, dar nu putem garanta detectarea lor corectă/completă."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:783
+#: src/Admin/SettingsPage.php:778
 msgid "Încasare („marchează ca plătit”)"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:785
+#: src/Admin/SettingsPage.php:780
 msgid "Marchează facturile ca încasate în Oblio, în funcție de metoda de plată."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:789
+#: src/Admin/SettingsPage.php:784
 msgid "Mod încasare"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:793
-#: src/Admin/SettingsPage.php:916
+#: src/Admin/SettingsPage.php:788
+#: src/Admin/SettingsPage.php:911
 msgid "Dezactivat"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:794
+#: src/Admin/SettingsPage.php:789
 msgid "Doar plăți cu cardul (nu ramburs / transfer / cec)"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:795
+#: src/Admin/SettingsPage.php:790
 msgid "Toate metodele (cu excepții)"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:796
+#: src/Admin/SettingsPage.php:791
 msgid "Doar metodele selectate"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:800
+#: src/Admin/SettingsPage.php:795
 msgid "Metode încasate"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:805
+#: src/Admin/SettingsPage.php:800
 msgid "Folosit când modul este „Doar metodele selectate”."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:808
+#: src/Admin/SettingsPage.php:803
 msgid "Excepții"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:813
+#: src/Admin/SettingsPage.php:808
 msgid "Aceste metode NU se marchează ca încasate."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:825
+#: src/Admin/SettingsPage.php:820
 #: src/Admin/StatusPanel.php:127
 msgid "Sincronizare stoc"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:827
+#: src/Admin/SettingsPage.php:822
 msgid "Poți să preiei stocul (și prețul) din Oblio în WooCommerce. <u>Codul produsului</u> Oblio trebuie să fie identic cu SKU-ul din WooCommerce. <br>O sincronizare parcurge întotdeauna întregul catalog, în loturi, nu doar produsul modificat, iar durata este proporțională cu numărul de modificări necesare."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:831
+#: src/Admin/SettingsPage.php:826
 msgid "Mod sincronizare"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:836
+#: src/Admin/SettingsPage.php:831
 msgid "Dezactivată"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:837
+#: src/Admin/SettingsPage.php:832
 msgid "Programată"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:839
+#: src/Admin/SettingsPage.php:834
 msgid "Rulează la un interval fix definit mai jos și preia toate modificările."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:842
+#: src/Admin/SettingsPage.php:837
 msgid "Interval"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:846
+#: src/Admin/SettingsPage.php:841
 msgid "Cât de des rulează sincronizarea programată."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:849
+#: src/Admin/SettingsPage.php:844
 msgid "Gestiuni (locații)"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:854
+#: src/Admin/SettingsPage.php:849
 msgid "Implicit - stocul se însumează pe locațiile selectate. <br>Lăsați câmpul gol pentru a le prelua pe toate SAU selectați locația de unde doriți actualizarea de stoc"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:857
+#: src/Admin/SettingsPage.php:852
 msgid "Actualizează prețul la sincronizare"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:860
+#: src/Admin/SettingsPage.php:855
 msgid "Preia prețul produsului din Oblio ca preț normal. Prețul promoțional se păstrează, cu excepția cazului în care devine mai mare sau egal cu noul preț."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:863
+#: src/Admin/SettingsPage.php:858
 msgid "Sincronizează doar produsele cu același tip"
 msgstr ""
 
 #. translators: %s: link to the Avansat settings tab
-#: src/Admin/SettingsPage.php:869
+#: src/Admin/SettingsPage.php:864
 #, php-format
 msgid "Un produs din Oblio cu alt tip decât cel din magazin (de ex. Marfa față de Produs finit) este sărit, chiar dacă are același cod. Tipul din magazin este cel setat pe produs sau tipul implicit din %s."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:874
+#: src/Admin/SettingsPage.php:869
 msgid "Rezervă stoc pentru comenzi nefacturate"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:877
+#: src/Admin/SettingsPage.php:872
 msgid "Scade din stoc comenzile în așteptare / în procesare, din intervalul de mai jos."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:880
+#: src/Admin/SettingsPage.php:875
 msgid "Interval rezervare (zile)"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:888
+#: src/Admin/SettingsPage.php:883
 msgid "Câte zile în urmă se caută comenzile nefacturate care rezervă stoc. Implicit 30."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:906
+#: src/Admin/SettingsPage.php:901
 msgid "Email către clienți"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:911
+#: src/Admin/SettingsPage.php:906
 msgid "Mod notificare"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:917
+#: src/Admin/SettingsPage.php:912
 msgid "Nativ în mail-ul WooCommerce"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:918
+#: src/Admin/SettingsPage.php:913
 msgid "Email separat (la emitere)"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:920
+#: src/Admin/SettingsPage.php:915
 msgid "<strong>Email separat</strong> - trimite un mesaj propriu la emiterea documentului.<br><strong>Buton</strong> - adaugă un buton către factură în emailul WooCommerce al comenzii.<br><strong>Dacă factura nu există</strong> la trimiterea acelui email, atunci aceasta este emisă pe loc (chiar dacă emiterea automată este oprită)!"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:924
+#: src/Admin/SettingsPage.php:919
 msgid "De la (email)"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:927
+#: src/Admin/SettingsPage.php:922
 msgid "Adresa afișată ca expeditor. Gol = adresa site-ului."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:930
+#: src/Admin/SettingsPage.php:925
 msgid "CC"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:933
+#: src/Admin/SettingsPage.php:928
 msgid "Adrese suplimentare în copie, separate prin virgulă."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:936
+#: src/Admin/SettingsPage.php:931
 msgid "Subiect"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:943
+#: src/Admin/SettingsPage.php:938
 msgid "Mesaj"
 msgstr ""
 
 #. translators: %s: list of tokens
-#: src/Admin/SettingsPage.php:949
-#: src/Admin/SettingsPage.php:1013
+#: src/Admin/SettingsPage.php:944
+#: src/Admin/SettingsPage.php:1008
 #, php-format
 msgid "Taguri: %s"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:954
+#: src/Admin/SettingsPage.php:949
 msgid "Status de comandă"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:960
+#: src/Admin/SettingsPage.php:955
 msgid "Butonul apare în emailurile WooCommerce pentru aceste statusuri (ex. „Finalizată / Completed”)."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:963
+#: src/Admin/SettingsPage.php:958
 msgid "Text buton"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:967
+#: src/Admin/SettingsPage.php:962
 msgid "Textul afișat pe butonul din email."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:978
+#: src/Admin/SettingsPage.php:973
 msgid ""
 "Pentru comanda [order_id], din [date], plătit prin [payment], livrat prin [shipping].\n"
 "Comandă efectuată pe [site]"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:982
+#: src/Admin/SettingsPage.php:977
 msgid "Opțiuni avansate"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:987
+#: src/Admin/SettingsPage.php:982
 msgid "Limbă document"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:991
+#: src/Admin/SettingsPage.php:986
 msgid "Limba în care se emit documentele în Oblio."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:994
+#: src/Admin/SettingsPage.php:989
 msgid "Tip produs implicit"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:998
+#: src/Admin/SettingsPage.php:993
 msgid "Tipul cu care se trimit produsele noi către Oblio."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1001
+#: src/Admin/SettingsPage.php:996
 msgid "Tip produs pentru produse virtuale"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1004
+#: src/Admin/SettingsPage.php:999
 msgid "La fel ca tipul implicit"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1005
+#: src/Admin/SettingsPage.php:1000
 msgid "Pentru produsele marcate <strong>virtuale</strong> în WooCommerce (de ex. digitale, descărcabile), de obicei „Serviciu”. Tipul setat pe produs are prioritate."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1008
+#: src/Admin/SettingsPage.php:1003
 msgid "Mențiuni"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1016
+#: src/Admin/SettingsPage.php:1011
 msgid "Întocmit de"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1019
+#: src/Admin/SettingsPage.php:1014
 msgid "Numele persoanei care apare ca întocmitor al documentului."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1022
+#: src/Admin/SettingsPage.php:1017
 msgid "Delegat"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1025
+#: src/Admin/SettingsPage.php:1020
 msgid "Numele delegatului, dacă documentul îl cere."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1028
+#: src/Admin/SettingsPage.php:1023
 msgid "Completează automat datele firmelor după CIF"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1031
+#: src/Admin/SettingsPage.php:1026
 msgid "La comenzile tip B2B, preia datele firmei din Oblio pe baza CIF-ului pentru a fi folosite în datele de facturare"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1034
+#: src/Admin/SettingsPage.php:1029
 msgid "Ascunde detalii produs"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1037
+#: src/Admin/SettingsPage.php:1032
 msgid "Trece pe document doar numele produsului, fără descriere."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1040
+#: src/Admin/SettingsPage.php:1035
 msgid "Include discountul în prețul produsului"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1043
+#: src/Admin/SettingsPage.php:1038
 msgid "Scade discountul direct din preț, fără o linie separată de reducere."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1046
+#: src/Admin/SettingsPage.php:1041
 msgid "NU salva prețul în Oblio la emitere"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1049
+#: src/Admin/SettingsPage.php:1044
 msgid "Emite documentul fără a actualiza prețul produsului în nomenclatorul Oblio."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1052
+#: src/Admin/SettingsPage.php:1047
 msgid "Produse pachet (Bundles)"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1057
+#: src/Admin/SettingsPage.php:1052
 msgid "AUTOMAT: facturează componentele (recomandat)"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1058
+#: src/Admin/SettingsPage.php:1053
 msgid "INCLUDE linia pachetului (trebuie să aibă stoc)"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1062
+#: src/Admin/SettingsPage.php:1057
 msgid "Doar componentele sunt facturate și scad din stoc; linia pachetului nu are cod propriu în Oblio. Dacă pachetul are preț propriu (ex. pachet promoțional), prețul lui se împarte pe componente. Dacă nu descarci stoc prin Oblio, „Include” poate fi mai clar pe factură."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1063
+#: src/Admin/SettingsPage.php:1058
 msgid "Necesită plugin-ul WooCommerce Product Bundles (tipul de produs „bundle” nu este disponibil)."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1066
+#: src/Admin/SettingsPage.php:1061
 msgid "Jurnalizare / debug"
 msgstr ""
 
 #. translators: %s: link to the activity log on the Stare tab
-#: src/Admin/SettingsPage.php:1071
+#: src/Admin/SettingsPage.php:1066
 #, php-format
 msgid "Adaugă intrări detaliate în jurnalul WooCommerce, le poți vedea în %s."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1072
+#: src/Admin/SettingsPage.php:1067
 msgid "Stare → Jurnal activitate"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1133
-#: src/Admin/SettingsPage.php:1146
+#: src/Admin/SettingsPage.php:1128
+#: src/Admin/SettingsPage.php:1141
 msgid "La fiecare oră"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1134
-#: src/Admin/SettingsPage.php:1148
+#: src/Admin/SettingsPage.php:1129
+#: src/Admin/SettingsPage.php:1143
 msgid "La fiecare 6 ore"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1135
-#: src/Admin/SettingsPage.php:1149
+#: src/Admin/SettingsPage.php:1130
+#: src/Admin/SettingsPage.php:1144
 msgid "La fiecare 12 ore"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1136
+#: src/Admin/SettingsPage.php:1131
 msgid "La fiecare 24 ore"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1142
+#: src/Admin/SettingsPage.php:1137
 msgid "La fiecare minut"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1143
+#: src/Admin/SettingsPage.php:1138
 msgid "La fiecare 5 minute"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1144
+#: src/Admin/SettingsPage.php:1139
 msgid "La fiecare 15 minute"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1145
+#: src/Admin/SettingsPage.php:1140
 msgid "La fiecare 30 de minute"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1147
+#: src/Admin/SettingsPage.php:1142
 msgid "La fiecare 3 ore"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1189
+#: src/Admin/SettingsPage.php:1184
 msgid "<strong>Firma nu folosește gestiune de stoc în Oblio</strong>, deci această opțiune nu se aplică."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1215
+#: src/Admin/SettingsPage.php:1210
 msgid "••••••••(setat, lasă gol pentru a păstra)"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1220
+#: src/Admin/SettingsPage.php:1215
 msgid "API secret"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1238
+#. translators: %s: link to the Oblio account settings page
+#: src/Admin/SettingsPage.php:1226
+#, php-format
+msgid "Cheia API se găsește în Oblio → Contul meu → Setări → Date cont. %s"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:1227
+msgid "Deschide setările Oblio ↗"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:1244
 msgid "Preia ultimele date"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1240
+#: src/Admin/SettingsPage.php:1246
 msgid "Verifică datele de conectare și încarcă firma și seriile din Oblio."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1254
+#: src/Admin/SettingsPage.php:1260
 msgid "Import din pluginul vechi"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1257
+#: src/Admin/SettingsPage.php:1263
 msgid "Importă setările"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1259
+#: src/Admin/SettingsPage.php:1265
 msgid "Copiază setările din „WooCommerce Oblio”. Facturile deja emise se afișează automat."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1272
+#: src/Admin/SettingsPage.php:1278
 msgid "Sincronizare manuală"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1276
+#: src/Admin/SettingsPage.php:1282
 msgid "Sincronizează acum"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1278
+#: src/Admin/SettingsPage.php:1284
 msgid "Rulează sincronizare completă în fundal, prin pași succesivi; poate dura câteva minute pe cataloage mari. Poți părăsi pagina, sincronizarea continuă."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1281
+#: src/Admin/SettingsPage.php:1287
 msgid "O sincronizare pare blocată (probabil întreruptă de server înainte să termine). Dacă nu pornește din nou de la sine, o poți debloca manual:"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1282
+#: src/Admin/SettingsPage.php:1288
 #: src/Admin/StatusPanel.php:185
 msgid "Deblochează sincronizarea"
 msgstr ""
 
 #. translators: %s: human time diff
-#: src/Admin/SettingsPage.php:1292
+#: src/Admin/SettingsPage.php:1298
 #, php-format
 msgid "<strong>Ultima sincronizare:</strong> %s în urmă."
 msgstr ""
 
 #. translators: %s: link to the "Mod sincronizare" setting
-#: src/Admin/SettingsPage.php:1304
+#: src/Admin/SettingsPage.php:1310
 #, php-format
 msgid "Alege un %s (altul decât „Dezactivată”) pentru a putea sincroniza manual."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:1305
+#: src/Admin/SettingsPage.php:1311
 msgid "mod de sincronizare"
 msgstr ""
 
-#: src/Admin/SettingsShortcut.php:28
+#: src/Admin/SettingsShortcut.php:29
 msgid "Setări"
 msgstr ""
 
-#: src/Admin/SettingsShortcut.php:37
+#: src/Admin/SettingsShortcut.php:45
 msgid "Setările FGSync pentru Oblio sunt pe pagina dedicată."
 msgstr ""
 
-#: src/Admin/SettingsShortcut.php:41
+#: src/Admin/SettingsShortcut.php:49
 msgid "Deschide setările Oblio"
 msgstr ""
 
@@ -1376,7 +1377,7 @@ msgid "suprascris"
 msgstr ""
 
 #: src/Admin/StatusPanel.php:243
-msgid "Suprascrierile sunt permise, listate aici ca să nu fie niciodată tăcute."
+msgid "Suprascrierile sunt permise, acestea sunt listate aici."
 msgstr ""
 
 #: src/Admin/StatusPanel.php:251
@@ -1455,11 +1456,11 @@ msgstr ""
 msgid "Conectare → „Preia ultimele date”"
 msgstr ""
 
-#: src/Api/OblioClient.php:206
+#: src/Api/OblioClient.php:207
 msgid "Răspuns neclar de la Oblio (200 OK, conținut ilizibil); se reîncearcă automat."
 msgstr ""
 
-#: src/Api/OblioClient.php:223
+#: src/Api/OblioClient.php:236
 msgid "Email sau API secret lipsă."
 msgstr ""
 

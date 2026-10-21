@@ -4,7 +4,7 @@ Tags: woocommerce, invoicing, oblio, invoice, romania
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.4.1
+Stable tag: 1.4.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -93,7 +93,7 @@ When data is sent:
 * When stock is synchronised from Oblio, on the schedule you set or on demand.
 * When you test the connection or import settings from the connection screen.
 
-What is sent for a document: your company identifier (CIF), the customer's billing details (name, company, address, tax/registration identifiers, email and phone when present), the order lines (product name, code/SKU, quantity, price, VAT), shipping and fees, totals, and the payment method. Authentication uses your Oblio account email and API secret. No data is sent to any party other than Oblio.
+What is sent for a document: your company identifier (CIF), the customer's billing details (name, company, address, tax/registration identifiers, email and phone when present), the order lines (product name, code/SKU, quantity, price, VAT), shipping and fees, totals, and the payment method. Authentication uses your Oblio account email and API secret. Every request names the plugin in its User-Agent header, together with the plugin, WordPress and WooCommerce versions and your site address, so Oblio can tell which requests come from this integration. No data is sent to any party other than Oblio.
 
 Oblio service: https://www.oblio.eu
 Oblio Terms and Conditions: https://www.oblio.eu/terms
@@ -197,6 +197,13 @@ Yes. A few examples: `oblio_fgwoo_stock_quantity` and `oblio_fgwoo_stock_price` 
 8. Stare: connection, today's documents, queue and stock sync status, the live activity log, update status, overridden hooks and the diagnostics report.
 
 == Changelog ==
+
+= 1.4.2 =
+* New "FGSync" entry in the WooCommerce menu, just above Settings, that opens the plugin's settings.
+* The note on where to find the API key (Oblio → Contul meu → Setări → Date cont) now sits under the API secret field instead of at the top of the Conectare tab.
+* Requests to Oblio now identify this plugin in the User-Agent header, with the plugin, WordPress and WooCommerce versions and your site address. Until now they carried only the generic WordPress one. Nothing else sent to Oblio changes.
+* Fixed: Oblio error messages on the order screen and in the orders list showed HTML such as `<b>` or `&quot;` as literal text, for example around the product named in "Nu am putut descarca gestiunea". They now read as plain text, including on orders that failed before this update.
+* Maintenance: the GitHub workflows use a fixed, reviewed version of every action that handles credentials, and the monthly EU VAT rate update points to the TVA tab by its current name. No change to how the plugin works.
 
 = 1.4.1 =
 * The plugin page now links to the project page, the source code, the issue tracker and a live WordPress Playground demo, and shows screenshots of each settings tab.

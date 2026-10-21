@@ -21,6 +21,8 @@ if ( ! defined( 'AUTH_KEY' ) ) {
 	define( 'AUTH_KEY', 'phpunit-auth-key-0123456789' );
 }
 define( 'FGSYNC_OBLIO_VERSION', '1.0.2' );
+define( 'WC_VERSION', '10.2.1' );
+$GLOBALS['wp_version'] = '6.8.3';
 define( 'FGSYNC_OBLIO_DIR', dirname( __DIR__ ) . '/' );
 define( 'FGSYNC_OBLIO_URL', 'https://example.test/' );
 define( 'FGSYNC_OBLIO_BASENAME', 'fgsync-oblio/fgsync-oblio.php' );
@@ -117,6 +119,11 @@ if ( ! function_exists( 'is_multisite' ) ) {
 }
 if ( ! function_exists( 'site_url' ) ) {
 	function site_url( $path = '', $scheme = null ) {
+		return 'https://example.test' . $path;
+	}
+}
+if ( ! function_exists( 'home_url' ) ) {
+	function home_url( $path = '', $scheme = null ) {
 		return 'https://example.test' . $path;
 	}
 }
@@ -254,6 +261,18 @@ if ( ! function_exists( 'add_action' ) ) {
 			'accepted_args' => $accepted_args,
 		);
 		return true;
+	}
+}
+$GLOBALS['oblio_test_submenu_pages'] = array();
+if ( ! function_exists( 'add_submenu_page' ) ) {
+	function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
+		$GLOBALS['oblio_test_submenu_pages'][] = array(
+			'parent'     => $parent_slug,
+			'title'      => $menu_title,
+			'capability' => $capability,
+			'slug'       => $menu_slug,
+		);
+		return $menu_slug;
 	}
 }
 if ( ! function_exists( 'wp_kses_post' ) ) {
@@ -1449,6 +1468,7 @@ function oblio_test_reset(): void {
 	$GLOBALS['oblio_test_wc_orders_result_queue'] = array();
 	$GLOBALS['oblio_test_wc_orders_calls']     = array();
 	$GLOBALS['oblio_test_add_action_calls']    = array();
+	$GLOBALS['oblio_test_submenu_pages']       = array();
 	$GLOBALS['oblio_test_json_response']       = null;
 	$GLOBALS['oblio_test_current_user_can']    = true;
 	$GLOBALS['oblio_test_products']            = array();

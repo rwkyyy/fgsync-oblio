@@ -40,5 +40,5 @@ jobs:
           if [ -z "$(gh pr list --head "$branch" --state open --json number --jq '.[].number')" ]; then
             gh pr create --head "$branch" --base main \
               --title "Update EU VAT rates" \
-              --body "Monthly refresh from https://api.vatcomply.com/vat_rates. Review the changed rates against the official EU source before merging; shops see an update notice in FGSync → Setări → Taxare after the release."
+              --body "Monthly refresh from https://api.vatcomply.com/vat_rates. Review the changed rates against the official EU source before merging; shops see an update notice in FGSync → Setări → TVA after the release."
           fi

@@ -94,7 +94,7 @@ final class OrderMetaBox {
 		foreach ( array_filter( $errors ) as $reason ) {
 			printf(
 				'<p class="oblio-fgwoo-orderbox-row"><span class="oblio-fgwoo-orderbox-error">%s</span></p>',
-				esc_html( $reason )
+				esc_html( ErrorMessage::plain_text( $reason ) )
 			);
 		}
 
@@ -126,7 +126,7 @@ final class OrderMetaBox {
 			}
 		} else {
 			printf(
-				'<button type="button" class="button button-primary oblio-fgwoo-order-action" data-task="issue" data-doc-type="%1$s"%2$s>%3$s</button>',
+				'<button type="button" class="button oblio-fgwoo-order-action" data-task="issue" data-doc-type="%1$s"%2$s>%3$s</button>',
 				esc_attr( $doc_type ),
 				$with_stock ? ' data-use-stock="1"' : '',
 				esc_html( sprintf( /* translators: %s: doc label */ __( 'Emite %s', 'fgsync-oblio' ), $label ) )

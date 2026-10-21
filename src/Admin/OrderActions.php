@@ -111,11 +111,11 @@ final class OrderActions {
 		} catch ( DocumentException $exception ) {
 			$this->logger->error( sprintf( 'Manual action: order #%d %s %s failed: %s', $order_id, $doc_type, $task, $exception->getMessage() ) );
 			$this->record_issue_failure( $order, $doc_type, $task, $exception->getMessage() );
-			wp_send_json_error( array( 'message' => $exception->getMessage() ) );
+			wp_send_json_error( array( 'message' => ErrorMessage::plain_text( $exception->getMessage() ) ) );
 		} catch ( Throwable $exception ) {
 			$this->logger->error( sprintf( 'Manual action: order #%d %s %s failed: %s', $order_id, $doc_type, $task, $exception->getMessage() ) );
 			$this->record_issue_failure( $order, $doc_type, $task, $exception->getMessage() );
-			wp_send_json_error( array( 'message' => $exception->getMessage() ) );
+			wp_send_json_error( array( 'message' => ErrorMessage::plain_text( $exception->getMessage() ) ) );
 		}
 	}
 

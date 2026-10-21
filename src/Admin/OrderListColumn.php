@@ -69,7 +69,7 @@ final class OrderListColumn {
 				if ( '' !== $reason ) {
 					printf(
 						'<span class="oblio-fgwoo-list-failed" title="%1$s">!<span class="screen-reader-text">%2$s</span></span>',
-						esc_attr( $reason ),
+						esc_attr( ErrorMessage::plain_text( $reason ) ),
 						esc_html__( 'Emiterea facturii a eșuat', 'fgsync-oblio' )
 					);
 					$has_output = true;

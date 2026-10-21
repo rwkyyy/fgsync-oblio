@@ -8,6 +8,7 @@ declare( strict_types=1 );
 namespace FGSyncOblio\Tests\Unit;
 
 use FGSyncOblio\Admin\OrderActions;
+use FGSyncOblio\Api\Exception\ApiException;
 use FGSyncOblio\Compat\OrderStore;
 use FGSyncOblio\Document\DocumentIssuer;
 use FGSyncOblio\Document\DocumentResult;
@@ -61,6 +62,19 @@ final class LoggingRefundIssuer implements RefundIssuer {
 		$result = new DocumentResult( OrderMeta::TYPE_STORNO, 'S', '1', 'https://example.test/doc' );
 		$this->logger->info( sprintf( 'Order #%d: manual full storno %s %s issued', $order->get_id(), $result->series_name, $result->number ) );
 		return $result;
+	}
+}
+
+final class StockShortageDocumentIssuer implements DocumentIssuer {
+
+	public const OBLIO_MESSAGE = "Produsele urmatoare nu au stoc suficient:\n<b>Natural statine forte, 60cps, Hypericum</b>.";
+
+	public function issue( WC_Order $order, string $doc_type, array $options = array(), bool $fail_fast = false ): DocumentResult {
+		throw new ApiException( esc_html( self::OBLIO_MESSAGE ), 499, esc_html( self::OBLIO_MESSAGE ) );
+	}
+
+	public function delete( WC_Order $order, string $doc_type ): bool {
+		return true;
 	}
 }
 
@@ -149,5 +163,25 @@ final class OrderActionsTest extends TestCase {
 
 		$this->assertCount( 1, $this->issued_log_lines() );
 		$this->assertTrue( $GLOBALS['oblio_test_json_response']['success'] );
+	}
+
+	public function test_a_failed_issue_returns_oblio_markup_as_plain_text(): void {
+		$GLOBALS['oblio_test_orders'][1] = new WC_Order( 1 );
+		$logger  = new Logger();
+		$actions = new OrderActions( new StockShortageDocumentIssuer(), new LoggingRefundIssuer( $logger ), new OrderStore(), $logger );
+
+		$_POST = array(
+			'order_id' => '1',
+			'task'     => 'issue',
+			'doc_type' => 'invoice',
+			'nonce'    => 'test-nonce',
+		);
+		$actions->handle();
+
+		$this->assertFalse( $GLOBALS['oblio_test_json_response']['success'] );
+		$this->assertSame(
+			"Produsele urmatoare nu au stoc suficient:\nNatural statine forte, 60cps, Hypericum.",
+			$GLOBALS['oblio_test_json_response']['data']['message']
+		);
 	}
 }

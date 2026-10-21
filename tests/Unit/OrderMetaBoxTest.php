@@ -68,4 +68,28 @@ final class OrderMetaBoxTest extends TestCase {
 		$this->assertStringNotContainsString( 'data-doc-type="proforma"', $output );
 		$this->assertStringContainsString( 'data-doc-type="invoice"', $output );
 	}
+
+	public function test_issue_buttons_are_not_styled_as_save(): void {
+		ob_start();
+		$this->meta_box->render( new WC_Order( 5 ) );
+		$output = (string) ob_get_clean();
+
+		$this->assertStringContainsString( 'data-task="issue"', $output );
+		$this->assertStringNotContainsString( 'button-primary', $output );
+	}
+
+	public function test_a_failure_reason_with_oblio_markup_shows_as_plain_text(): void {
+		$order = new WC_Order( 80911 );
+		$order->update_meta_data(
+			OrderMeta::key( OrderMeta::TYPE_INVOICE, 'failed' ),
+			esc_html( "Produsele urmatoare nu au stoc suficient:\n<b>Natural statine forte, 60cps, Hypericum</b>." )
+		);
+
+		ob_start();
+		$this->meta_box->render( $order );
+		$output = (string) ob_get_clean();
+
+		$this->assertStringContainsString( "stoc suficient:\nNatural statine forte, 60cps, Hypericum.", $output );
+		$this->assertStringNotContainsString( 'lt;', $output );
+	}
 }

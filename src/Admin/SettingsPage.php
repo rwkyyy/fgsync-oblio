@@ -402,11 +402,6 @@ final class SettingsPage {
 			array(
 				'title' => __( 'Conectare Oblio', 'fgsync-oblio' ),
 				'type'  => 'title',
-				'desc'  => sprintf(
-					/* translators: %s: link to the Oblio account settings page */
-					__( 'Cheia API se găsește în Oblio → Contul meu → Setări → Date cont. %s', 'fgsync-oblio' ),
-					'<a href="https://www.oblio.eu/account/settings" target="_blank" rel="noopener noreferrer" class="oblio-fgwoo-link">' . esc_html__( 'Deschide setările Oblio ↗', 'fgsync-oblio' ) . '</a>'
-				),
 				'id'    => 'oblio_fgwoo_connection',
 			),
 			array(
@@ -1223,6 +1218,17 @@ final class SettingsPage {
 				<input type="password" name="<?php echo esc_attr( $id ); ?>" id="<?php echo esc_attr( $id ); ?>"
 						value="" autocomplete="new-password" placeholder="<?php echo esc_attr( $placeholder ); ?>"
 						class="regular-text"/>
+				<p class="description">
+					<?php
+					echo wp_kses_post(
+						sprintf(
+							/* translators: %s: link to the Oblio account settings page */
+							__( 'Cheia API se găsește în Oblio → Contul meu → Setări → Date cont. %s', 'fgsync-oblio' ),
+							'<a href="https://www.oblio.eu/account/settings" target="_blank" rel="noopener noreferrer" class="oblio-fgwoo-link">' . esc_html__( 'Deschide setările Oblio ↗', 'fgsync-oblio' ) . '</a>'
+						)
+					);
+					?>
+				</p>
 			</td>
 		</tr>
 		<?php
@@ -1234,7 +1240,7 @@ final class SettingsPage {
 		<tr valign="top">
 			<th scope="row" class="titledesc"></th>
 			<td class="forminp">
-				<button type="button" class="button button-primary"
+				<button type="button" class="button"
 						id="oblio_fgwoo_test_connection"><?php esc_html_e( 'Preia ultimele date', 'fgsync-oblio' ); ?></button>
 				<span id="oblio_fgwoo_test_result" class="oblio-fgwoo-result"></span>
 				<p class="description"><?php esc_html_e( 'Verifică datele de conectare și încarcă firma și seriile din Oblio.', 'fgsync-oblio' ); ?></p>

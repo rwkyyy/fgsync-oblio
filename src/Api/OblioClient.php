@@ -154,9 +154,10 @@ final class OblioClient {
 		}
 
 		$args = array(
-			'method'  => $method,
-			'timeout' => self::TIMEOUT,
-			'headers' => array(
+			'method'     => $method,
+			'timeout'    => self::TIMEOUT,
+			'user-agent' => $this->user_agent(),
+			'headers'    => array(
 				'Authorization' => $token['token_type'] . ' ' . $token['access_token'],
 				'Accept'        => 'application/json',
 			),
@@ -210,6 +211,18 @@ final class OblioClient {
 		return $decoded;
 	}
 
+	private function user_agent(): string {
+		global $wp_version;
+
+		return sprintf(
+			'FGSync-Oblio/%s (WordPress/%s; WooCommerce/%s; %s)',
+			FGSYNC_OBLIO_VERSION,
+			isset( $wp_version ) ? $wp_version : 'unknown',
+			defined( 'WC_VERSION' ) ? WC_VERSION : 'unknown',
+			home_url()
+		);
+	}
+
 	private function access_token(): array {
 		$token = $this->tokens->get();
 		if ( null !== $token ) {
@@ -226,8 +239,9 @@ final class OblioClient {
 		$response = wp_remote_post(
 			self::BASE_URL . '/api/authorize/token',
 			array(
-				'timeout' => self::TIMEOUT,
-				'body'    => array(
+				'timeout'    => self::TIMEOUT,
+				'user-agent' => $this->user_agent(),
+				'body'       => array(
 					'client_id'     => $this->email,
 					'client_secret' => $this->secret,
 					'grant_type'    => 'client_credentials',
