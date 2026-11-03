@@ -12,6 +12,7 @@ namespace FGSyncOblio\Document;
 use FGSyncOblio\Admin\NomenclatureCache;
 use FGSyncOblio\Api\ClientFactory;
 use FGSyncOblio\Api\Exception\ApiException;
+use FGSyncOblio\Compat\OrderStore;
 use FGSyncOblio\Order\OrderMeta;
 use FGSyncOblio\Support\Logger;
 use FGSyncOblio\Support\OrderLock;
@@ -32,13 +33,16 @@ final class DocumentService implements DocumentIssuer {
 
 	private Logger $logger;
 
+	private OrderStore $orders;
+
 	public function __construct(
 		Settings $settings,
 		ClientFactory $factory,
 		InvoiceBuilder $builder,
 		LifecyclePolicy $policy,
 		InvoiceEmailer $emailer,
-		Logger $logger
+		Logger $logger,
+		OrderStore $orders
 	) {
 		$this->settings = $settings;
 		$this->factory  = $factory;
@@ -46,6 +50,7 @@ final class DocumentService implements DocumentIssuer {
 		$this->policy   = $policy;
 		$this->emailer  = $emailer;
 		$this->logger   = $logger;
+		$this->orders   = $orders;
 	}
 
 	public function issue( WC_Order $order, string $doc_type, array $options = array(), bool $fail_fast = false ): DocumentResult {
@@ -70,6 +75,7 @@ final class DocumentService implements DocumentIssuer {
 			if ( $refreshed instanceof WC_Order ) {
 				$order = $refreshed;
 			}
+			$this->orders->reload_plugin_meta( $order );
 
 			$existing = OrderMeta::get( $order, $doc_type );
 			if ( null !== $existing ) {
@@ -127,6 +133,7 @@ final class DocumentService implements DocumentIssuer {
 		}
 
 		try {
+			$this->orders->reload_plugin_meta( $order );
 			return $this->delete_unlocked( $order, $doc_type );
 		} finally {
 			OrderLock::release( $order->get_id(), $owner );

@@ -698,7 +698,7 @@ final class InvoiceLinesTest extends TestCase {
 		$this->assertSame( array( 'Ambalare', 5.0, 'SDD', 0 ), array( $products[1]['name'], $products[1]['price'], $products[1]['vatName'], $products[1]['vatPercentage'] ) );
 	}
 
-	public function test_oss_currency_and_order_language_apply_to_payload_and_lines(): void {
+	public function test_oss_currency_and_order_language_apply_to_the_document_not_the_line_prices(): void {
 		$this->settings->set( 'oss_eur_currency', 'yes' );
 		$item  = $this->item( array( 'subtotal' => 100.0, 'subtotal_tax' => 21.0, 'total' => 100.0, 'total_tax' => 21.0 ) );
 		$order = $this->order( array( $item ), 121.0 );
@@ -708,8 +708,71 @@ final class InvoiceLinesTest extends TestCase {
 		$payload = $this->builder()->build( $order, OrderMeta::TYPE_INVOICE );
 
 		$this->assertSame( 'EUR', $payload['currency'] );
-		$this->assertSame( 'EUR', $payload['products'][0]['currency'] );
+		$this->assertSame( 'RON', $payload['products'][0]['currency'] );
+		$this->assertSame( 121.0, $payload['products'][0]['price'] );
 		$this->assertSame( 'SP', $payload['language'] );
+	}
+
+	public function test_oss_document_sends_shipping_fee_and_balancing_lines_in_the_order_currency(): void {
+		$this->settings->set( 'oss_eur_currency', 'yes' );
+		$item  = $this->item(
+			array( 'subtotal' => 100.0, 'subtotal_tax' => 21.0, 'total' => 100.0, 'total_tax' => 21.0 ),
+			new WC_Product( array( 'regular_price' => '121', 'price' => '121' ) )
+		);
+		$order = $this->order( array( $item ), 157.31 );
+		$order->set_billing( array( 'country' => 'DE' ) );
+		$order->set_shipping_total( 20.0 );
+		$order->set_shipping_tax( 4.2 );
+		$order->set_fees( array( new WC_Order_Item_Fee( array( 'name' => 'Taxa ramburs', 'total' => 10.0, 'total_tax' => 2.1 ) ) ) );
+
+		$products = $this->products( $order );
+
+		$this->assertSame( array( 'Test product', 'Transport', 'Taxa ramburs', 'Alte taxe' ), array_column( $products, 'name' ) );
+		$this->assertSame( array( 'RON', 'RON', 'RON', 'RON' ), array_column( $products, 'currency' ) );
+	}
+
+	public function test_oss_document_folds_the_coupon_into_the_price_instead_of_a_discount_line(): void {
+		$this->settings->set( 'oss_eur_currency', 'yes' );
+		$item  = $this->item(
+			array( 'subtotal' => 100.0, 'subtotal_tax' => 21.0, 'total' => 80.0, 'total_tax' => 16.8 ),
+			new WC_Product( array( 'regular_price' => '121', 'price' => '121' ) )
+		);
+		$order = $this->order( array( $item ), 96.8 );
+		$order->set_billing( array( 'country' => 'DE' ) );
+
+		$products = $this->products( $order );
+
+		$this->assertCount( 1, $products );
+		$this->assertSame( 96.8, $products[0]['price'] );
+		$this->assertSame( 'RON', $products[0]['currency'] );
+	}
+
+	public function test_eur_order_with_oss_keeps_eur_lines_and_the_discount_line(): void {
+		$this->settings->set( 'oss_eur_currency', 'yes' );
+		$item  = $this->item(
+			array( 'subtotal' => 100.0, 'subtotal_tax' => 21.0, 'total' => 80.0, 'total_tax' => 16.8 ),
+			new WC_Product( array( 'regular_price' => '121', 'price' => '121' ) )
+		);
+		$order = $this->order( array( $item ), 96.8 );
+		$order->set_currency( 'EUR' );
+		$order->set_billing( array( 'country' => 'DE' ) );
+
+		$payload = $this->builder()->build( $order, OrderMeta::TYPE_INVOICE );
+
+		$this->assertSame( 'EUR', $payload['currency'] );
+		$this->assertSame( 'EUR', $payload['products'][0]['currency'] );
+		$this->assertSame( 121.0, $payload['products'][0]['price'] );
+		$this->assertSame( 24.2, $payload['products'][1]['discount'] );
+	}
+
+	public function test_document_currency_filter_leaves_line_prices_in_the_order_currency(): void {
+		$GLOBALS['oblio_test_filter_overrides']['oblio_fgwoo_document_currency'] = 'EUR';
+		$item = $this->item( array( 'subtotal' => 100.0, 'subtotal_tax' => 21.0, 'total' => 100.0, 'total_tax' => 21.0 ) );
+
+		$payload = $this->builder()->build( $this->order( array( $item ), 121.0 ), OrderMeta::TYPE_INVOICE );
+
+		$this->assertSame( 'EUR', $payload['currency'] );
+		$this->assertSame( 'RON', $payload['products'][0]['currency'] );
 	}
 
 	public function test_zero_value_order_is_refused(): void {

@@ -653,7 +653,7 @@ final class SettingsPage {
 			'title'    => __( 'OSS: Emite în EUR pentru clienții din afara României', 'fgsync-oblio' ),
 			'type'     => 'checkbox',
 			'id'       => $opt( 'oss_eur_currency' ),
-			'desc_tip' => __( 'Documentele pentru adrese de facturare din afara României se emit <strong>în EUR</strong>. Oblio afișează și echivalentul în RON pe document. Această setare <strong>nu impactează TVA-ul.</strong>', 'fgsync-oblio' ),
+			'desc_tip' => __( 'Documentele pentru adrese de facturare din afara României se emit <strong>în EUR</strong>. Oblio convertește prețurile din moneda comenzii la cursul din setările firmei și afișează și echivalentul în RON pe document. Reducerile apar incluse în prețul produsului. Această setare <strong>nu impactează TVA-ul.</strong>', 'fgsync-oblio' ),
 		);
 
 		$advice = '<p><u>' . esc_html__( 'Înainte să luați decizii în această secțiune, vă recomandăm să discutați cu dezvoltatorul magazinului și contabilul firmei!', 'fgsync-oblio' ) . '</u></p>';

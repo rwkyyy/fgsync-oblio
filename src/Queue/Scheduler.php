@@ -246,8 +246,8 @@ final class Scheduler {
 	/**
 	 * Current owner of a document's pending marker, regardless of expiry -
 	 * null if nothing currently holds it. Used after a failed renew() to tell
-	 * a merely-vanished marker apart from one a newer chain has since
-	 * reclaimed (see GenerateDocument::run()).
+	 * whether the marker is gone, reclaimed by a newer chain, or still this
+	 * job's (see GenerateDocument::run()).
 	 *
 	 * @param int    $order_id Order ID.
 	 * @param string $doc_type Document type.

@@ -109,6 +109,39 @@ final class RefundServiceTest extends TestCase {
 		$this->assertNotSame( '', (string) $order->get_meta( 'oblio_fgwoo_storno_refund_5' ) );
 	}
 
+	public function test_a_storno_saved_by_another_request_for_the_refund_is_not_issued_again(): void {
+		$order = new WC_Order( 1 );
+		$order->set_total( 100.0 );
+		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'link' ), 'https://example.test/invoice' );
+		$refund = new WC_Order_Refund( 5, 1 );
+		$refund->set_amount( 100.0 );
+		$GLOBALS['oblio_test_orders'][1] = $order;
+		$GLOBALS['oblio_test_orders'][5] = $refund;
+		$GLOBALS['wpdb']->next_get_results_return = array(
+			array( 'meta_key' => 'oblio_fgwoo_storno_refund_5', 'meta_value' => 'FCT-2' ),
+		);
+
+		$this->assertNull( $this->service()->issue_for_refund( 1, 5, true ) );
+		$this->assertSame( array(), $GLOBALS['oblio_test_http_calls'] );
+	}
+
+	public function test_a_full_storno_saved_by_another_request_is_returned_instead_of_issuing_a_second_one(): void {
+		$order = new WC_Order( 1 );
+		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'link' ), 'https://example.test/invoice' );
+		$GLOBALS['oblio_test_orders'][1] = $order;
+		$GLOBALS['wpdb']->next_get_results_return = array(
+			array( 'meta_key' => OrderMeta::key( OrderMeta::TYPE_STORNO, 'full' ), 'meta_value' => '1' ),
+			array( 'meta_key' => OrderMeta::key( OrderMeta::TYPE_STORNO, 'series' ), 'meta_value' => 'FCT' ),
+			array( 'meta_key' => OrderMeta::key( OrderMeta::TYPE_STORNO, 'number' ), 'meta_value' => '9' ),
+			array( 'meta_key' => OrderMeta::key( OrderMeta::TYPE_STORNO, 'link' ), 'meta_value' => 'https://example.test/storno/9' ),
+		);
+
+		$result = $this->service()->issue_full_storno( $order, true );
+
+		$this->assertSame( '9', $result->number );
+		$this->assertSame( array(), $GLOBALS['oblio_test_http_calls'] );
+	}
+
 	/**
 	 * The order lock must be released before the post-issue hook fires - a
 	 * second call for the same order right after (which would block on the
@@ -191,7 +224,7 @@ final class RefundServiceTest extends TestCase {
 		return $this->last_storno_payload()['products'];
 	}
 
-	public function test_partial_storno_lines_use_package_product_type_and_document_currency(): void {
+	public function test_partial_storno_lines_use_package_product_type_and_the_order_currency(): void {
 		$GLOBALS['oblio_test_options']['woocommerce_calc_taxes']           = 'yes';
 		$GLOBALS['oblio_test_post_meta'][1]['oblio_fgwoo_package_number'] = '6';
 		$GLOBALS['oblio_test_post_meta'][1]['oblio_fgwoo_product_type']   = 'Serviciu';
@@ -225,7 +258,7 @@ final class RefundServiceTest extends TestCase {
 					'price'                    => 20.1667,
 					'measuringUnit'            => 'buc',
 					'measuringUnitTranslation' => '',
-					'currency'                 => 'EUR',
+					'currency'                 => 'RON',
 					'vatName'                  => 'Normala',
 					'vatPercentage'            => 21,
 					'vatIncluded'              => true,
@@ -240,7 +273,7 @@ final class RefundServiceTest extends TestCase {
 					'price'                    => 12.1,
 					'measuringUnit'            => 'buc',
 					'measuringUnitTranslation' => '',
-					'currency'                 => 'EUR',
+					'currency'                 => 'RON',
 					'vatName'                  => 'Normala',
 					'vatPercentage'            => 21,
 					'vatIncluded'              => true,
@@ -254,7 +287,7 @@ final class RefundServiceTest extends TestCase {
 					'price'                    => 24.2,
 					'measuringUnit'            => 'buc',
 					'measuringUnitTranslation' => '',
-					'currency'                 => 'EUR',
+					'currency'                 => 'RON',
 					'vatName'                  => 'Normala',
 					'vatPercentage'            => 21,
 					'vatIncluded'              => true,

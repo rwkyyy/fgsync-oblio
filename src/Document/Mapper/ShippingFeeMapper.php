@@ -110,7 +110,7 @@ final class ShippingFeeMapper {
 			'price'                    => $value,
 			'measuringUnit'            => $ctx->measuring_unit,
 			'measuringUnitTranslation' => $ctx->measuring_unit_translation,
-			'currency'                 => $ctx->currency,
+			'currency'                 => $ctx->line_currency,
 		)
 			+ LineVat::fields( $net, $tax, $taxes, $ctx )
 			+ array(

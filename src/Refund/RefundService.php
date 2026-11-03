@@ -84,6 +84,7 @@ final class RefundService implements RefundIssuer {
 			if ( null !== $refreshed ) {
 				$order = $refreshed;
 			}
+			$this->orders->reload_plugin_meta( $order );
 
 			$guard_key = 'oblio_fgwoo_storno_refund_' . $refund_id;
 			if ( '' !== (string) $order->get_meta( $guard_key ) ) {
@@ -161,6 +162,7 @@ final class RefundService implements RefundIssuer {
 			if ( null !== $refreshed ) {
 				$order = $refreshed;
 			}
+			$this->orders->reload_plugin_meta( $order );
 
 			$invoice = OrderMeta::get( $order, OrderMeta::TYPE_INVOICE );
 			if ( null === $invoice ) {
@@ -379,7 +381,7 @@ final class RefundService implements RefundIssuer {
 			'price'                    => $price,
 			'measuringUnit'            => $ctx->measuring_unit,
 			'measuringUnitTranslation' => $ctx->measuring_unit_translation,
-			'currency'                 => $ctx->currency,
+			'currency'                 => $ctx->line_currency,
 		)
 			+ LineVat::document_fields( $ctx )
 			+ array(

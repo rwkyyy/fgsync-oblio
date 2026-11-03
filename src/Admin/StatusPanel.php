@@ -14,6 +14,7 @@ use FGSyncOblio\Extensibility\HookInspector;
 use FGSyncOblio\Queue\Scheduler;
 use FGSyncOblio\Stock\StockSyncCoordinator;
 use FGSyncOblio\Support\ConnectionHealth;
+use FGSyncOblio\Support\Logger;
 use FGSyncOblio\Support\Settings;
 final class StatusPanel {
 
@@ -151,7 +152,7 @@ final class StatusPanel {
 	}
 
 	private function log_card( array $entries ): void {
-		$logs_url = admin_url( 'admin.php?page=wc-status&tab=logs' );
+		$logs_url = admin_url( 'admin.php?page=wc-status&tab=logs&source=' . Logger::source() );
 
 		echo '<div class="oblio-fgwoo-card" id="' . esc_attr( self::LOG_CARD ) . '"><div class="oblio-fgwoo-card-h"><h2>' . esc_html__( 'Jurnal activitate · azi', 'fgsync-oblio' ) . '</h2>';
 		echo '<span class="oblio-fgwoo-spacer"></span>';

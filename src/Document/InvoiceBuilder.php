@@ -149,7 +149,7 @@ final class InvoiceBuilder {
 				'price'                    => (float) number_format( $difference, 2, '.', '' ),
 				'measuringUnit'            => $ctx->measuring_unit,
 				'measuringUnitTranslation' => $ctx->measuring_unit_translation,
-				'currency'                 => $ctx->currency,
+				'currency'                 => $ctx->line_currency,
 			)
 				+ LineVat::document_fields( $ctx )
 				+ array(

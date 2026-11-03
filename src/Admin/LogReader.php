@@ -9,6 +9,8 @@ declare( strict_types=1 );
 
 namespace FGSyncOblio\Admin;
 
+use FGSyncOblio\Support\Logger;
+
 final class LogReader {
 
 	public function today( int $limit = 200 ): array {
@@ -68,7 +70,7 @@ final class LogReader {
 	}
 
 	private function files_for_today(): array {
-		$pattern = $this->log_dir() . 'oblio-fgwoo-' . gmdate( 'Y-m-d' ) . '-*.log';
+		$pattern = $this->log_dir() . Logger::source() . '-' . gmdate( 'Y-m-d' ) . '-*.log';
 		$files   = glob( $pattern );
 		return is_array( $files ) ? $files : array();
 	}

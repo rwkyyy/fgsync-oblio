@@ -69,6 +69,23 @@ final class AtomicLockTest extends TestCase {
 		$this->assertTrue( AtomicLock::renew( 'lock_a', $owner, 200 ) );
 	}
 
+	/**
+	 * Renewing in the same second as the claim writes the same value, which MySQL reports as 0 changed rows.
+	 */
+	public function test_renew_in_the_same_second_as_the_claim_succeeds(): void {
+		$GLOBALS['oblio_test_options']['lock_a'] = ( time() + 100 ) . '|me';
+
+		$this->assertTrue( AtomicLock::renew( 'lock_a', 'me', 100 ) );
+		$this->assertSame( 'me', AtomicLock::current_owner( 'lock_a' ) );
+	}
+
+	public function test_renew_fails_when_the_write_fails(): void {
+		$GLOBALS['oblio_test_options']['lock_a'] = ( time() + 10 ) . '|me';
+		$GLOBALS['wpdb']->fail_updates           = true;
+
+		$this->assertFalse( AtomicLock::renew( 'lock_a', 'me', 100 ) );
+	}
+
 	public function test_renew_on_a_missing_key_fails(): void {
 		$this->assertFalse( AtomicLock::renew( 'no_such_key', 'owner', 100 ) );
 	}

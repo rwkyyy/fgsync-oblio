@@ -193,7 +193,8 @@ final class Plugin {
 				$container->get( InvoiceBuilder::class ),
 				$container->get( LifecyclePolicy::class ),
 				$container->get( InvoiceEmailer::class ),
-				$container->get( Logger::class )
+				$container->get( Logger::class ),
+				$container->get( OrderStore::class )
 			)
 		);
 

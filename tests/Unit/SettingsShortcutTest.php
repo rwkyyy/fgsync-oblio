@@ -38,6 +38,14 @@ final class SettingsShortcutTest extends TestCase {
 		$this->assertSame( 'admin.php?page=fgsync-oblio', $GLOBALS['oblio_test_submenu_pages'][0]['slug'] );
 	}
 
+	public function test_the_woocommerce_settings_tab_uses_the_plugin_slug(): void {
+		$shortcut = new SettingsShortcut();
+		$shortcut->register();
+
+		$this->assertSame( array( 'general', 'fgsync-oblio' ), array_keys( $shortcut->add_tab( array( 'general' => 'General' ) ) ) );
+		$this->assertContains( 'woocommerce_settings_fgsync-oblio', array_column( $GLOBALS['oblio_test_add_action_calls'], 'hook' ) );
+	}
+
 	public function test_settings_link_comes_first(): void {
 		$links = ( new SettingsShortcut() )->action_links( array( 'deactivate' => '<a href="#">Dezactivează</a>' ) );
 

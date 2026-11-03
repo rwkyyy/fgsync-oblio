@@ -4,7 +4,7 @@ Tags: woocommerce, invoicing, oblio, invoice, romania
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.4.2
+Stable tag: 1.4.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -167,7 +167,7 @@ FGSync does not check VAT numbers in VIES. Use a checkout plugin that validates 
 
 = What does "Emite în EUR pentru clienții din afara României" do? =
 
-Under TVA, when enabled, documents for a billing address outside Romania (in the EU or elsewhere) are issued in EUR regardless of the order's currency, with Oblio showing the RON equivalent alongside it. It changes only the currency, never the VAT: the VAT still comes from WooCommerce. It's off by default; whether EUR invoices suit your store is a question for your accountant.
+Under TVA, when enabled, documents for a billing address outside Romania (in the EU or elsewhere) are issued in EUR regardless of the order's currency, with Oblio showing the RON equivalent alongside it. The prices are sent in the order's currency and Oblio converts them at the exchange rate in your Oblio company settings; discounts show up included in the product price. It changes only the currency, never the VAT: the VAT still comes from WooCommerce. It's off by default; whether EUR invoices suit your store is a question for your accountant.
 
 = Why does my WooCommerce stock drop before an order is invoiced? =
 
@@ -197,6 +197,12 @@ Yes. A few examples: `oblio_fgwoo_stock_quantity` and `oblio_fgwoo_stock_price` 
 8. Stare: connection, today's documents, queue and stock sync status, the live activity log, update status, overridden hooks and the diagnostics report.
 
 == Changelog ==
+
+= 1.4.3 =
+* Fixed: with "Emite în EUR pentru clienții din afara României" on, orders in lei were invoiced in euros at the same amount (100 lei became 100 €). Oblio now converts them at your company's exchange rate, and discounts are included in the product price. Documents already issued with wrong amounts need to be reversed in Oblio and issued again.
+* Fixed: an order could get two invoices when it was issued twice a few seconds apart, for example from the order screen and from the "Comandă finalizată" email.
+* Fixed: automatic documents could be issued hours or days late, and errors such as missing stock didn't show on the order in the meantime.
+* Logs are now saved as `fgsync-oblio-<site address>`, so logs from different shops no longer share a name. The "Jurnal complet" link shows only this plugin's logs.
 
 = 1.4.2 =
 * New "FGSync" entry in the WooCommerce menu, just above Settings, that opens the plugin's settings.

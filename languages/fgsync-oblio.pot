@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: FGSync for Oblio 1.4.2\n"
+"Project-Id-Version: FGSync for Oblio 1.4.3\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/fgsync-oblio\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-21T19:36:44+00:00\n"
+"POT-Creation-Date: 2026-11-03T19:30:48+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: fgsync-oblio\n"
@@ -450,7 +450,7 @@ msgid "Import setările din pluginul vechi?"
 msgstr ""
 
 #: src/Admin/SettingsPage.php:156
-#: src/Admin/StatusPanel.php:109
+#: src/Admin/StatusPanel.php:110
 msgid "Conectare"
 msgstr ""
 
@@ -749,7 +749,7 @@ msgid "OSS: Emite în EUR pentru clienții din afara României"
 msgstr ""
 
 #: src/Admin/SettingsPage.php:656
-msgid "Documentele pentru adrese de facturare din afara României se emit <strong>în EUR</strong>. Oblio afișează și echivalentul în RON pe document. Această setare <strong>nu impactează TVA-ul.</strong>"
+msgid "Documentele pentru adrese de facturare din afara României se emit <strong>în EUR</strong>. Oblio convertește prețurile din moneda comenzii la cursul din setările firmei și afișează și echivalentul în RON pe document. Reducerile apar incluse în prețul produsului. Această setare <strong>nu impactează TVA-ul.</strong>"
 msgstr ""
 
 #: src/Admin/SettingsPage.php:659
@@ -855,7 +855,7 @@ msgid "Aceste metode NU se marchează ca încasate."
 msgstr ""
 
 #: src/Admin/SettingsPage.php:820
-#: src/Admin/StatusPanel.php:127
+#: src/Admin/StatusPanel.php:128
 msgid "Sincronizare stoc"
 msgstr ""
 
@@ -1218,7 +1218,7 @@ msgid "O sincronizare pare blocată (probabil întreruptă de server înainte s�
 msgstr ""
 
 #: src/Admin/SettingsPage.php:1288
-#: src/Admin/StatusPanel.php:185
+#: src/Admin/StatusPanel.php:186
 msgid "Deblochează sincronizarea"
 msgstr ""
 
@@ -1250,155 +1250,155 @@ msgstr ""
 msgid "Deschide setările Oblio"
 msgstr ""
 
-#: src/Admin/StatusPanel.php:94
+#: src/Admin/StatusPanel.php:95
 msgid "Bulină de stare conexiune cu Oblio.eu"
 msgstr ""
 
-#: src/Admin/StatusPanel.php:104
+#: src/Admin/StatusPanel.php:105
 msgid "Conexiune"
 msgstr ""
 
-#: src/Admin/StatusPanel.php:105
+#: src/Admin/StatusPanel.php:106
 msgid "Configurată"
 msgstr ""
 
-#: src/Admin/StatusPanel.php:105
+#: src/Admin/StatusPanel.php:106
 msgid "Neconfigurată"
 msgstr ""
 
 #. translators: %s: link to the Conectare tab
-#: src/Admin/StatusPanel.php:108
+#: src/Admin/StatusPanel.php:109
 #, php-format
 msgid "Introdu datele în %s"
 msgstr ""
 
-#: src/Admin/StatusPanel.php:114
+#: src/Admin/StatusPanel.php:115
 msgid "Documente azi"
 msgstr ""
 
-#: src/Admin/StatusPanel.php:116
+#: src/Admin/StatusPanel.php:117
 msgid "aprox. · din jurnalul fișier"
 msgstr ""
 
 #. translators: %d: number of pending queue jobs
-#: src/Admin/StatusPanel.php:120
+#: src/Admin/StatusPanel.php:121
 #, php-format
 msgid "%d în așteptare"
 msgstr ""
 
-#: src/Admin/StatusPanel.php:122
+#: src/Admin/StatusPanel.php:123
 msgid "Coadă"
 msgstr ""
 
-#: src/Admin/StatusPanel.php:124
+#: src/Admin/StatusPanel.php:125
 msgid "active / eșuate"
 msgstr ""
 
-#: src/Admin/StatusPanel.php:128
+#: src/Admin/StatusPanel.php:129
 msgid "niciodată"
 msgstr ""
 
-#: src/Admin/StatusPanel.php:129
+#: src/Admin/StatusPanel.php:130
 msgid "în urmă"
 msgstr ""
 
-#: src/Admin/StatusPanel.php:156
+#: src/Admin/StatusPanel.php:157
 msgid "Jurnal activitate · azi"
 msgstr ""
 
-#: src/Admin/StatusPanel.php:158
+#: src/Admin/StatusPanel.php:159
 msgid "Actualizare automată"
 msgstr ""
 
-#: src/Admin/StatusPanel.php:159
+#: src/Admin/StatusPanel.php:160
 msgid "Jurnal complet ↗"
 msgstr ""
 
-#: src/Admin/StatusPanel.php:167
+#: src/Admin/StatusPanel.php:168
 msgid "Coadă procesare"
 msgstr ""
 
-#: src/Admin/StatusPanel.php:182
+#: src/Admin/StatusPanel.php:183
 msgid "Rulează întregul catalog acum, prin pași succesivi; poate dura câteva minute pe cataloage mari."
 msgstr ""
 
-#: src/Admin/StatusPanel.php:182
+#: src/Admin/StatusPanel.php:183
 msgid "Sincronizează stoc"
 msgstr ""
 
-#: src/Admin/StatusPanel.php:185
+#: src/Admin/StatusPanel.php:186
 msgid "O sincronizare pare blocată (probabil întreruptă de server înainte să termine)."
 msgstr ""
 
-#: src/Admin/StatusPanel.php:189
+#: src/Admin/StatusPanel.php:190
 msgid "Vezi coada"
 msgstr ""
 
-#: src/Admin/StatusPanel.php:199
+#: src/Admin/StatusPanel.php:200
 msgid "Actualizare"
 msgstr ""
 
-#: src/Admin/StatusPanel.php:202
+#: src/Admin/StatusPanel.php:203
 msgid "disponibilă"
 msgstr ""
 
-#: src/Admin/StatusPanel.php:207
+#: src/Admin/StatusPanel.php:208
 msgid "Actualizează"
 msgstr ""
 
-#: src/Admin/StatusPanel.php:209
+#: src/Admin/StatusPanel.php:210
 msgid "la zi"
 msgstr ""
 
 #. translators: %s: human-readable time difference (e.g. "2 hours")
-#: src/Admin/StatusPanel.php:214
+#: src/Admin/StatusPanel.php:215
 #, php-format
 msgid "Verificat %s în urmă."
 msgstr ""
 
-#: src/Admin/StatusPanel.php:216
+#: src/Admin/StatusPanel.php:217
 msgid "Verifică acum"
 msgstr ""
 
-#: src/Admin/StatusPanel.php:217
+#: src/Admin/StatusPanel.php:218
 msgid "Actualizările sunt verificate și livrate prin WordPress.org."
 msgstr ""
 
-#: src/Admin/StatusPanel.php:222
+#: src/Admin/StatusPanel.php:223
 msgid "Suprascrieri acțiuni"
 msgstr ""
 
-#: src/Admin/StatusPanel.php:226
+#: src/Admin/StatusPanel.php:227
 msgid "Niciun hook suprascris, comportament implicit."
 msgstr ""
 
-#: src/Admin/StatusPanel.php:233
+#: src/Admin/StatusPanel.php:234
 msgid "suprascris"
 msgstr ""
 
-#: src/Admin/StatusPanel.php:243
+#: src/Admin/StatusPanel.php:244
 msgid "Suprascrierile sunt permise, acestea sunt listate aici."
 msgstr ""
 
-#: src/Admin/StatusPanel.php:251
+#: src/Admin/StatusPanel.php:252
 msgid "Diagnoză rapidă"
 msgstr ""
 
-#: src/Admin/StatusPanel.php:253
+#: src/Admin/StatusPanel.php:254
 msgid "Copiază"
 msgstr ""
 
-#: src/Admin/StatusPanel.php:253
+#: src/Admin/StatusPanel.php:254
 msgid "Copiat ✓"
 msgstr ""
 
 #. translators: %s: link to the GitHub new-issue page
-#: src/Admin/StatusPanel.php:257
+#: src/Admin/StatusPanel.php:258
 #, php-format
 msgid "Nu include cheia API, emailul contului, CIF-ul sau alte date cu caracter personal. Trimite-ne acest text când %s."
 msgstr ""
 
-#: src/Admin/StatusPanel.php:258
+#: src/Admin/StatusPanel.php:259
 msgid "deschizi un raport nou pe GitHub ↗"
 msgstr ""
 
@@ -1464,16 +1464,20 @@ msgstr ""
 msgid "Email sau API secret lipsă."
 msgstr ""
 
-#: src/Document/DocumentService.php:64
-#: src/Document/DocumentService.php:125
+#: src/Compat/OrderStore.php:90
+msgid "Nu s-au putut citi documentele comenzii din baza de date; se va reîncerca automat."
+msgstr ""
+
+#: src/Document/DocumentService.php:69
+#: src/Document/DocumentService.php:131
 #: src/Refund/RefundService.php:79
-#: src/Refund/RefundService.php:156
+#: src/Refund/RefundService.php:157
 msgid "Un alt proces emite deja un document pentru comandă; se va reîncerca automat."
 msgstr ""
 
-#: src/Document/DocumentService.php:90
-#: src/Refund/RefundService.php:115
-#: src/Refund/RefundService.php:202
+#: src/Document/DocumentService.php:96
+#: src/Refund/RefundService.php:116
+#: src/Refund/RefundService.php:204
 msgid "Răspuns incomplet de la Oblio; se reîncearcă automat pentru a evita un document duplicat."
 msgstr ""
 
@@ -1675,32 +1679,32 @@ msgstr ""
 msgid "total"
 msgstr ""
 
-#: src/Queue/Jobs/GenerateDocument.php:72
-#: src/Queue/Jobs/GenerateDocument.php:118
-#: src/Queue/Jobs/GenerateRefund.php:82
-#: src/Queue/Jobs/GenerateRefund.php:150
-#: src/Queue/Jobs/GenerateRefund.php:165
+#: src/Queue/Jobs/GenerateDocument.php:76
+#: src/Queue/Jobs/GenerateDocument.php:122
+#: src/Queue/Jobs/GenerateRefund.php:86
+#: src/Queue/Jobs/GenerateRefund.php:154
+#: src/Queue/Jobs/GenerateRefund.php:169
 msgid "Nu s-a putut reprograma reîncercarea în coadă."
 msgstr ""
 
-#: src/Queue/Jobs/GenerateRefund.php:145
+#: src/Queue/Jobs/GenerateRefund.php:149
 msgid "Factura nu a fost emisă în timp util."
 msgstr ""
 
-#: src/Refund/RefundService.php:95
-#: src/Refund/RefundService.php:167
+#: src/Refund/RefundService.php:96
+#: src/Refund/RefundService.php:169
 msgid "Nu există factură pentru care să se emită storno."
 msgstr ""
 
-#: src/Refund/RefundService.php:180
+#: src/Refund/RefundService.php:182
 msgid "Există deja un storno pentru această factură. Storneaz restul printr-o rambursare WooCommerce."
 msgstr ""
 
-#: src/Refund/RefundService.php:343
+#: src/Refund/RefundService.php:345
 msgid "Rambursare"
 msgstr ""
 
-#: src/Refund/RefundService.php:363
+#: src/Refund/RefundService.php:365
 msgid "Ajustare storno"
 msgstr ""
 

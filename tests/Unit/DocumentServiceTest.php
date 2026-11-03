@@ -8,6 +8,7 @@ declare( strict_types=1 );
 namespace FGSyncOblio\Tests\Unit;
 
 use FGSyncOblio\Api\ClientFactory;
+use FGSyncOblio\Compat\OrderStore;
 use FGSyncOblio\Document\DocumentService;
 use FGSyncOblio\Document\InvoiceBuilder;
 use FGSyncOblio\Document\InvoiceEmailer;
@@ -68,7 +69,8 @@ final class DocumentServiceTest extends TestCase {
 			$builder,
 			new LifecyclePolicy( $this->settings ),
 			new InvoiceEmailer( $this->settings, $this->logger ),
-			$this->logger
+			$this->logger,
+			new OrderStore()
 		);
 	}
 
@@ -152,6 +154,52 @@ final class DocumentServiceTest extends TestCase {
 		$this->assertSame( $first_key, $delete_query['idempotencyKey'] );
 		$this->assertNotSame( $first_key, $second_key );
 		$this->assertStringStartsWith( $first_key . '-r', $second_key );
+	}
+
+	/**
+	 * @param array<string,string> $fields Invoice meta field => value, as the meta table holds it.
+	 */
+	private function stored_invoice( array $fields ): void {
+		$rows = array();
+		foreach ( $fields as $field => $value ) {
+			$rows[] = array(
+				'meta_key'   => OrderMeta::key( OrderMeta::TYPE_INVOICE, $field ),
+				'meta_value' => $value,
+			);
+		}
+		$GLOBALS['wpdb']->next_get_results_return = $rows;
+	}
+
+	/**
+	 * The copy of the order loaded earlier in the same request has no invoice, but another request just saved one.
+	 */
+	public function test_an_invoice_saved_by_another_request_is_returned_instead_of_issuing_a_second_one(): void {
+		$order = $this->order_with_one_line_item( 1 );
+		$GLOBALS['oblio_test_orders'][1] = $order;
+		$this->stored_invoice( array( 'series' => 'FV', 'number' => '10741', 'link' => 'https://example.test/fv10741' ) );
+
+		$result = $this->service()->issue( $order, OrderMeta::TYPE_INVOICE, array(), true );
+
+		$this->assertSame( '10741', $result->number );
+		$this->assertSame( array(), $GLOBALS['oblio_test_http_calls'] );
+	}
+
+	public function test_delete_targets_the_invoice_the_database_holds(): void {
+		$order = $this->order_with_one_line_item( 1 );
+		foreach ( array( 'series' => 'FCT', 'number' => '1', 'link' => 'https://example.test/doc/1' ) as $field => $value ) {
+			$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_INVOICE, $field ), $value );
+			$order->meta_ids[ OrderMeta::key( OrderMeta::TYPE_INVOICE, $field ) ] = 1;
+		}
+		$this->stored_invoice( array( 'series' => 'FCT', 'number' => '2', 'link' => 'https://example.test/doc/2' ) );
+		$this->respond( array( 'access_token' => 'tok', 'token_type' => 'Bearer', 'expires_in' => 3600 ) );
+		$this->respond( array( 'data' => array() ) );
+
+		$this->assertTrue( $this->service()->delete( $order, OrderMeta::TYPE_INVOICE ) );
+
+		$delete = end( $GLOBALS['oblio_test_http_calls'] );
+		parse_str( (string) parse_url( (string) $delete['url'], PHP_URL_QUERY ), $query );
+		$this->assertSame( 'DELETE', $delete['args']['method'] );
+		$this->assertSame( '2', $query['number'] );
 	}
 
 	public function test_issue_records_the_refunds_the_invoice_netted(): void {

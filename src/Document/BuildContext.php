@@ -38,11 +38,12 @@ final class BuildContext {
 		public readonly array $tax_rates = array(),
 		public readonly ?float $main_tax_rate = null,
 		public readonly string $untaxed_vat_name = 'SDD',
-		public readonly string $virtual_product_type = ''
+		public readonly string $virtual_product_type = '',
+		public readonly string $line_currency = ''
 	) {}
 
 	public static function for_order( Settings $settings, WC_Order $order ): self {
-		return self::from_settings( $settings, self::order_currency( $settings, $order ), self::order_language( $settings, $order ), self::order_tax_rates( $order ), self::order_main_tax_rate( $order ) );
+		return self::from_settings( $settings, self::order_currency( $settings, $order ), self::order_language( $settings, $order ), self::order_tax_rates( $order ), self::order_main_tax_rate( $order ), self::line_currency( $order ) );
 	}
 
 	/**
@@ -51,8 +52,10 @@ final class BuildContext {
 	 * @param string|null             $language  Document language, or null for the setting.
 	 * @param array<int|string,float> $tax_rates WooCommerce tax rate ID => percent charged on the order.
 	 * @param float|null              $main_tax_rate Percent of the order's largest tax line, 0 when untaxed, null when unknown.
+	 * @param string|null             $line_currency Currency the line prices are in, or null for the document currency.
 	 */
-	public static function from_settings( Settings $settings, string $currency, ?string $language = null, array $tax_rates = array(), ?float $main_tax_rate = null ): self {
+	public static function from_settings( Settings $settings, string $currency, ?string $language = null, array $tax_rates = array(), ?float $main_tax_rate = null, ?string $line_currency = null ): self {
+		$line_currency  = $line_currency ?? $currency;
 		$language       = ( null !== $language && '' !== $language ) ? $language : (string) $settings->get( 'language' );
 		$unit           = (string) $settings->get( 'measuring_unit' );
 		$price_decimals = function_exists( 'wc_get_price_decimals' ) ? (int) wc_get_price_decimals() : (int) get_option( 'woocommerce_price_num_decimals', 2 );
@@ -63,7 +66,8 @@ final class BuildContext {
 			max( self::MIN_PRECISION, min( self::MAX_PRECISION, $price_decimals ) ),
 			$price_decimals,
 			$calc_taxes,
-			$settings->is_enabled( 'invoice_discount_in_product' ),
+			// Oblio discount rows carry no currency, so a converted document keeps discounts in the price.
+			$settings->is_enabled( 'invoice_discount_in_product' ) || $line_currency !== $currency,
 			$settings->is_enabled( 'hide_description' ),
 			'' !== $unit ? $unit : 'buc',
 			'RO' === $language ? '' : (string) $settings->get( 'measuring_unit_translation', '' ),
@@ -74,7 +78,8 @@ final class BuildContext {
 			$tax_rates,
 			$main_tax_rate,
 			(string) $settings->get( 'vat_untaxed_category', 'SDD' ),
-			(string) $settings->get( 'product_type_virtual', '' )
+			(string) $settings->get( 'product_type_virtual', '' ),
+			$line_currency
 		);
 	}
 
@@ -121,9 +126,13 @@ final class BuildContext {
 		return $main;
 	}
 
-	private static function order_currency( Settings $settings, WC_Order $order ): string {
+	private static function line_currency( WC_Order $order ): string {
 		$currency = substr( (string) $order->get_currency(), 0, 3 );
-		$currency = 'lei' === strtolower( $currency ) ? 'RON' : $currency;
+		return 'lei' === strtolower( $currency ) ? 'RON' : $currency;
+	}
+
+	private static function order_currency( Settings $settings, WC_Order $order ): string {
+		$currency = self::line_currency( $order );
 
 		if ( $settings->is_enabled( 'oss_eur_currency' ) ) {
 			$billing_country = $order->get_billing_country();

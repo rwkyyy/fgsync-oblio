@@ -67,6 +67,10 @@ final class AtomicLock {
 		}
 
 		$value = self::encode( time() + max( 1, $ttl ), $owner );
+		// Same second as the last write: MySQL reports 0 changed rows for an identical value, which isn't a lost lock.
+		if ( $value === (string) $current ) {
+			return true;
+		}
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$renewed = $wpdb->query(
@@ -143,8 +147,13 @@ final class AtomicLock {
 	 * @param string $option Option name.
 	 */
 	public static function current_owner( string $option ): ?string {
-		$value = get_option( $option, false );
-		if ( false === $value ) {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$value = $wpdb->get_var(
+			$wpdb->prepare( "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", $option )
+		);
+		if ( null === $value ) {
 			return null;
 		}
 		return self::owner_of( (string) $value );

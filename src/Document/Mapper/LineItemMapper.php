@@ -77,7 +77,7 @@ final class LineItemMapper {
 				'price'                    => round( (float) $product_price / $package, $ctx->precision + 2 ),
 				'measuringUnit'            => $ctx->measuring_unit,
 				'measuringUnitTranslation' => $ctx->measuring_unit_translation,
-				'currency'                 => $ctx->currency,
+				'currency'                 => $ctx->line_currency,
 			)
 				+ LineVat::fields( $item_total, $item_total_tax, $amounts['taxes'], $ctx )
 				+ array(
@@ -380,7 +380,7 @@ final class LineItemMapper {
 			'price'                    => round( $value / $quantity / $package, $ctx->precision + 2 ),
 			'measuringUnit'            => $ctx->measuring_unit,
 			'measuringUnitTranslation' => $ctx->measuring_unit_translation,
-			'currency'                 => $ctx->currency,
+			'currency'                 => $ctx->line_currency,
 		)
 			+ LineVat::fields( $net, $tax, $taxes, $ctx )
 			+ array(

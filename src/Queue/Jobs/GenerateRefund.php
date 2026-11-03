@@ -66,14 +66,18 @@ final class GenerateRefund {
 		$owner        = (string) ( $payload['pending_owner'] ?? '' );
 		$invoice_wait = (int) ( $payload['invoice_wait_attempt'] ?? 0 );
 
-		// Same reasoning as GenerateDocument::run(): refresh now, and stop on a failed renewal.
+		// Same reasoning as GenerateDocument::run(): refresh now, stop only if the marker is gone or someone else's.
 		if ( '' !== $owner && ! $this->scheduler->renew_pending_refund( $order_id, $refund_id, $owner ) ) {
-			if ( null === $this->scheduler->pending_refund_owner( $order_id, $refund_id ) ) {
+			$current_owner = $this->scheduler->pending_refund_owner( $order_id, $refund_id );
+			if ( null === $current_owner ) {
 				$this->logger->warning( sprintf( 'Queue: pending marker for order #%d refund #%d is gone, aborting this stale job', $order_id, $refund_id ) );
-			} else {
-				$this->logger->warning( sprintf( 'Queue: pending marker for order #%d refund #%d is now owned by a newer chain, aborting this stale job', $order_id, $refund_id ) );
+				return;
 			}
-			return;
+			if ( $owner !== $current_owner ) {
+				$this->logger->warning( sprintf( 'Queue: pending marker for order #%d refund #%d is now owned by a newer chain, aborting this stale job', $order_id, $refund_id ) );
+				return;
+			}
+			$this->logger->warning( sprintf( 'Queue: could not refresh the pending marker for order #%d refund #%d, continuing', $order_id, $refund_id ) );
 		}
 
 		$wait = $this->rate_limiter->peek();

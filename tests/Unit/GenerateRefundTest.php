@@ -283,11 +283,9 @@ final class GenerateRefundTest extends TestCase {
 	}
 
 	/**
-	 * An Action Scheduler pickup delay past the marker's 1h TTL must not
-	 * silently go unrenewed - the job renews it as soon as the attempt
-	 * actually starts, not only on a rate-limiter defer.
+	 * Same as GenerateDocumentTest: queued and started in the same second, the renewal writes the same value.
 	 */
-	public function test_a_valid_pending_marker_is_renewed_at_job_start_without_a_warning(): void {
+	public function test_a_job_started_in_the_same_second_it_was_queued_issues_the_storno(): void {
 		$scheduler = new Scheduler();
 		$scheduler->enqueue_refund( 1, 5, 1, 0 );
 		$owner = $GLOBALS['oblio_test_as_calls'][0]['args'][0]['pending_owner'];
@@ -305,9 +303,28 @@ final class GenerateRefundTest extends TestCase {
 			)
 		);
 
-		$messages = array_column( $GLOBALS['oblio_test_wc_logs'], 'message' );
-		$warnings = array_filter( $messages, static fn ( string $message ): bool => false !== strpos( $message, 'could not renew the pending marker' ) );
-		$this->assertSame( array(), array_values( $warnings ) );
+		$this->assertSame( array(), $GLOBALS['oblio_test_wc_logs'] );
+		$this->assertSame( array( array( 1, 5 ) ), $this->refunds->calls );
+	}
+
+	public function test_a_marker_still_ours_after_a_failed_refresh_lets_the_job_continue(): void {
+		$order = new WC_Order( 1 );
+		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'link' ), 'https://example.test/invoice' );
+		$GLOBALS['oblio_test_orders'][1] = $order;
+		$GLOBALS['oblio_test_options']['oblio_fgwoo_pending_refund_1_5'] = ( time() + 10 ) . '|owner-a';
+		$GLOBALS['wpdb']->fail_updates                                   = true;
+
+		$this->job->run(
+			array(
+				'order_id'      => 1,
+				'refund_id'     => 5,
+				'attempt'       => 1,
+				'pending_owner' => 'owner-a',
+			)
+		);
+
+		$this->assertStringContainsString( 'could not refresh the pending marker', $GLOBALS['oblio_test_wc_logs'][0]['message'] );
+		$this->assertSame( array( array( 1, 5 ) ), $this->refunds->calls );
 	}
 
 	/**

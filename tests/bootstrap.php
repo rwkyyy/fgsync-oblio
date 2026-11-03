@@ -155,6 +155,19 @@ if ( ! function_exists( '__' ) ) {
 		return $text;
 	}
 }
+if ( ! function_exists( 'is_serialized' ) ) {
+	function is_serialized( $data, $strict = true ) {
+		return is_string( $data ) && ( 'N;' === $data || 1 === preg_match( '/^(a|O|s|i|d|b):/', $data ) );
+	}
+}
+if ( ! function_exists( 'maybe_serialize' ) ) {
+	function maybe_serialize( $data ) {
+		if ( is_array( $data ) || is_object( $data ) || is_serialized( $data, false ) ) {
+			return serialize( $data );
+		}
+		return $data;
+	}
+}
 if ( ! function_exists( 'esc_html__' ) ) {
 	function esc_html__( $text, $domain = null ) {
 		return $text;
@@ -516,6 +529,9 @@ if ( ! class_exists( 'FakeWpdb' ) ) {
 		public string $postmeta   = 'wp_postmeta';
 		public string $last_error = '';
 
+		/** Makes every UPDATE fail the way a database error does (query() returns false). */
+		public bool $fail_updates = false;
+
 		/** @var array<int,string> */
 		public array $get_results_calls = array();
 
@@ -571,7 +587,11 @@ if ( ! class_exists( 'FakeWpdb' ) ) {
 				$value    = stripslashes( $m[1] );
 				$name     = stripslashes( $m[2] );
 				$expected = stripslashes( $m[3] );
-				if ( ! array_key_exists( $name, $GLOBALS['oblio_test_options'] ) || $GLOBALS['oblio_test_options'][ $name ] !== $expected ) {
+				if ( $this->fail_updates ) {
+					return false;
+				}
+				// Like MySQL, an UPDATE that leaves the value unchanged reports 0 affected rows.
+				if ( ! array_key_exists( $name, $GLOBALS['oblio_test_options'] ) || $GLOBALS['oblio_test_options'][ $name ] !== $expected || $value === $expected ) {
 					return 0;
 				}
 				$GLOBALS['oblio_test_options'][ $name ] = $value;
@@ -605,9 +625,9 @@ require_once __DIR__ . '/Support/InMemoryTaxRateStore.php';
 
 /**
  * Wraps a single order-meta key/value pair - only get_data() is called
- * anywhere (ClientMapper::find_meta_by_pattern()), so that's the only method
- * that needs to exist; named after the real WC_Meta_Data class on the
- * chance a future test type-hints it.
+ * anywhere, so that's the only method that needs to exist; named after the
+ * real WC_Meta_Data class on the chance a future test type-hints it. An id
+ * of 0 means the meta was never saved, as in WooCommerce.
  */
 if ( ! class_exists( 'WC_Meta_Data' ) ) {
 	final class WC_Meta_Data {
@@ -616,13 +636,17 @@ if ( ! class_exists( 'WC_Meta_Data' ) ) {
 
 		private $value;
 
-		public function __construct( string $key, $value ) {
+		private int $id;
+
+		public function __construct( string $key, $value, int $id = 0 ) {
 			$this->key   = $key;
 			$this->value = $value;
+			$this->id    = $id;
 		}
 
 		public function get_data(): array {
 			return array(
+				'id'    => $this->id,
 				'key'   => $this->key,
 				'value' => $this->value,
 			);
@@ -708,11 +732,18 @@ if ( ! class_exists( 'WC_Order' ) ) {
 		public function save(): void {
 		}
 
+		/**
+		 * Meta key => row id, for meta a test treats as loaded from the database.
+		 *
+		 * @var array<string,int>
+		 */
+		public array $meta_ids = array();
+
 		/** @return array<int,WC_Meta_Data> */
 		public function get_meta_data(): array {
 			$entries = array();
 			foreach ( $this->meta as $key => $value ) {
-				$entries[] = new WC_Meta_Data( (string) $key, $value );
+				$entries[] = new WC_Meta_Data( (string) $key, $value, $this->meta_ids[ $key ] ?? 0 );
 			}
 			return $entries;
 		}
@@ -1463,6 +1494,7 @@ function oblio_test_reset(): void {
 	$GLOBALS['wpdb']->get_results_calls       = array();
 	$GLOBALS['wpdb']->next_get_results_return = null;
 	$GLOBALS['wpdb']->last_error               = '';
+	$GLOBALS['wpdb']->fail_updates             = false;
 	$GLOBALS['oblio_test_orders']              = array();
 	$GLOBALS['oblio_test_wc_orders_result']    = array();
 	$GLOBALS['oblio_test_wc_orders_result_queue'] = array();

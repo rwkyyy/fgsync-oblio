@@ -146,16 +146,16 @@ final class GenerateDocumentTest extends TestCase {
 	}
 
 	/**
-	 * An Action Scheduler pickup delay past the marker's 1h TTL must not
-	 * silently go unrenewed - the job renews it as soon as the attempt
-	 * actually starts, not only on a rate-limiter defer.
+	 * Queued and started in the same second, as when Action Scheduler picks the job up in the batch that
+	 * queued it: the renewal writes the same value and must not read as a lost marker.
 	 */
-	public function test_a_valid_pending_marker_is_renewed_at_job_start_without_a_warning(): void {
+	public function test_a_job_started_in_the_same_second_it_was_queued_issues_the_document(): void {
 		$scheduler = new Scheduler();
 		$scheduler->enqueue_document( 1, OrderMeta::TYPE_INVOICE, array(), 1, 0 );
 		$owner = $GLOBALS['oblio_test_as_calls'][0]['args'][0]['pending_owner'];
 
 		$order = new WC_Order( 1 );
+		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'failed' ), 'old reason' );
 		$GLOBALS['oblio_test_orders'][1] = $order;
 		$this->job->run(
 			array(
@@ -166,9 +166,22 @@ final class GenerateDocumentTest extends TestCase {
 			)
 		);
 
-		$messages = array_column( $GLOBALS['oblio_test_wc_logs'], 'message' );
-		$warnings = array_filter( $messages, static fn ( string $message ): bool => false !== strpos( $message, 'could not renew the pending marker' ) );
-		$this->assertSame( array(), array_values( $warnings ) );
+		$this->assertSame( array(), $GLOBALS['oblio_test_wc_logs'] );
+		$this->assertSame( '', (string) $order->get_meta( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'failed' ) ) );
+		$this->assertArrayNotHasKey( 'oblio_fgwoo_pending_doc_invoice_1', $GLOBALS['oblio_test_options'] );
+	}
+
+	public function test_a_marker_still_ours_after_a_failed_refresh_lets_the_job_continue(): void {
+		$order = new WC_Order( 1 );
+		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'failed' ), 'old reason' );
+		$GLOBALS['oblio_test_options']['oblio_fgwoo_pending_doc_invoice_1'] = ( time() + 10 ) . '|owner-a';
+		$GLOBALS['wpdb']->fail_updates                                      = true;
+
+		$this->run_job( $order );
+
+		$this->assertStringContainsString( 'could not refresh the pending marker', $GLOBALS['oblio_test_wc_logs'][0]['message'] );
+		$this->assertSame( '', (string) $order->get_meta( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'failed' ) ) );
+		$this->assertArrayNotHasKey( 'oblio_fgwoo_pending_doc_invoice_1', $GLOBALS['oblio_test_options'] );
 	}
 
 	/**

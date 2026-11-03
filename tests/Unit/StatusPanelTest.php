@@ -258,6 +258,16 @@ final class StatusPanelTest extends TestCase {
 		$this->assertStringContainsString( 'page=fgsync-oblio#oblio_fgwoo_email" class="oblio-fgwoo-tab-link" data-section="connection">Conectare</a>', $this->render_summary() );
 	}
 
+	public function test_the_full_log_link_opens_only_this_sites_log(): void {
+		$GLOBALS['oblio_test_options']['home'] = 'https://shop.example.com';
+
+		ob_start();
+		( new ReflectionMethod( StatusPanel::class, 'log_card' ) )->invoke( $this->panel, array() );
+		$html = (string) ob_get_clean();
+
+		$this->assertStringContainsString( 'page=wc-status&amp;tab=logs&amp;source=fgsync-oblio-shop-example-com', $html );
+	}
+
 	public function test_sync_and_update_buttons_are_not_styled_as_save(): void {
 		update_option( 'oblio_fgwoo_stock_sync_trigger', 'schedule' );
 		$GLOBALS['oblio_test_transients']['update_plugins'] = (object) array(

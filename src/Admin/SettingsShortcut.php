@@ -12,7 +12,7 @@ namespace FGSyncOblio\Admin;
 
 final class SettingsShortcut {
 
-	private const TAB_ID = 'oblio-fgwoo';
+	private const TAB_ID = 'fgsync-oblio';
 
 	public function register(): void {
 		add_action( 'admin_menu', array( $this, 'add_submenu' ), 49 );
