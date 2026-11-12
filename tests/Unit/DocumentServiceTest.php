@@ -7,8 +7,11 @@ declare( strict_types=1 );
 
 namespace FGSyncOblio\Tests\Unit;
 
+use FGSyncOblio\Admin\NomenclatureCache;
 use FGSyncOblio\Api\ClientFactory;
+use FGSyncOblio\Api\Exception\ApiException;
 use FGSyncOblio\Compat\OrderStore;
+use FGSyncOblio\Document\DocumentException;
 use FGSyncOblio\Document\DocumentService;
 use FGSyncOblio\Document\InvoiceBuilder;
 use FGSyncOblio\Document\InvoiceEmailer;
@@ -25,6 +28,7 @@ use FGSyncOblio\Support\Logger;
 use FGSyncOblio\Support\RateLimiter;
 use FGSyncOblio\Support\Settings;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use WC_Order;
 use WC_Order_Item_Product;
@@ -273,6 +277,84 @@ final class DocumentServiceTest extends TestCase {
 		$payload = json_decode( (string) end( $GLOBALS['oblio_test_http_calls'] )['args']['body'], true );
 		$this->assertSame( 0, $payload['useStock'] );
 		$this->assertFalse( OrderMeta::invoice_used_stock( $order ) );
+	}
+
+	private function respond_error( string $message ): void {
+		$GLOBALS['oblio_test_http_responses'][] = array(
+			'response' => array( 'code' => 400 ),
+			'body'     => wp_json_encode( array( 'statusMessage' => $message ) ),
+		);
+	}
+
+	/**
+	 * The old plugin saved its „Selecteaza” dropdown entry as a real value.
+	 */
+	public function test_the_old_plugins_placeholder_is_not_sent_as_a_warehouse(): void {
+		update_option( 'oblio_fgwoo_workstation', 'Selecteaza' );
+		update_option( 'oblio_fgwoo_management', 'Selecteaza' );
+		$order = $this->order_with_one_line_item( 1 );
+		$GLOBALS['oblio_test_orders'][1] = $order;
+		$this->respond( array( 'access_token' => 'tok', 'token_type' => 'Bearer', 'expires_in' => 3600 ) );
+		$this->respond( array( 'data' => array( 'seriesName' => 'FCT', 'number' => '1', 'link' => 'https://example.test/doc' ) ) );
+
+		$this->service()->issue( $order, OrderMeta::TYPE_INVOICE, array(), true );
+
+		$payload = json_decode( (string) end( $GLOBALS['oblio_test_http_calls'] )['args']['body'], true );
+		$this->assertSame( '', $payload['workStation'] );
+		$this->assertSame( '', $payload['products'][0]['management'] );
+	}
+
+	/**
+	 * Oblio answers „Activeaza Stocuri!” when a company without stock is
+	 * asked to discharge it (damarin, 2026-11-12).
+	 */
+	public function test_a_stock_discharge_on_a_company_without_stock_explains_itself_and_the_retry_works(): void {
+		$order = $this->order_with_one_line_item( 1 );
+		$GLOBALS['oblio_test_orders'][1] = $order;
+		$this->respond( array( 'access_token' => 'tok', 'token_type' => 'Bearer', 'expires_in' => 3600 ) );
+		$this->respond_error( 'Activeaza Stocuri!' );
+		$this->respond( array( 'data' => array( 'seriesName' => 'FCT', 'number' => '1', 'link' => 'https://example.test/doc' ) ) );
+
+		try {
+			$this->service()->issue( $order, OrderMeta::TYPE_INVOICE, array( 'use_stock' => true ), true );
+			$this->fail( 'Expected a DocumentException.' );
+		} catch ( DocumentException $exception ) {
+			$this->assertStringContainsString( 'Nu se poate emite cu descărcare de stoc', $exception->getMessage() );
+		}
+		$this->assertFalse( NomenclatureCache::uses_stock() );
+		$this->assertSame( '', (string) $order->get_meta( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'link' ) ) );
+
+		$this->service()->issue( $order, OrderMeta::TYPE_INVOICE, array( 'use_stock' => true ), true );
+
+		$payload = json_decode( (string) end( $GLOBALS['oblio_test_http_calls'] )['args']['body'], true );
+		$this->assertSame( 0, $payload['useStock'] );
+		$this->assertSame( 'https://example.test/doc', $order->get_meta( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'link' ) ) );
+	}
+
+	/**
+	 * @return array<string,array{0:bool,1:string}>
+	 */
+	public static function other_rejections(): array {
+		return array(
+			'another 400 with stock'     => array( true, 'Nu am putut descarca gestiunea' ),
+			'the same text without stock' => array( false, 'Activeaza Stocuri!' ),
+		);
+	}
+
+	#[DataProvider( 'other_rejections' )]
+	public function test_other_rejections_keep_oblios_message_and_the_stock_flag( bool $use_stock, string $message ): void {
+		$order = $this->order_with_one_line_item( 1 );
+		$GLOBALS['oblio_test_orders'][1] = $order;
+		$this->respond( array( 'access_token' => 'tok', 'token_type' => 'Bearer', 'expires_in' => 3600 ) );
+		$this->respond_error( $message );
+
+		try {
+			$this->service()->issue( $order, OrderMeta::TYPE_INVOICE, array( 'use_stock' => $use_stock ), true );
+			$this->fail( 'Expected an ApiException.' );
+		} catch ( ApiException $exception ) {
+			$this->assertSame( $message, $exception->status_message() );
+		}
+		$this->assertNull( NomenclatureCache::uses_stock() );
 	}
 
 	public function test_a_retryable_api_failure_throws_and_leaves_nothing_persisted(): void {

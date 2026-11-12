@@ -13,6 +13,13 @@ final class Settings {
 
 	private const PREFIX = 'oblio_fgwoo_';
 
+	/**
+	 * The old plugin saved its "none selected" dropdown entry under this value.
+	 */
+	public const LEGACY_PLACEHOLDER = 'Selecteaza';
+
+	public const LEGACY_PLACEHOLDER_KEYS = array( 'series_invoice', 'series_proforma', 'workstation', 'management' );
+
 	private const DEFAULTS = array(
 
 		'email'                        => '',
@@ -88,7 +95,11 @@ final class Settings {
 
 	public function get( string $key, $default = null ) {
 		$fallback = array_key_exists( $key, self::DEFAULTS ) ? self::DEFAULTS[ $key ] : $default;
-		return get_option( self::PREFIX . $key, $fallback );
+		$value    = get_option( self::PREFIX . $key, $fallback );
+		if ( self::LEGACY_PLACEHOLDER === $value && in_array( $key, self::LEGACY_PLACEHOLDER_KEYS, true ) ) {
+			return '';
+		}
+		return $value;
 	}
 
 	public function set( string $key, $value ): void {

@@ -7,8 +7,15 @@ declare( strict_types=1 );
 
 namespace FGSyncOblio\Tests\Unit;
 
+use FGSyncOblio\Admin\NomenclatureCache;
 use FGSyncOblio\Admin\OrderMetaBox;
+use FGSyncOblio\Api\ClientFactory;
 use FGSyncOblio\Order\OrderMeta;
+use FGSyncOblio\Queue\Scheduler;
+use FGSyncOblio\Support\ConnectionHealth;
+use FGSyncOblio\Support\Encryption;
+use FGSyncOblio\Support\Logger;
+use FGSyncOblio\Support\RateLimiter;
 use FGSyncOblio\Support\Settings;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -19,9 +26,30 @@ final class OrderMetaBoxTest extends TestCase {
 
 	private OrderMetaBox $meta_box;
 
+	private Settings $settings;
+
 	protected function setUp(): void {
 		oblio_test_reset();
-		$this->meta_box = new OrderMetaBox( new Settings() );
+		$this->settings = new Settings();
+		$logger         = new Logger();
+		$factory        = new ClientFactory( $this->settings, new Encryption(), $logger, new ConnectionHealth(), new RateLimiter( new InMemorySlotStore() ) );
+		$this->meta_box = new OrderMetaBox( $this->settings, new NomenclatureCache( $factory, $this->settings, $logger, new Scheduler() ) );
+	}
+
+	/**
+	 * The order screen must learn the company has no stock without waiting
+	 * for someone to open the settings page.
+	 */
+	public function test_an_unloaded_cache_is_refreshed_from_the_order_screen(): void {
+		$this->settings->set( 'email', 'shop@example.test' );
+		$this->settings->set( 'secret', 'token' );
+		$this->settings->set( 'cif', 'RO123' );
+
+		ob_start();
+		$this->meta_box->render( new WC_Order( 5 ) );
+		ob_end_clean();
+
+		$this->assertContains( Scheduler::HOOK_NOMENCLATURE, array_column( $GLOBALS['oblio_test_as_calls'], 'hook' ) );
 	}
 
 	/**

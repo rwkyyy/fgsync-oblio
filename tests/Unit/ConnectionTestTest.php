@@ -145,6 +145,7 @@ final class ConnectionTestTest extends TestCase {
 
 		$this->assertTrue( $result['loaded'] );
 		$this->assertSame( array( 'other@example.test' ), $this->authorized_emails() );
+		$this->assertCount( 1, array_filter( $GLOBALS['oblio_test_http_calls'], static fn ( array $call ): bool => str_contains( (string) $call['url'], '/api/nomenclature/companies' ) ) );
 		$this->assertSame( array( 'RO123' => 'New SRL' ), get_option( ConnectionTest::COMPANIES_OPTION ) );
 	}
 }

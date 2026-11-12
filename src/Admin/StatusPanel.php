@@ -415,6 +415,11 @@ final class StatusPanel {
 		}
 		$checked                   = $this->health->last_checked();
 		$rows['ultima_verificare'] = $checked ? human_time_diff( $checked ) . ' în urmă' : 'niciodată';
+
+		$uses_stock                   = NomenclatureCache::uses_stock();
+		$rows['firma_foloseste_stoc'] = null === $uses_stock ? 'necunoscut' : $this->yn( $uses_stock );
+		$warehouses                   = NomenclatureCache::warehouse_count();
+		$rows['gestiuni_oblio']       = null === $warehouses ? 'necunoscut' : (string) $warehouses;
 		return $rows;
 	}
 

@@ -63,6 +63,11 @@ final class OrderActions {
 			$doc_type = OrderMeta::TYPE_INVOICE;
 		}
 
+		$action = $doc_type . ' ' . $task;
+		if ( 'issue' === $task && OrderMeta::TYPE_INVOICE === $doc_type ) {
+			$action .= $use_stock ? ' with stock' : ' without stock';
+		}
+
 		try {
 			switch ( $task ) {
 				case 'issue':
@@ -109,11 +114,11 @@ final class OrderActions {
 					wp_send_json_error( array( 'message' => __( 'Acțiune necunoscută.', 'fgsync-oblio' ) ) );
 			}
 		} catch ( DocumentException $exception ) {
-			$this->logger->error( sprintf( 'Manual action: order #%d %s %s failed: %s', $order_id, $doc_type, $task, $exception->getMessage() ) );
+			$this->logger->error( sprintf( 'Manual action: order #%d %s failed: %s', $order_id, $action, $exception->getMessage() ) );
 			$this->record_issue_failure( $order, $doc_type, $task, $exception->getMessage() );
 			wp_send_json_error( array( 'message' => ErrorMessage::plain_text( $exception->getMessage() ) ) );
 		} catch ( Throwable $exception ) {
-			$this->logger->error( sprintf( 'Manual action: order #%d %s %s failed: %s', $order_id, $doc_type, $task, $exception->getMessage() ) );
+			$this->logger->error( sprintf( 'Manual action: order #%d %s failed: %s', $order_id, $action, $exception->getMessage() ) );
 			$this->record_issue_failure( $order, $doc_type, $task, $exception->getMessage() );
 			wp_send_json_error( array( 'message' => ErrorMessage::plain_text( $exception->getMessage() ) ) );
 		}

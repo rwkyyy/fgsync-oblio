@@ -47,6 +47,7 @@ final class NomenclatureCacheTest extends TestCase {
 
 	public function test_prime_also_caches_the_vat_categories(): void {
 		$this->respond( array( 'access_token' => 'tok', 'token_type' => 'Bearer', 'expires_in' => 3600 ) );
+		$this->respond_companies( null );
 		$this->respond( array( 'data' => array() ) );
 		$this->respond( array( 'data' => array() ) );
 		$this->respond( array( 'data' => array( array( 'name' => 'SDD', 'percent' => 0, 'default' => false ) ) ) );
@@ -54,6 +55,24 @@ final class NomenclatureCacheTest extends TestCase {
 		$this->assertTrue( $this->cache->prime() );
 
 		$this->assertSame( array( array( 'name' => 'SDD', 'percent' => 0, 'default' => false ) ), $this->cache->vat_categories() );
+	}
+
+	private function respond_companies( ?string $use_stock ): void {
+		$company = array(
+			'cif'     => 'RO123',
+			'company' => 'Shop SRL',
+		);
+		if ( null !== $use_stock ) {
+			$company['useStock'] = $use_stock;
+		}
+		$this->respond( array( 'data' => array( $company ) ) );
+	}
+
+	/**
+	 * @return array<int,string>
+	 */
+	private function called_paths(): array {
+		return array_map( static fn ( array $call ): string => (string) parse_url( (string) $call['url'], PHP_URL_PATH ), $GLOBALS['oblio_test_http_calls'] );
 	}
 
 	private function respond_error( int $code, string $message ): void {
@@ -65,6 +84,7 @@ final class NomenclatureCacheTest extends TestCase {
 
 	public function test_an_account_without_warehouses_still_loads_the_vat_categories(): void {
 		$this->respond( array( 'access_token' => 'tok', 'token_type' => 'Bearer', 'expires_in' => 3600 ) );
+		$this->respond_companies( null );
 		$this->respond( array( 'data' => array( array( 'name' => 'FCT', 'type' => 'Factura' ) ) ) );
 		$this->respond_error( 400, 'Nu aveti acces la nici o gestiune sau nu ati adaugat nici o gestiune in cont' );
 		$this->respond( array( 'data' => array( array( 'name' => 'SFDD', 'percent' => 0, 'default' => false ) ) ) );
@@ -80,8 +100,8 @@ final class NomenclatureCacheTest extends TestCase {
 	}
 
 	public function test_a_company_without_stock_skips_the_warehouse_call(): void {
-		update_option( 'oblio_fgwoo_companies_use_stock', array( 'RO123' => false ) );
 		$this->respond( array( 'access_token' => 'tok', 'token_type' => 'Bearer', 'expires_in' => 3600 ) );
+		$this->respond_companies( '0' );
 		$this->respond( array( 'data' => array() ) );
 		$this->respond( array( 'data' => array( array( 'name' => 'SDD', 'percent' => 0, 'default' => false ) ) ) );
 
@@ -99,8 +119,92 @@ final class NomenclatureCacheTest extends TestCase {
 		$this->assertFalse( NomenclatureCache::has_no_warehouses() );
 	}
 
+	/**
+	 * A shop that never pressed „Preia ultimele date” must still learn that
+	 * its company has no stock.
+	 */
+	public function test_prime_saves_the_companys_stock_flag(): void {
+		$this->respond( array( 'access_token' => 'tok', 'token_type' => 'Bearer', 'expires_in' => 3600 ) );
+		$this->respond_companies( '0' );
+		$this->respond( array( 'data' => array() ) );
+		$this->respond( array( 'data' => array() ) );
+
+		$this->assertNull( NomenclatureCache::uses_stock() );
+
+		$this->cache->prime();
+
+		$this->assertContains( '/api/nomenclature/companies', $this->called_paths() );
+		$this->assertSame( array( 'RO123' => false ), get_option( 'oblio_fgwoo_companies_use_stock' ) );
+		$this->assertFalse( NomenclatureCache::uses_stock() );
+		$this->assertTrue( NomenclatureCache::has_no_warehouses() );
+	}
+
+	public function test_a_company_that_turned_stock_on_gets_its_warehouses_loaded(): void {
+		update_option( 'oblio_fgwoo_companies_use_stock', array( 'RO123' => false ) );
+		$this->respond( array( 'access_token' => 'tok', 'token_type' => 'Bearer', 'expires_in' => 3600 ) );
+		$this->respond_companies( '1' );
+		$this->respond( array( 'data' => array() ) );
+		$this->respond( array( 'data' => array( array( 'workStation' => 'Sediu', 'management' => 'Depozit' ) ) ) );
+		$this->respond( array( 'data' => array() ) );
+
+		$this->cache->prime();
+
+		$this->assertTrue( NomenclatureCache::uses_stock() );
+		$this->assertSame( array( 'Depozit' => 'Depozit' ), $this->cache->managements() );
+		$this->assertFalse( NomenclatureCache::has_no_warehouses() );
+	}
+
+	public function test_a_failed_company_call_keeps_the_saved_flag_and_loads_the_rest(): void {
+		update_option( 'oblio_fgwoo_companies_use_stock', array( 'RO123' => false ) );
+		$this->respond( array( 'access_token' => 'tok', 'token_type' => 'Bearer', 'expires_in' => 3600 ) );
+		$this->respond_error( 500, 'Server error' );
+		$this->respond( array( 'data' => array() ) );
+		$this->respond( array( 'data' => array( array( 'name' => 'SDD', 'percent' => 0, 'default' => false ) ) ) );
+
+		$this->assertTrue( $this->cache->prime() );
+
+		$this->assertFalse( NomenclatureCache::uses_stock() );
+		$this->assertSame( 'SDD', $this->cache->vat_categories()[0]['name'] );
+	}
+
+	public function test_a_company_list_already_fetched_is_not_requested_again(): void {
+		$this->respond( array( 'access_token' => 'tok', 'token_type' => 'Bearer', 'expires_in' => 3600 ) );
+		$this->respond( array( 'data' => array() ) );
+		$this->respond( array( 'data' => array() ) );
+
+		$this->cache->prime(
+			null,
+			array(
+				array(
+					'cif'      => 'RO123',
+					'company'  => 'Shop SRL',
+					'useStock' => '0',
+				),
+			)
+		);
+
+		$this->assertNotContains( '/api/nomenclature/companies', $this->called_paths() );
+		$this->assertFalse( NomenclatureCache::uses_stock() );
+	}
+
+	public function test_recording_one_companys_flag_keeps_the_others(): void {
+		update_option( 'oblio_fgwoo_companies_use_stock', array( 'RO999' => true ) );
+
+		NomenclatureCache::record_stock_flag( 'RO123', false );
+
+		$this->assertSame( array( 'RO999' => true, 'RO123' => false ), get_option( 'oblio_fgwoo_companies_use_stock' ) );
+	}
+
+	public function test_warehouse_count_is_unknown_until_loaded(): void {
+		$this->assertNull( NomenclatureCache::warehouse_count() );
+
+		set_transient( 'oblio_fgwoo_management', array(), WEEK_IN_SECONDS );
+		$this->assertSame( 0, NomenclatureCache::warehouse_count() );
+	}
+
 	public function test_one_failing_list_does_not_block_the_others(): void {
 		$this->respond( array( 'access_token' => 'tok', 'token_type' => 'Bearer', 'expires_in' => 3600 ) );
+		$this->respond_companies( null );
 		$this->respond_error( 500, 'Server error' );
 		$this->respond( array( 'data' => array() ) );
 		$this->respond( array( 'data' => array( array( 'name' => 'SDD', 'percent' => 0, 'default' => false ) ) ) );

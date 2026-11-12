@@ -98,6 +98,22 @@ final class StatusPanelTest extends TestCase {
 	}
 
 	/**
+	 * Unknown here is what let a company without stock be offered stock
+	 * discharge (damarin, 2026-11-12).
+	 */
+	public function test_diagnostics_dump_shows_what_is_known_about_the_companys_stock(): void {
+		$this->assertStringContainsString( '| firma_foloseste_stoc | necunoscut |', $this->build_diagnostics_dump() );
+		$this->assertStringContainsString( '| gestiuni_oblio | necunoscut |', $this->build_diagnostics_dump() );
+
+		update_option( 'oblio_fgwoo_cif', 'RO123' );
+		update_option( 'oblio_fgwoo_companies_use_stock', array( 'RO123' => false ) );
+		set_transient( 'oblio_fgwoo_management', array(), WEEK_IN_SECONDS );
+
+		$this->assertStringContainsString( '| firma_foloseste_stoc | nu |', $this->build_diagnostics_dump() );
+		$this->assertStringContainsString( '| gestiuni_oblio | 0 |', $this->build_diagnostics_dump() );
+	}
+
+	/**
 	 * Pasted into a GitHub issue, this must render as a collapsed section
 	 * with a table inside, not a wall of plain text.
 	 */

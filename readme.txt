@@ -4,7 +4,7 @@ Tags: woocommerce, invoicing, oblio, invoice, romania
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.4.3
+Stable tag: 1.4.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -197,6 +197,12 @@ Yes. A few examples: `oblio_fgwoo_stock_quantity` and `oblio_fgwoo_stock_price` 
 8. Stare: connection, today's documents, queue and stock sync status, the live activity log, update status, overridden hooks and the diagnostics report.
 
 == Changelog ==
+
+= 1.4.4 =
+* Fixed: when the Oblio company doesn't use stock management, the order screen could still offer "Emite Factură" with stock discharge, and Oblio refused it with "Activeaza Stocuri!". This happened on shops that hadn't pressed "Preia ultimele date" since moving to this plugin. The plugin now reads the company's stock setting from Oblio every time it refreshes its data, takes it from the old Oblio plugin on import, and opening an order refreshes the data when it's missing.
+* If Oblio still refuses a stock discharge for that reason, the order shows a clear message ("Nu se poate emite cu descărcare de stoc…") and the next attempt is issued without stock discharge.
+* Fixed: shops moved from the old Oblio plugin could have "Selecteaza" saved as their workstation, warehouse or document series, and it was sent to Oblio as a real name. It's now treated as no selection.
+* Store debug info now shows whether the company uses stock in Oblio and how many warehouses are loaded. The log says whether a failed manual invoice was issued with stock discharge.
 
 = 1.4.3 =
 * Fixed: with "Emite în EUR pentru clienții din afara României" on, orders in lei were invoiced in euros at the same amount (100 lei became 100 €). Oblio now converts them at your company's exchange rate, and discounts are included in the product price. Documents already issued with wrong amounts need to be reversed in Oblio and issued again.

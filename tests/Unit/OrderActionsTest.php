@@ -16,6 +16,7 @@ use FGSyncOblio\Order\OrderMeta;
 use FGSyncOblio\Refund\RefundIssuer;
 use FGSyncOblio\Support\Logger;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use WC_Order;
 
@@ -183,5 +184,37 @@ final class OrderActionsTest extends TestCase {
 			"Produsele urmatoare nu au stoc suficient:\nNatural statine forte, 60cps, Hypericum.",
 			$GLOBALS['oblio_test_json_response']['data']['message']
 		);
+	}
+
+	/**
+	 * @return array<string,array{0:array<string,string>,1:string}>
+	 */
+	public static function failed_issue_log_lines(): array {
+		return array(
+			'invoice with stock'    => array( array( 'doc_type' => 'invoice', 'use_stock' => '1' ), 'Manual action: order #1 invoice issue with stock failed:' ),
+			'invoice without stock' => array( array( 'doc_type' => 'invoice' ), 'Manual action: order #1 invoice issue without stock failed:' ),
+			'proforma'              => array( array( 'doc_type' => 'proforma' ), 'Manual action: order #1 proforma issue failed:' ),
+		);
+	}
+
+	/**
+	 * @param array<string,string> $request Extra POST fields.
+	 * @param string               $line    Expected start of the log line.
+	 */
+	#[DataProvider( 'failed_issue_log_lines' )]
+	public function test_a_failed_issue_logs_whether_stock_was_requested( array $request, string $line ): void {
+		$GLOBALS['oblio_test_orders'][1] = new WC_Order( 1 );
+		$logger  = new Logger();
+		$actions = new OrderActions( new StockShortageDocumentIssuer(), new LoggingRefundIssuer( $logger ), new OrderStore(), $logger );
+
+		$_POST = array(
+			'order_id' => '1',
+			'task'     => 'issue',
+			'nonce'    => 'test-nonce',
+		) + $request;
+		$actions->handle();
+
+		$messages = array_column( $GLOBALS['oblio_test_wc_logs'], 'message' );
+		$this->assertNotEmpty( array_filter( $messages, static fn ( string $message ): bool => str_starts_with( $message, $line ) ) );
 	}
 }

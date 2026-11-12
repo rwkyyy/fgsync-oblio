@@ -57,16 +57,18 @@ final class NomenclatureCache {
 	}
 
 	/**
-	 * @param OblioClient|null $client Client to load with; the saved credentials when null.
+	 * @param OblioClient|null                    $client    Client to load with; the saved credentials when null.
+	 * @param array<int,array<string,mixed>>|null $companies Company list already fetched with that client.
 	 */
-	public function prime( ?OblioClient $client = null ): bool {
+	public function prime( ?OblioClient $client = null, ?array $companies = null ): bool {
 		$cif = (string) $this->settings->get( 'cif' );
 		if ( '' === $cif || ( null === $client && ! $this->settings->has_credentials() ) ) {
 			return false;
 		}
 
 		$client ??= $this->factory->create();
-		$loaded   = $this->load( self::SERIES_TRANSIENT, 'series', static fn (): array => (array) $client->series( $cif ), self::TTL );
+		$this->refresh_stock_flags( $client, $companies );
+		$loaded = $this->load( self::SERIES_TRANSIENT, 'series', static fn (): array => (array) $client->series( $cif ), self::TTL );
 		if ( false === self::uses_stock() ) {
 			set_transient( self::MANAGEMENT_TRANSIENT, array(), self::TTL );
 		} else {
@@ -78,6 +80,20 @@ final class NomenclatureCache {
 			$this->logger->debug( 'Nomenclature refreshed (series, management, VAT categories)' );
 		}
 		return $loaded;
+	}
+
+	/**
+	 * @param OblioClient                         $client    Client to load with.
+	 * @param array<int,array<string,mixed>>|null $companies Company list already fetched with that client.
+	 */
+	private function refresh_stock_flags( OblioClient $client, ?array $companies ): void {
+		try {
+			$companies ??= (array) $client->test_connection();
+		} catch ( ApiException $exception ) {
+			$this->logger->error( 'Nomenclature refresh failed (companies): ' . $exception->status_message() );
+			return;
+		}
+		self::store_stock_flags( $companies );
 	}
 
 	/**
@@ -133,6 +149,34 @@ final class NomenclatureCache {
 		$flags = get_option( ConnectionTest::USE_STOCK_OPTION, array() );
 		$cif   = (string) get_option( 'oblio_fgwoo_cif', '' );
 		return is_array( $flags ) && isset( $flags[ $cif ] ) ? (bool) $flags[ $cif ] : null;
+	}
+
+	/**
+	 * @param array<int,array<string,mixed>> $companies Oblio company list.
+	 */
+	public static function store_stock_flags( array $companies ): void {
+		$flags = array();
+		foreach ( $companies as $company ) {
+			if ( ! empty( $company['cif'] ) && isset( $company['useStock'] ) && is_scalar( $company['useStock'] ) ) {
+				$flags[ (string) $company['cif'] ] = (bool) (int) $company['useStock'];
+			}
+		}
+		update_option( ConnectionTest::USE_STOCK_OPTION, $flags, false );
+	}
+
+	public static function record_stock_flag( string $cif, bool $uses_stock ): void {
+		$flags         = get_option( ConnectionTest::USE_STOCK_OPTION, array() );
+		$flags         = is_array( $flags ) ? $flags : array();
+		$flags[ $cif ] = $uses_stock;
+		update_option( ConnectionTest::USE_STOCK_OPTION, $flags, false );
+	}
+
+	/**
+	 * Warehouses in the cache; null when they haven't been loaded.
+	 */
+	public static function warehouse_count(): ?int {
+		$cached = get_transient( self::MANAGEMENT_TRANSIENT );
+		return is_array( $cached ) ? count( $cached ) : null;
 	}
 
 	/**

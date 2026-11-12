@@ -9,6 +9,7 @@ declare( strict_types=1 );
 
 namespace FGSyncOblio\Legacy;
 
+use FGSyncOblio\Admin\NomenclatureCache;
 use FGSyncOblio\Api\ClientFactory;
 use FGSyncOblio\Support\Logger;
 use FGSyncOblio\Support\Settings;
@@ -35,10 +36,10 @@ final class Importer {
 			'oblio_email'                              => array( 'email', 'copy' ),
 			'oblio_api_secret'                         => array( 'secret', 'copy' ),
 			'oblio_cui'                                => array( 'cif', 'copy' ),
-			'oblio_series_name'                        => array( 'series_invoice', 'copy' ),
-			'oblio_series_name_proforma'               => array( 'series_proforma', 'copy' ),
-			'oblio_workstation'                        => array( 'workstation', 'copy' ),
-			'oblio_management'                         => array( 'management', 'copy' ),
+			'oblio_series_name'                        => array( 'series_invoice', 'choice' ),
+			'oblio_series_name_proforma'               => array( 'series_proforma', 'choice' ),
+			'oblio_workstation'                        => array( 'workstation', 'choice' ),
+			'oblio_management'                         => array( 'management', 'choice' ),
 			'oblio_invoice_autogen'                    => array( 'invoice_autogen', 'bool' ),
 			'oblio_invoice_autogen_use_stock'          => array( 'invoice_autogen_use_stock', 'bool' ),
 			'oblio_proforma_autogen'                   => array( 'proforma_autogen', 'bool' ),
@@ -95,14 +96,30 @@ final class Importer {
 			$this->settings->set( 'invoice_on_payment', 'yes' );
 		}
 
+		$this->import_stock_flag();
+
 		update_option( 'oblio_fgwoo_imported_at', time(), false );
 		$this->logger->info( sprintf( 'Import from legacy plugin: %d setting(s) imported', $imported ) );
 
 		return $imported;
 	}
 
+	/**
+	 * Fresh flags from Oblio win: setting the CIF may already have loaded them.
+	 */
+	private function import_stock_flag(): void {
+		$use_stock = (string) get_option( 'oblio_use_stock', '' );
+		$cif       = (string) get_option( 'oblio_cui', '' );
+		if ( '' === $cif || ! in_array( $use_stock, array( '0', '1' ), true ) || null !== NomenclatureCache::uses_stock() ) {
+			return;
+		}
+		NomenclatureCache::record_stock_flag( $cif, '1' === $use_stock );
+	}
+
 	private function convert( $value, string $type ) {
 		switch ( $type ) {
+			case 'choice':
+				return Settings::LEGACY_PLACEHOLDER === $value ? '' : $value;
 			case 'bool':
 				return ( '1' === (string) $value || 1 === $value || true === $value ) ? 'yes' : 'no';
 			case 'int':

@@ -26,6 +26,16 @@ final class SettingsTest extends TestCase {
 		$this->assertSame( 'transform', $this->settings->get( 'proforma_on_invoice' ) );
 	}
 
+	public function test_the_old_plugins_placeholder_reads_as_no_selection(): void {
+		foreach ( Settings::LEGACY_PLACEHOLDER_KEYS as $key ) {
+			update_option( 'oblio_fgwoo_' . $key, 'Selecteaza' );
+			$this->assertSame( '', $this->settings->get( $key ), $key );
+		}
+
+		$this->settings->set( 'measuring_unit', 'Selecteaza' );
+		$this->assertSame( 'Selecteaza', $this->settings->get( 'measuring_unit' ) );
+	}
+
 	public function test_option_name_is_prefixed(): void {
 		$this->assertSame( 'oblio_fgwoo_email', $this->settings->option_name( 'email' ) );
 	}

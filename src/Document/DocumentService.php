@@ -89,7 +89,7 @@ final class DocumentService implements DocumentIssuer {
 			$payload = $this->builder->build( $order, $doc_type, $options, $refunds );
 
 			OrderLock::renew( $order->get_id(), $owner );
-			$data   = $this->factory->create()->create_document( $doc_type, $payload );
+			$data   = $this->create_document( $doc_type, $payload );
 			$result = DocumentResult::from_api( $doc_type, $data, (string) ( $payload['issueDate'] ?? '' ) );
 
 			if ( '' === $result->series_name || '' === $result->number || '' === $result->link ) {
@@ -137,6 +137,24 @@ final class DocumentService implements DocumentIssuer {
 			return $this->delete_unlocked( $order, $doc_type );
 		} finally {
 			OrderLock::release( $order->get_id(), $owner );
+		}
+	}
+
+	/**
+	 * @param string              $doc_type Document type.
+	 * @param array<string,mixed> $payload  Document data.
+	 * @return array<string,mixed>
+	 * @throws DocumentException When Oblio refuses a stock discharge because the company has no stock.
+	 */
+	private function create_document( string $doc_type, array $payload ): array {
+		try {
+			return $this->factory->create()->create_document( $doc_type, $payload );
+		} catch ( ApiException $exception ) {
+			if ( empty( $payload['useStock'] ) || 400 !== $exception->http_status() || false === stripos( $exception->status_message(), 'Activeaza Stoc' ) ) {
+				throw $exception;
+			}
+			NomenclatureCache::record_stock_flag( (string) $this->settings->get( 'cif' ), false );
+			throw new DocumentException( esc_html__( 'Nu se poate emite cu descărcare de stoc: firma nu are stocurile activate în Oblio. Emite fără descărcare sau verifică setările de stoc din Oblio.', 'fgsync-oblio' ) );
 		}
 	}
 

@@ -19,8 +19,11 @@ final class OrderMetaBox {
 
 	private Settings $settings;
 
-	public function __construct( Settings $settings ) {
-		$this->settings = $settings;
+	private NomenclatureCache $nomenclature;
+
+	public function __construct( Settings $settings, NomenclatureCache $nomenclature ) {
+		$this->settings     = $settings;
+		$this->nomenclature = $nomenclature;
 	}
 
 	public function register(): void {
@@ -75,6 +78,7 @@ final class OrderMetaBox {
 		}
 
 		$order_id = $order->get_id();
+		$this->nomenclature->ensure_fresh();
 
 		echo '<div class="oblio-fgwoo-orderbox" data-order="' . esc_attr( (string) $order_id ) . '">';
 

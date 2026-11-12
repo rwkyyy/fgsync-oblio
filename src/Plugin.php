@@ -404,7 +404,7 @@ final class Plugin {
 				$container->get( Logger::class )
 			)
 		);
-		$container->set( OrderMetaBox::class, static fn ( Container $container ): OrderMetaBox => new OrderMetaBox( $container->get( Settings::class ) ) );
+		$container->set( OrderMetaBox::class, static fn ( Container $container ): OrderMetaBox => new OrderMetaBox( $container->get( Settings::class ), $container->get( NomenclatureCache::class ) ) );
 		$container->set( ProductFields::class, static fn (): ProductFields => new ProductFields() );
 		$container->set( RegularPriceSnapshot::class, static fn (): RegularPriceSnapshot => new RegularPriceSnapshot() );
 		$container->set( OrderListColumn::class, static fn ( Container $container ): OrderListColumn => new OrderListColumn( $container->get( OrderStore::class ) ) );

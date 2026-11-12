@@ -65,7 +65,7 @@ final class ConnectionTest {
 				$loaded = $sync['loaded'];
 			} else {
 				// Unsaved credentials only fill the dropdown; saving them runs sync().
-				$map    = self::parse( $client->test_connection() )['companies'];
+				$map    = self::parse( $client->test_connection() );
 				$loaded = false;
 			}
 		} catch ( ApiException $exception ) {
@@ -103,10 +103,10 @@ final class ConnectionTest {
 	 * @return array{companies: array<string,string>, loaded: bool}
 	 */
 	public function sync( OblioClient $client ): array {
-		$parsed = self::parse( $client->test_connection() );
-		$map    = $parsed['companies'];
+		$companies = (array) $client->test_connection();
+		$map       = self::parse( $companies );
 		update_option( self::COMPANIES_OPTION, $map, false );
-		update_option( self::USE_STOCK_OPTION, $parsed['use_stock'], false );
+		NomenclatureCache::store_stock_flags( $companies );
 
 		if ( '' === (string) $this->settings->get( 'cif' ) && 1 === count( $map ) ) {
 			// The CIF hook primes the nomenclature from the now-saved credentials.
@@ -114,7 +114,7 @@ final class ConnectionTest {
 			$loaded = $this->nomenclature->is_complete();
 		} else {
 			$this->nomenclature->refresh();
-			$loaded = $this->nomenclature->prime( $client );
+			$loaded = $this->nomenclature->prime( $client, $companies );
 		}
 
 		return array(
@@ -125,22 +125,15 @@ final class ConnectionTest {
 
 	/**
 	 * @param array<int,array<string,mixed>> $companies Oblio company list.
-	 * @return array{companies: array<string,string>, use_stock: array<string,bool>}
+	 * @return array<string,string>
 	 */
 	private static function parse( array $companies ): array {
-		$map       = array();
-		$use_stock = array();
+		$map = array();
 		foreach ( $companies as $company ) {
 			if ( ! empty( $company['cif'] ) ) {
 				$map[ (string) $company['cif'] ] = (string) ( $company['company'] ?? $company['cif'] );
-				if ( isset( $company['useStock'] ) && is_scalar( $company['useStock'] ) ) {
-					$use_stock[ (string) $company['cif'] ] = (bool) (int) $company['useStock'];
-				}
 			}
 		}
-		return array(
-			'companies' => $map,
-			'use_stock' => $use_stock,
-		);
+		return $map;
 	}
 }
