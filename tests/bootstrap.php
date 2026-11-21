@@ -217,6 +217,11 @@ if ( ! function_exists( 'esc_url' ) ) {
 		return htmlspecialchars( (string) $url, ENT_QUOTES );
 	}
 }
+if ( ! function_exists( 'wp_parse_url' ) ) {
+	function wp_parse_url( $url, $component = -1 ) {
+		return parse_url( (string) $url, $component );
+	}
+}
 if ( ! function_exists( 'wp_strip_all_tags' ) ) {
 	function wp_strip_all_tags( $text, $remove_breaks = false ) {
 		$text = (string) preg_replace( '#<(script|style)[^>]*?>.*?</\1>#si', '', (string) $text );
@@ -286,6 +291,35 @@ if ( ! function_exists( 'add_submenu_page' ) ) {
 			'slug'       => $menu_slug,
 		);
 		return $menu_slug;
+	}
+}
+if ( ! function_exists( 'sanitize_hex_color' ) ) {
+	function sanitize_hex_color( $color ) {
+		if ( '' === $color ) {
+			return '';
+		}
+		return preg_match( '|^#([A-Fa-f0-9]{3}){1,2}$|', $color ) ? $color : null;
+	}
+}
+if ( ! function_exists( 'wc_hex_is_light' ) ) {
+	function wc_hex_is_light( $color ) {
+		$hex = str_replace( '#', '', $color );
+		return ( hexdec( substr( $hex, 0, 2 ) ) * 299 + hexdec( substr( $hex, 2, 2 ) ) * 587 + hexdec( substr( $hex, 4, 2 ) ) * 114 ) / 1000 > 155;
+	}
+}
+$GLOBALS['oblio_test_wc_templates']      = array();
+$GLOBALS['oblio_test_wc_template_calls'] = array();
+if ( ! function_exists( 'wc_locate_template' ) ) {
+	function wc_locate_template( $template_name, $template_path = '', $default_path = '' ) {
+		return $GLOBALS['oblio_test_wc_templates'][ $template_name ] ?? '/nonexistent/' . $template_name;
+	}
+}
+if ( ! function_exists( 'wc_get_template' ) ) {
+	function wc_get_template( $template_name, $args = array(), $template_path = '', $default_path = '' ) {
+		$GLOBALS['oblio_test_wc_template_calls'][] = array(
+			'name' => $template_name,
+			'args' => $args,
+		);
 	}
 }
 if ( ! function_exists( 'wp_kses_post' ) ) {
@@ -359,6 +393,11 @@ if ( ! class_exists( 'WC_Admin_Settings' ) ) {
 			$GLOBALS['oblio_test_saved_fields'][] = array_column( $options, 'id' );
 			return true;
 		}
+	}
+}
+if ( ! function_exists( 'get_bloginfo' ) ) {
+	function get_bloginfo( $show = '' ) {
+		return 'Magazin Test';
 	}
 }
 if ( ! function_exists( 'check_ajax_referer' ) ) {
@@ -703,6 +742,8 @@ if ( ! class_exists( 'WC_Order' ) ) {
 
 		private string $order_number = '';
 
+		private string $status = 'pending';
+
 		/** @var array<int,WC_Order_Item_Shipping> */
 		private array $shipping_items = array();
 
@@ -715,6 +756,14 @@ if ( ! class_exists( 'WC_Order' ) ) {
 
 		public function get_id(): int {
 			return $this->id;
+		}
+
+		public function set_status( string $status ): void {
+			$this->status = $status;
+		}
+
+		public function get_status(): string {
+			return $this->status;
 		}
 
 		public function get_meta( $key ) {
@@ -889,6 +938,14 @@ if ( ! class_exists( 'WC_Order' ) ) {
 
 		public function get_payment_method(): string {
 			return $this->payment_method;
+		}
+
+		public function get_payment_method_title(): string {
+			return 'Ramburs';
+		}
+
+		public function get_shipping_method(): string {
+			return 'Curier';
 		}
 
 		public function set_date_created( ?\DateTime $date ): void {
@@ -1229,8 +1286,8 @@ if ( ! class_exists( 'WC_Product' ) ) {
 			return null === $this->data['date_on_sale_from'] || $this->data['date_on_sale_from'] <= time();
 		}
 
-		public function get_manage_stock(): bool {
-			return (bool) $this->data['manage_stock'];
+		public function get_manage_stock(): bool|string {
+			return 'parent' === $this->data['manage_stock'] ? 'parent' : (bool) $this->data['manage_stock'];
 		}
 
 		public function get_stock_quantity() {
@@ -1510,6 +1567,8 @@ function oblio_test_reset(): void {
 	$GLOBALS['oblio_test_mail_calls']          = array();
 	$GLOBALS['oblio_test_mail_result']         = true;
 	$GLOBALS['oblio_test_saved_fields']          = array();
+	$GLOBALS['oblio_test_wc_templates']        = array();
+	$GLOBALS['oblio_test_wc_template_calls']   = array();
 	$_POST                                     = array();
 }
 

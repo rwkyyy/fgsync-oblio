@@ -85,6 +85,24 @@ final class StockReservationsTest extends TestCase {
 		$this->assertSame( 1, substr_count( $sql, 'LEFT JOIN' ), 'Only the vid (variation ID) LEFT JOIN should remain.' );
 	}
 
+	public function test_the_statuses_chosen_in_settings_replace_the_defaults(): void {
+		$GLOBALS['oblio_test_options']['oblio_fgwoo_stock_reserve_statuses'] = array( 'processing', 'in-livrare' );
+
+		$this->reservations->map();
+
+		$sql = $GLOBALS['wpdb']->get_results_calls[0];
+		$this->assertStringContainsString( "o.post_status IN ('wc-processing','wc-in-livrare')", $sql );
+	}
+
+	public function test_no_status_chosen_in_settings_reserves_nothing(): void {
+		$GLOBALS['oblio_test_options']['oblio_fgwoo_stock_reserve_statuses'] = array();
+
+		$map = $this->reservations->map();
+
+		$this->assertSame( array(), $map );
+		$this->assertCount( 0, $GLOBALS['wpdb']->get_results_calls );
+	}
+
 	public function test_custom_statuses_are_prefixed_too(): void {
 		$GLOBALS['oblio_test_filter_overrides']['oblio_fgwoo_stock_reservation_statuses'] = array( 'checkout-draft' );
 

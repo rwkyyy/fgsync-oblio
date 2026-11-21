@@ -652,12 +652,18 @@
     gap: 8px;
 }
 
-.oblio-fgwoo-page-body .description.oblio-fgwoo-warning {
+.oblio-fgwoo-page-body .description.oblio-fgwoo-warning,
+.oblio-fgwoo-page-body .oblio-fgwoo-field-warning {
     background: #fdf5ec;
     border: 1px solid var(--warn);
     border-radius: 6px;
     padding: 8px 10px;
     color: #9a4a0d;
+}
+
+.oblio-fgwoo-page-body .oblio-fgwoo-field-warning {
+    display: block;
+    margin-top: 8px;
 }
 
 .oblio-fgwoo-rates {

@@ -36,6 +36,26 @@ final class SettingsTest extends TestCase {
 		$this->assertSame( 'Selecteaza', $this->settings->get( 'measuring_unit' ) );
 	}
 
+	public function test_mentions_stay_on_for_shops_that_saved_text_before_the_checkbox(): void {
+		$this->assertFalse( $this->settings->mentions_enabled() );
+
+		$this->settings->set( 'invoice_mentions', 'Comanda [order_id]' );
+		$this->assertTrue( $this->settings->mentions_enabled() );
+
+		$this->settings->set( 'invoice_mentions_enabled', 'no' );
+		$this->assertFalse( $this->settings->mentions_enabled() );
+	}
+
+	public function test_mentions_template_falls_back_to_the_default_text(): void {
+		$this->assertStringStartsWith( 'Pentru comanda [order_id]', $this->settings->mentions_template() );
+
+		$this->settings->set( 'invoice_mentions', '  ' );
+		$this->assertStringStartsWith( 'Pentru comanda [order_id]', $this->settings->mentions_template() );
+
+		$this->settings->set( 'invoice_mentions', 'Comanda [order_id]' );
+		$this->assertSame( 'Comanda [order_id]', $this->settings->mentions_template() );
+	}
+
 	public function test_option_name_is_prefixed(): void {
 		$this->assertSame( 'oblio_fgwoo_email', $this->settings->option_name( 'email' ) );
 	}

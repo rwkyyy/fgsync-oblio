@@ -65,9 +65,12 @@ final class ProductUpdater {
 			}
 		}
 
-		$manages   = $wc->get_manage_stock();
+		$manages = $wc->get_manage_stock();
+		if ( 'parent' === $manages ) {
+			$this->logger->info( sprintf( 'Stock sync: skipped the stock of %s, the variation sells from the stock of parent product #%d; turn on "Manage stock" on the variation to sync it', $code, $wc->get_parent_id() ) );
+		}
 		$has_stock = $agg['has_stock'] ?? true;
-		$do_stock  = $manages && $has_stock;
+		$do_stock  = true === $manages && $has_stock;
 		if ( ! $do_stock && ! $update_price ) {
 			return false;
 		}

@@ -357,6 +357,41 @@ final class ProductUpdaterTest extends TestCase {
 		$this->assertTrue( $this->sync_typed( 'Produs finit' ) );
 	}
 
+	public function test_a_variation_selling_from_its_parents_stock_is_skipped_and_logged(): void {
+		$variation = $this->product(
+			array(
+				'type'           => 'variation',
+				'parent_id'      => 5,
+				'manage_stock'   => 'parent',
+				'stock_quantity' => 2,
+			)
+		);
+
+		$this->assertFalse( $this->sync( array( 'quantity' => 4.0 ), false ) );
+
+		$this->assertSame( 2, $variation->get_stock_quantity() );
+		$this->assertSame( 0, $variation->saves );
+		$messages = array_column( $GLOBALS['oblio_test_wc_logs'], 'message' );
+		$this->assertContains( 'Stock sync: skipped the stock of SKU-7, the variation sells from the stock of parent product #5; turn on "Manage stock" on the variation to sync it', $messages );
+	}
+
+	public function test_a_variation_selling_from_its_parents_stock_still_gets_the_price(): void {
+		$variation = $this->product(
+			array(
+				'type'           => 'variation',
+				'parent_id'      => 5,
+				'manage_stock'   => 'parent',
+				'stock_quantity' => 2,
+				'regular_price'  => '10',
+			)
+		);
+
+		$this->assertTrue( $this->sync( array( 'quantity' => 4.0, 'price' => 20.0 ), true ) );
+
+		$this->assertSame( 2, $variation->get_stock_quantity() );
+		$this->assertSame( '20', $variation->get_regular_price() );
+	}
+
 	public function test_a_virtual_product_uses_the_virtual_type(): void {
 		$settings = new Settings();
 		$settings->set( 'product_type_virtual', 'Serviciu' );

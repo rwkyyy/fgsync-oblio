@@ -4,7 +4,7 @@ Tags: woocommerce, invoicing, oblio, invoice, romania
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.4.4
+Stable tag: 1.4.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -41,8 +41,9 @@ FGSync for Oblio is an independent open-source integration between WooCommerce a
 * Queued processing (Action Scheduler) so issuing never blocks checkout or status changes.
 * Automatic retries with backoff, plus a reconciliation job for missed invoices.
 * Stock synced in batches, across one or more warehouses (locations), matching the WooCommerce SKU with the Oblio product code.
+* A warning in the settings when the shop sells stock from a warehouse that invoices don't take stock from. When Oblio refuses a document for missing stock, the error shows each product's stock per warehouse.
 * Optional price update from Oblio during stock sync, keeping your sale prices.
-* Optional stock reservation for orders not yet invoiced, so the store doesn't oversell.
+* Optional stock reservation for orders not yet invoiced, for the order statuses you choose, so the store doesn't oversell.
 * Bulk actions (invoice/proforma/storno for multiple orders at once) are queued per order, not run one after another in the same admin request.
 * Settings and warehouse/series lists are read from a short-lived cache, refreshed on demand, instead of calling Oblio on every page load.
 
@@ -50,13 +51,14 @@ FGSync for Oblio is an independent open-source integration between WooCommerce a
 
 * Automatic "mark as paid", configurable per payment method, with exceptions.
 * Invoices issued the moment the order reaches a status, or on a schedule (batch), your choice, and optionally as soon as an online payment is confirmed.
-* Customer notifications two ways: a standalone email from the plugin, or a button linking to the invoice inside WooCommerce's own order emails.
+* Customer notifications two ways: a standalone email from the plugin, or a button linking to the invoice inside WooCommerce's own order emails, styled like WooCommerce's email buttons in its base color or in a color you pick.
 
 **Orders screen**
 
 * Oblio status column on the orders list, with an error badge and the reason when issuing failed.
 * Filter the orders list by Oblio document (none, proforma, invoice, delivery note, credit note, failed).
 * Issue, view or delete documents from the order screen; the delete button only shows when Oblio allows it (the last document in its series).
+* "Vezi în Oblio" buttons open the invoice, proforma or credit note directly in Oblio.
 
 **Status and security**
 
@@ -171,7 +173,7 @@ Under TVA, when enabled, documents for a billing address outside Romania (in the
 
 = Why does my WooCommerce stock drop before an order is invoiced? =
 
-If "Rezervă stoc pentru comenzi nefacturate" is enabled (Sincronizare tab), the stock WooCommerce displays is reduced for pending/processing orders that haven't been invoiced with stock deduction yet, so the store doesn't oversell while waiting. The actual deduction inside Oblio only happens once an invoice is issued with stock deduction on; this setting only affects what WooCommerce shows as available in the meantime.
+If "Rezervă stoc pentru comenzi nefacturate" is enabled (Sincronizare tab), the stock WooCommerce displays is reduced for orders in the statuses you pick there (by default pending payment, processing and on hold) that haven't been invoiced with stock deduction yet, so the store doesn't oversell while waiting. The actual deduction inside Oblio only happens once an invoice is issued with stock deduction on; this setting only affects what WooCommerce shows as available in the meantime.
 
 = What's the status dot in the admin toolbar? =
 
@@ -179,7 +181,7 @@ A shortcut to the FGSync "Stare" tab, with a small colored dot: green means ever
 
 = How do customers get the invoice by email? =
 
-Under Email, pick a mode. "Email separat (la emitere)" sends a separate message from the plugin when the document is issued, using your subject/message templates. "Nativ în mail-ul WooCommerce" instead adds a button linking to the Oblio invoice inside WooCommerce's own order emails, for the order statuses you select (for example, the Completed order email). In that mode, if the invoice has not been issued yet when that email is sent, the plugin tries to issue it at that moment, even when automatic invoicing is off, so the button usually links to a real invoice. If Oblio's rate limit is busy or that attempt fails, the invoice is queued instead and that particular email goes out without the button; the invoice itself still gets issued shortly after. Use the `oblio_fgwoo_email_button_issue` filter to disable the inline attempt if you only want a button when an invoice already exists.
+Under Email, pick a mode. "Email separat (la emitere)" sends a separate message from the plugin when the document is issued, using your subject/message templates. "Nativ în mail-ul WooCommerce" instead adds a button linking to the Oblio invoice inside WooCommerce's own order emails, for the order statuses you select (for example, the Completed order email). In that mode, if the invoice has not been issued yet when that email is sent, the plugin tries to issue it at that moment, even when automatic invoicing is off, so the button usually links to a real invoice. If Oblio's rate limit is busy or that attempt fails, the invoice is queued instead and that particular email goes out without the button; the invoice itself still gets issued shortly after. Use the `oblio_fgwoo_email_button_issue` filter to disable the inline attempt if you only want a button when an invoice already exists. The button follows the design and base color of WooCommerce's emails; tick "Culoare personalizată" if you want a different color.
 
 = Can I customize FGSync's behavior for my store? =
 
@@ -197,6 +199,23 @@ Yes. A few examples: `oblio_fgwoo_stock_quantity` and `oblio_fgwoo_stock_price` 
 8. Stare: connection, today's documents, queue and stock sync status, the live activity log, update status, overridden hooks and the diagnostics report.
 
 == Changelog ==
+
+= 1.4.5 =
+**New**
+
+* Choose which order statuses reserve stock ("Statusuri pentru rezervare", Sincronizare tab). The default stays pending payment, processing and on hold.
+* "Adaugă mențiuni" checkbox (Avansat tab) to turn document mentions on or off; the text comes prefilled with a ready-made template. Shops that already had mentions keep them on.
+* "Vezi în Oblio" buttons on the order screen open the invoice, proforma or storno directly in Oblio.
+
+**Improved**
+
+* The "Vezi factura" button in WooCommerce emails now uses WooCommerce's own email button design and base color. Tick "Culoare personalizată" (Email tab) to pick a different color.
+* "Gestiune (emitere)" and "Gestiuni (locații)" warn when the shop sells stock from a warehouse that invoices don't take stock from.
+* When Oblio refuses a document for missing stock, the error now shows each short product's stock per warehouse and whether a transfer in Oblio would fix it.
+
+**Fixed**
+
+* Variations that sell from their parent product's stock are no longer given a stock quantity WooCommerce ignores. Stock sync skips them and says so in the log.
 
 = 1.4.4 =
 * Fixed: when the Oblio company doesn't use stock management, the order screen could still offer "Emite Factură" with stock discharge, and Oblio refused it with "Activeaza Stocuri!". This happened on shops that hadn't pressed "Preia ultimele date" since moving to this plugin. The plugin now reads the company's stock setting from Oblio every time it refreshes its data, takes it from the old Oblio plugin on import, and opening an order refreshes the data when it's missing.

@@ -14,6 +14,7 @@ use FGSyncOblio\Api\ClientFactory;
 use FGSyncOblio\Api\Exception\ApiException;
 use FGSyncOblio\Compat\OrderStore;
 use FGSyncOblio\Order\OrderMeta;
+use FGSyncOblio\Stock\StockShortage;
 use FGSyncOblio\Support\Logger;
 use FGSyncOblio\Support\OrderLock;
 use FGSyncOblio\Support\Settings;
@@ -144,17 +145,25 @@ final class DocumentService implements DocumentIssuer {
 	 * @param string              $doc_type Document type.
 	 * @param array<string,mixed> $payload  Document data.
 	 * @return array<string,mixed>
-	 * @throws DocumentException When Oblio refuses a stock discharge because the company has no stock.
+	 * @throws DocumentException When the company has no stock, or a stock refusal can be explained per gestiune.
 	 */
 	private function create_document( string $doc_type, array $payload ): array {
+		$client = $this->factory->create();
 		try {
-			return $this->factory->create()->create_document( $doc_type, $payload );
+			return $client->create_document( $doc_type, $payload );
 		} catch ( ApiException $exception ) {
-			if ( empty( $payload['useStock'] ) || 400 !== $exception->http_status() || false === stripos( $exception->status_message(), 'Activeaza Stoc' ) ) {
-				throw $exception;
+			if ( ! empty( $payload['useStock'] ) && 400 === $exception->http_status() && false !== stripos( $exception->status_message(), 'Activeaza Stoc' ) ) {
+				NomenclatureCache::record_stock_flag( (string) $this->settings->get( 'cif' ), false );
+				throw new DocumentException( esc_html__( 'Nu se poate emite cu descărcare de stoc: firma nu are stocurile activate în Oblio. Emite fără descărcare sau verifică setările de stoc din Oblio.', 'fgsync-oblio' ) );
 			}
-			NomenclatureCache::record_stock_flag( (string) $this->settings->get( 'cif' ), false );
-			throw new DocumentException( esc_html__( 'Nu se poate emite cu descărcare de stoc: firma nu are stocurile activate în Oblio. Emite fără descărcare sau verifică setările de stoc din Oblio.', 'fgsync-oblio' ) );
+			if ( 499 === $exception->http_status() && false !== stripos( $exception->status_message(), 'stoc' ) ) {
+				$breakdown = ( new StockShortage( $client, (string) $this->settings->get( 'cif' ) ) )->describe( $payload, $exception->status_message() );
+				if ( '' !== $breakdown ) {
+					// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- both parts are escaped.
+					throw new DocumentException( $exception->status_message() . ' ' . $breakdown, 0, $exception );
+				}
+			}
+			throw $exception;
 		}
 	}
 

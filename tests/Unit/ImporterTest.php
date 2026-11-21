@@ -51,6 +51,25 @@ final class ImporterTest extends TestCase {
 		$this->assertSame( 'no', $this->settings->get( 'invoice_on_payment' ) );
 	}
 
+	public function test_old_mentions_text_turns_mentions_on(): void {
+		$this->settings->set( 'invoice_mentions_enabled', 'no' );
+		update_option( 'oblio_invoice_mentions', 'Comanda [order_id]' );
+
+		$this->import();
+
+		$this->assertSame( 'Comanda [order_id]', $this->settings->get( 'invoice_mentions' ) );
+		$this->assertTrue( $this->settings->mentions_enabled() );
+	}
+
+	public function test_empty_old_mentions_keep_mentions_off(): void {
+		$this->settings->set( 'invoice_mentions_enabled', 'yes' );
+		update_option( 'oblio_invoice_mentions', '' );
+
+		$this->import();
+
+		$this->assertFalse( $this->settings->mentions_enabled() );
+	}
+
 	public function test_the_old_plugins_placeholder_is_imported_as_no_selection(): void {
 		update_option( 'oblio_series_name', 'FCT' );
 		update_option( 'oblio_series_name_proforma', 'Selecteaza' );

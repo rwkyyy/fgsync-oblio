@@ -19,6 +19,8 @@ final class StockReservations {
 	private const TRANSIENT     = 'oblio_fgwoo_stock_reservations';
 	private const LOOKBACK_DAYS = 30;
 
+	private const DEFAULT_STATUSES = array( 'on-hold', 'processing', 'pending' );
+
 	private OrderStore $orders;
 
 	private Logger $logger;
@@ -120,11 +122,12 @@ final class StockReservations {
 
 		$configured = (int) get_option( 'oblio_fgwoo_stock_reserve_days', self::LOOKBACK_DAYS );
 		$lookback   = (int) apply_filters( 'oblio_fgwoo_stock_reservation_lookback_days', $configured > 0 ? $configured : self::LOOKBACK_DAYS );
+		$selected   = (array) get_option( 'oblio_fgwoo_stock_reserve_statuses', self::DEFAULT_STATUSES );
 		$statuses   = array_values(
 			array_filter(
 				array_map(
 					'strval',
-					(array) apply_filters( 'oblio_fgwoo_stock_reservation_statuses', array( 'on-hold', 'processing', 'pending' ) )
+					(array) apply_filters( 'oblio_fgwoo_stock_reservation_statuses', $selected )
 				)
 			)
 		);

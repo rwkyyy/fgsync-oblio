@@ -96,6 +96,12 @@ final class Importer {
 			$this->settings->set( 'invoice_on_payment', 'yes' );
 		}
 
+		// The old plugin sent its mentions whenever the text wasn't empty.
+		$legacy_mentions = get_option( 'oblio_invoice_mentions', null );
+		if ( is_string( $legacy_mentions ) ) {
+			$this->settings->set( 'invoice_mentions_enabled', '' !== trim( $legacy_mentions ) ? 'yes' : 'no' );
+		}
+
 		$this->import_stock_flag();
 
 		update_option( 'oblio_fgwoo_imported_at', time(), false );

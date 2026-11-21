@@ -132,7 +132,7 @@ final class SettingsPage {
 		wp_enqueue_script( 'wc-enhanced-select' );
 
 		wp_enqueue_style( 'fgsync-oblio-admin', FGSYNC_OBLIO_URL . 'assets/css/admin.css', array(), FGSYNC_OBLIO_VERSION );
-		wp_enqueue_script( 'fgsync-oblio-settings', FGSYNC_OBLIO_URL . 'assets/js/admin-settings.js', array( 'jquery' ), FGSYNC_OBLIO_VERSION, true );
+		wp_enqueue_script( 'fgsync-oblio-settings', FGSYNC_OBLIO_URL . 'assets/js/admin-settings.js', array( 'jquery', 'iris' ), FGSYNC_OBLIO_VERSION, true );
 		wp_localize_script(
 			'fgsync-oblio-settings',
 			'fgsyncOblio',
@@ -185,8 +185,8 @@ final class SettingsPage {
 				<?php
 				printf(
 					/* translators: %s: link to the FGSync for Oblio project page */
-					esc_html__( 'Facturare Gestiune Sincronizare (FGSync) pentru Oblio este o integrare open-source independentă. Nu este dezvoltată, aprobată, întreținută sau susținută de Oblio.eu. Detalii complete pe %s.', 'fgsync-oblio' ),
-					'<a href="https://rwkyyy.github.io/fgsync-oblio/" target="_blank" rel="noopener noreferrer" class="oblio-fgwoo-link">' . esc_html__( 'pagina proiectului ↗', 'fgsync-oblio' ) . '</a>'
+					esc_html__( 'Facturare Gestiune Sincronizare (FGSync) pentru Oblio este o integrare open-source independentă. Nu este dezvoltată, aprobată, întreținută sau susținută de Oblio.eu. %s', 'fgsync-oblio' ),
+					'<a href="https://rwkyyy.github.io/fgsync-oblio/" target="_blank" rel="noopener noreferrer" class="oblio-fgwoo-link">' . esc_html__( 'Detalii pe pagina proiectului ↗', 'fgsync-oblio' ) . '</a>'
 				);
 				?>
 			</p>
@@ -491,7 +491,7 @@ final class SettingsPage {
 				'type'    => 'select',
 				'id'      => $opt( 'management' ),
 				'options' => $this->with_saved_value( array( '' => __( 'Implicit', 'fgsync-oblio' ) ) + $this->nomenclature->managements(), 'management' ),
-				'desc'    => __( 'Gestiunea din care se descarcă stocul la emiterea documentelor.', 'fgsync-oblio' ),
+				'desc'    => __( 'Gestiunea din care se descarcă stocul la emiterea documentelor.', 'fgsync-oblio' ) . $this->location_mismatch_warning( 'stock' ),
 			),
 			array(
 				'title'       => __( 'Unitate de măsură', 'fgsync-oblio' ),
@@ -846,7 +846,7 @@ final class SettingsPage {
 				'class'   => 'wc-enhanced-select',
 				'id'      => $opt( 'stock_locations' ),
 				'options' => $this->with_saved_values( $this->nomenclature->locations(), 'stock_locations' ),
-				'desc'    => __( 'Implicit - stocul se însumează pe locațiile selectate. <br>Lăsați câmpul gol pentru a le prelua pe toate SAU selectați locația de unde doriți actualizarea de stoc', 'fgsync-oblio' ),
+				'desc'    => __( 'Implicit - stocul se însumează pe locațiile selectate. <br>Lăsați câmpul gol pentru a le prelua pe toate SAU selectați locația de unde doriți actualizarea de stoc', 'fgsync-oblio' ) . $this->location_mismatch_warning( 'documents' ),
 			),
 			array(
 				'title' => __( 'Actualizează prețul la sincronizare', 'fgsync-oblio' ),
@@ -869,7 +869,16 @@ final class SettingsPage {
 				'title' => __( 'Rezervă stoc pentru comenzi nefacturate', 'fgsync-oblio' ),
 				'type'  => 'checkbox',
 				'id'    => $opt( 'stock_reserve_orders' ),
-				'desc'  => __( 'Scade din stoc comenzile în așteptare / în procesare, din intervalul de mai jos.', 'fgsync-oblio' ),
+				'desc'  => __( 'Scade din stoc comenzile active, cu statusurile și din intervalul alese mai jos.', 'fgsync-oblio' ),
+			),
+			array(
+				'title'   => __( 'Statusuri pentru rezervare', 'fgsync-oblio' ),
+				'type'    => 'multiselect',
+				'class'   => 'wc-enhanced-select',
+				'id'      => $opt( 'stock_reserve_statuses' ),
+				'options' => $this->order_status_options(),
+				'default' => $this->settings->default( 'stock_reserve_statuses' ),
+				'desc'    => __( 'Comenzile în aceste statusuri rezervă stoc până la emiterea avizului sau a facturii cu descărcare din gestiune. Fără niciun status ales, nu se rezervă nimic.', 'fgsync-oblio' ),
 			),
 			array(
 				'title'             => __( 'Interval rezervare (zile)', 'fgsync-oblio' ),
@@ -962,6 +971,21 @@ final class SettingsPage {
 				'desc'    => __( 'Textul afișat pe butonul din email.', 'fgsync-oblio' ),
 			),
 			array(
+				'title'   => __( 'Culoare personalizată', 'fgsync-oblio' ),
+				'type'    => 'checkbox',
+				'id'      => $opt( 'email_button_custom_color' ),
+				'default' => $this->settings->default( 'email_button_custom_color' ),
+				'desc'    => __( 'Implicit, butonul arată ca butoanele din emailurile WooCommerce și folosește culoarea de bază din WooCommerce → Setări → Emailuri. Bifează doar dacă vrei altă culoare.', 'fgsync-oblio' ),
+			),
+			array(
+				'title'   => __( 'Culoare buton', 'fgsync-oblio' ),
+				'type'    => 'color',
+				'id'      => $opt( 'email_button_color' ),
+				'default' => $this->settings->default( 'email_button_color' ),
+				'css'     => 'width:6em;',
+				'desc'    => __( 'Textul butonului devine alb sau negru, după cum se citește mai bine.', 'fgsync-oblio' ),
+			),
+			array(
 				'type' => 'sectionend',
 				'id'   => 'oblio_fgwoo_email',
 			),
@@ -969,8 +993,7 @@ final class SettingsPage {
 	}
 
 	private function advanced_fields( callable $opt ): array {
-		$mention_tokens      = '[order_id] [date] [payment] [shipping] [site]';
-		$mention_placeholder = __( "Pentru comanda [order_id], din [date], plătit prin [payment], livrat prin [shipping].\nComandă efectuată pe [site]", 'fgsync-oblio' );
+		$mention_tokens = '[order_id] [date] [payment] [shipping] [site]';
 
 		return array(
 			array(
@@ -1000,12 +1023,19 @@ final class SettingsPage {
 				'desc'    => __( 'Pentru produsele marcate <strong>virtuale</strong> în WooCommerce (de ex. digitale, descărcabile), de obicei „Serviciu”. Tipul setat pe produs are prioritate.', 'fgsync-oblio' ),
 			),
 			array(
-				'title'       => __( 'Mențiuni', 'fgsync-oblio' ),
-				'type'        => 'textarea',
-				'id'          => $opt( 'invoice_mentions' ),
-				'placeholder' => $mention_placeholder,
+				'title'   => __( 'Adaugă mențiuni', 'fgsync-oblio' ),
+				'type'    => 'checkbox',
+				'id'      => $opt( 'invoice_mentions_enabled' ),
+				'default' => $this->settings->mentions_enabled() ? 'yes' : 'no',
+				'desc'    => __( 'Trimite textul de mai jos în câmpul „Mențiuni” al documentului.', 'fgsync-oblio' ),
+			),
+			array(
+				'title' => __( 'Mențiuni', 'fgsync-oblio' ),
+				'type'  => 'textarea',
+				'id'    => $opt( 'invoice_mentions' ),
+				'value' => $this->settings->mentions_template(),
 				/* translators: %s: list of tokens */
-					'desc'    => sprintf( __( 'Taguri: %s', 'fgsync-oblio' ), '<code>' . esc_html( $mention_tokens ) . '</code>' ),
+				'desc'  => sprintf( __( 'Taguri: %s', 'fgsync-oblio' ), '<code>' . esc_html( $mention_tokens ) . '</code>' ),
 			),
 			array(
 				'title' => __( 'Întocmit de', 'fgsync-oblio' ),
@@ -1182,6 +1212,62 @@ final class SettingsPage {
 		return array(
 			'custom_attributes' => array( 'disabled' => 'disabled' ),
 			'desc'              => __( '<strong>Firma nu folosește gestiune de stoc în Oblio</strong>, deci această opțiune nu se aplică.', 'fgsync-oblio' ),
+		);
+	}
+
+	/**
+	 * Warns when the shop sells stock from gestiuni that documents don't take stock from.
+	 *
+	 * @param string $paired_section Tab holding the paired setting.
+	 */
+	private function location_mismatch_warning( string $paired_section ): string {
+		if ( NomenclatureCache::has_no_warehouses() || ! $this->settings->stock_sync_configured() ) {
+			return '';
+		}
+		$locations = $this->nomenclature->locations();
+		$synced    = array_values( array_filter( array_map( 'strval', (array) $this->settings->get( 'stock_locations', array() ) ) ) );
+		if ( empty( $synced ) ) {
+			$synced = array_map( 'strval', array_keys( $locations ) );
+		}
+		$workstation = (string) $this->settings->get( 'workstation', '' );
+		$management  = (string) $this->settings->get( 'management', '' );
+
+		if ( '' === $management ) {
+			if ( count( $synced ) < 2 ) {
+				return '';
+			}
+			$issuing = __( 'gestiunea implicită din Oblio', 'fgsync-oblio' );
+		} else {
+			$others = array_filter(
+				$synced,
+				static function ( string $key ) use ( $workstation, $management ): bool {
+					list( $key_workstation, $key_management ) = array_pad( explode( '|', $key, 2 ), 2, '' );
+					return $key_management !== $management || ( '' !== $workstation && $key_workstation !== $workstation );
+				}
+			);
+			if ( empty( $others ) ) {
+				return '';
+			}
+			$issuing = trim( $workstation . ' / ' . $management, ' /' );
+		}
+
+		$labels = array_map(
+			static fn ( string $key ): string => (string) ( $locations[ $key ] ?? trim( str_replace( '|', ' / ', $key ), ' /' ) ),
+			$synced
+		);
+		$paired = 'documents' === $paired_section
+			? self::tab_link( 'documents', 'oblio_fgwoo_management', __( '„Gestiune (emitere)”', 'fgsync-oblio' ) )
+			: self::tab_link( 'stock', 'oblio_fgwoo_stock_locations', __( '„Gestiuni (locații)”', 'fgsync-oblio' ) );
+
+		return sprintf(
+			'<span class="oblio-fgwoo-field-warning">%s</span>',
+			sprintf(
+				/* translators: 1: gestiuni the shop sells stock from, 2: gestiunea documents take stock from, 3: link to the paired setting */
+				__( '<strong>Atenție:</strong> magazinul vinde stocul din %1$s, dar facturile și avizele descarcă stocul doar din %2$s. Un produs aflat doar în altă gestiune poate fi comandat, iar apoi Oblio refuză factura cu descărcare de stoc. Sincronizează doar gestiunea de emitere sau transferă stocul în ea înainte de facturare. Vezi și %3$s.', 'fgsync-oblio' ),
+				esc_html( implode( ', ', $labels ) ),
+				esc_html( $issuing ),
+				$paired
+			)
 		);
 	}
 

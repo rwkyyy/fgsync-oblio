@@ -232,6 +232,51 @@ final class SettingsPageTest extends TestCase {
 		$this->assertTrue( $this->settings->is_enabled( 'stock_match_product_type' ) );
 	}
 
+	public function test_mentions_checkbox_sits_above_a_prefilled_textarea(): void {
+		$fields = ( new ReflectionMethod( SettingsPage::class, 'get_settings' ) )->invoke( $this->page, 'advanced' );
+		$ids    = array_column( $fields, 'id' );
+		$by_id  = array_column( $fields, null, 'id' );
+
+		$this->assertSame( array_search( 'oblio_fgwoo_invoice_mentions', $ids, true ) - 1, array_search( 'oblio_fgwoo_invoice_mentions_enabled', $ids, true ) );
+		$this->assertSame( 'checkbox', $by_id['oblio_fgwoo_invoice_mentions_enabled']['type'] );
+		$this->assertSame( 'no', $by_id['oblio_fgwoo_invoice_mentions_enabled']['default'] );
+		$this->assertStringStartsWith( 'Pentru comanda [order_id]', $by_id['oblio_fgwoo_invoice_mentions']['value'] );
+	}
+
+	public function test_mentions_checkbox_starts_ticked_when_text_was_already_saved(): void {
+		$this->settings->set( 'invoice_mentions', 'Comanda [order_id]' );
+
+		$by_id = array_column( ( new ReflectionMethod( SettingsPage::class, 'get_settings' ) )->invoke( $this->page, 'advanced' ), null, 'id' );
+
+		$this->assertSame( 'yes', $by_id['oblio_fgwoo_invoice_mentions_enabled']['default'] );
+		$this->assertSame( 'Comanda [order_id]', $by_id['oblio_fgwoo_invoice_mentions']['value'] );
+	}
+
+	public function test_email_button_custom_color_is_opt_in_and_saved(): void {
+		$fields = ( new ReflectionMethod( SettingsPage::class, 'get_settings' ) )->invoke( $this->page, 'email' );
+		$ids    = array_column( $fields, 'id' );
+		$by_id  = array_column( $fields, null, 'id' );
+		$saved  = array_column( ( new ReflectionMethod( SettingsPage::class, 'saveable_fields' ) )->invoke( $this->page ), 'id' );
+
+		$this->assertSame( array_search( 'oblio_fgwoo_email_button_label', $ids, true ) + 1, array_search( 'oblio_fgwoo_email_button_custom_color', $ids, true ) );
+		$this->assertSame( array_search( 'oblio_fgwoo_email_button_custom_color', $ids, true ) + 1, array_search( 'oblio_fgwoo_email_button_color', $ids, true ) );
+		$this->assertSame( 'checkbox', $by_id['oblio_fgwoo_email_button_custom_color']['type'] );
+		$this->assertSame( 'no', $by_id['oblio_fgwoo_email_button_custom_color']['default'] );
+		$this->assertSame( 'color', $by_id['oblio_fgwoo_email_button_color']['type'] );
+		$this->assertContains( 'oblio_fgwoo_email_button_custom_color', $saved );
+		$this->assertContains( 'oblio_fgwoo_email_button_color', $saved );
+		$this->assertFalse( $this->settings->is_enabled( 'email_button_custom_color' ) );
+	}
+
+	public function test_stock_reservation_statuses_are_saved_and_default_to_the_previous_fixed_list(): void {
+		$fields = array_column( ( new ReflectionMethod( SettingsPage::class, 'get_settings' ) )->invoke( $this->page, 'stock' ), null, 'id' );
+		$saved  = array_column( ( new ReflectionMethod( SettingsPage::class, 'saveable_fields' ) )->invoke( $this->page ), 'id' );
+
+		$this->assertSame( 'multiselect', $fields['oblio_fgwoo_stock_reserve_statuses']['type'] );
+		$this->assertSame( array( 'on-hold', 'processing', 'pending' ), $fields['oblio_fgwoo_stock_reserve_statuses']['default'] );
+		$this->assertContains( 'oblio_fgwoo_stock_reserve_statuses', $saved );
+	}
+
 	public function test_tax_tab_opens_with_the_advice_to_consult_the_developer_and_accountant(): void {
 		foreach ( array( 'yes', 'no' ) as $calc_taxes ) {
 			$GLOBALS['oblio_test_options']['woocommerce_calc_taxes'] = $calc_taxes;
@@ -291,6 +336,79 @@ final class SettingsPageTest extends TestCase {
 		$by_id  = array_column( $fields, null, 'id' );
 
 		$this->assertArrayNotHasKey( 'custom_attributes', $by_id['oblio_fgwoo_management'] );
+	}
+
+	/**
+	 * @param array<int,string> $synced Synced locations.
+	 * @return array{0:string,1:string} Descriptions of „Gestiune (emitere)” and „Gestiuni (locații)”.
+	 */
+	private function gestiune_descriptions( array $synced, string $management = 'Central' ): array {
+		set_transient(
+			'oblio_fgwoo_management',
+			array(
+				array( 'workStation' => 'Sediu', 'management' => 'Central' ),
+				array( 'workStation' => 'Sediu', 'management' => 'Showroom' ),
+			),
+			WEEK_IN_SECONDS
+		);
+		$GLOBALS['oblio_test_options']['oblio_fgwoo_stock_sync_trigger'] ??= 'schedule';
+		$this->settings->set( 'workstation', 'Sediu' );
+		$this->settings->set( 'management', $management );
+		$this->settings->set( 'stock_locations', $synced );
+
+		$by_id = array_column(
+			array_merge(
+				( new ReflectionMethod( SettingsPage::class, 'get_settings' ) )->invoke( $this->page, 'documents' ),
+				( new ReflectionMethod( SettingsPage::class, 'get_settings' ) )->invoke( $this->page, 'stock' )
+			),
+			null,
+			'id'
+		);
+		return array( $by_id['oblio_fgwoo_management']['desc'], $by_id['oblio_fgwoo_stock_locations']['desc'] );
+	}
+
+	public function test_both_gestiune_settings_warn_when_the_shop_sells_from_gestiuni_documents_dont_use(): void {
+		list( $management, $locations ) = $this->gestiune_descriptions( array( 'Sediu|Central', 'Sediu|Showroom' ) );
+
+		foreach ( array( $management, $locations ) as $desc ) {
+			$this->assertStringContainsString( 'magazinul vinde stocul din Sediu / Central, Sediu / Showroom, dar facturile și avizele descarcă stocul doar din Sediu / Central.', $desc );
+		}
+		$this->assertStringContainsString( 'section=stock#oblio_fgwoo_stock_locations', $management );
+		$this->assertStringContainsString( 'section=documents#oblio_fgwoo_management', $locations );
+	}
+
+	public function test_an_empty_location_list_sums_every_gestiune_and_warns(): void {
+		list( , $locations ) = $this->gestiune_descriptions( array() );
+
+		$this->assertStringContainsString( 'vinde stocul din Sediu / Central, Sediu / Showroom', $locations );
+	}
+
+	public function test_a_synced_gestiune_other_than_the_issuing_one_warns(): void {
+		list( , $locations ) = $this->gestiune_descriptions( array( 'Sediu|Showroom' ) );
+
+		$this->assertStringContainsString( 'vinde stocul din Sediu / Showroom, dar facturile și avizele descarcă stocul doar din Sediu / Central', $locations );
+	}
+
+	public function test_syncing_only_the_issuing_gestiune_does_not_warn(): void {
+		foreach ( $this->gestiune_descriptions( array( 'Sediu|Central' ) ) as $desc ) {
+			$this->assertStringNotContainsString( 'oblio-fgwoo-field-warning', $desc );
+		}
+	}
+
+	public function test_the_implicit_gestiune_warns_only_when_several_are_summed(): void {
+		list( , $single ) = $this->gestiune_descriptions( array( 'Sediu|Central' ), '' );
+		list( , $summed ) = $this->gestiune_descriptions( array(), '' );
+
+		$this->assertStringNotContainsString( 'oblio-fgwoo-field-warning', $single );
+		$this->assertStringContainsString( 'doar din gestiunea implicită din Oblio', $summed );
+	}
+
+	public function test_no_gestiune_warning_while_stock_sync_is_off(): void {
+		$GLOBALS['oblio_test_options']['oblio_fgwoo_stock_sync_trigger'] = 'off';
+
+		foreach ( $this->gestiune_descriptions( array( 'Sediu|Central', 'Sediu|Showroom' ) ) as $desc ) {
+			$this->assertStringNotContainsString( 'oblio-fgwoo-field-warning', $desc );
+		}
 	}
 
 	public function test_oss_setting_lives_on_the_tax_tab(): void {

@@ -233,11 +233,11 @@ final class InvoiceBuilder {
 	}
 
 	private function mentions( WC_Order $order ): string {
-		$template = (string) $this->settings->get( 'invoice_mentions', '' );
-		if ( '' === $template ) {
+		if ( ! $this->settings->mentions_enabled() ) {
 			return '';
 		}
-		$created = $order->get_date_created();
+		$template = $this->settings->mentions_template();
+		$created  = $order->get_date_created();
 		return str_replace(
 			array( '[order_id]', '[date]', '[payment]', '[shipping]', '[site]' ),
 			array(

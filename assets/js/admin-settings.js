@@ -327,9 +327,10 @@
 			[ 'oblio_fgwoo_email_from', 'oblio_fgwoo_email_cc', 'oblio_fgwoo_email_subject', 'oblio_fgwoo_email_message' ].forEach( function ( id ) {
 				toggleRow( id, 'standalone' === mode );
 			} );
-			[ 'oblio_fgwoo_email_button_statuses', 'oblio_fgwoo_email_button_label' ].forEach( function ( id ) {
+			[ 'oblio_fgwoo_email_button_statuses', 'oblio_fgwoo_email_button_label', 'oblio_fgwoo_email_button_custom_color' ].forEach( function ( id ) {
 				toggleRow( id, 'button' === mode );
 			} );
+			toggleRow( 'oblio_fgwoo_email_button_color', 'button' === mode && $( '#oblio_fgwoo_email_button_custom_color' ).is( ':checked' ) );
 			var gen = $( '#oblio_fgwoo_invoice_generation' ).val() || '';
 			toggleRow( 'oblio_fgwoo_invoice_batch_interval', 'batch' === gen );
 
@@ -421,6 +422,7 @@
 			applyConditionals();
 			enhance( $body.find( '.oblio-fgwoo-section[data-section="email"]' ) );
 		} );
+		$( '#oblio_fgwoo_email_button_custom_color' ).on( 'change', applyConditionals );
 		$( '#oblio_fgwoo_invoice_generation' ).on( 'change', applyConditionals );
 		$( '#oblio_fgwoo_stock_sync_trigger' ).on( 'change', applyConditionals );
 		$( '#oblio_fgwoo_collect_mode' ).on( 'change', function () {
@@ -454,6 +456,35 @@
 			e.preventDefault();
 			e.returnValue = '';
 			return '';
+		} );
+	} );
+
+	// WooCommerce initialises its color fields only on its own settings screens.
+	$( function () {
+		var $color = $( '.oblio-fgwoo-page .colorpick' );
+		if ( ! $color.length || ! $.fn.iris ) {
+			return;
+		}
+		$color.iris( {
+			hide: true,
+			border: true,
+			change: function ( event, ui ) {
+				$( this ).siblings( '.colorpickpreview' ).css( 'background-color', ui.color.toString() );
+			}
+		} ).on( 'click focus', function ( event ) {
+			event.stopPropagation();
+			$( '.iris-picker' ).hide();
+			$( this ).closest( 'td' ).find( '.iris-picker' ).show();
+		} );
+		$( '.oblio-fgwoo-page .colorpickpreview' ).on( 'click', function ( event ) {
+			event.stopPropagation();
+			$( this ).siblings( '.colorpick' ).trigger( 'focus' );
+		} );
+		$( '.oblio-fgwoo-page' ).on( 'click', '.iris-picker', function ( event ) {
+			event.stopPropagation();
+		} );
+		$( document ).on( 'click', function () {
+			$( '.iris-picker' ).hide();
 		} );
 	} );
 

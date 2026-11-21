@@ -106,6 +106,97 @@ final class OrderMetaBoxTest extends TestCase {
 		$this->assertStringNotContainsString( 'button-primary', $output );
 	}
 
+	public function test_an_issued_invoice_links_to_its_oblio_preview(): void {
+		$order = new WC_Order( 81200 );
+		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'series' ), 'FV' );
+		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'number' ), '10741' );
+		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'link' ), 'https://www.oblio.eu/utils/show_file/?ic=91467&id=271828316&it=bde87369631a5340057280037419f7e7' );
+
+		ob_start();
+		$this->meta_box->render( $order );
+		$output = (string) ob_get_clean();
+
+		$this->assertStringContainsString( 'href="https://www.oblio.eu/docs/preview/invoice/271828316"', $output );
+		$this->assertStringContainsString( 'Vezi în Oblio', $output );
+	}
+
+	public function test_a_migrated_legacy_invoice_links_to_its_oblio_preview(): void {
+		$order = new WC_Order( 81201 );
+		$order->update_meta_data( 'oblio_invoice_series_name', 'FV' );
+		$order->update_meta_data( 'oblio_invoice_number', '9001' );
+		$order->update_meta_data( 'oblio_invoice_link', 'https://www.oblio.eu/utils/show_file/?ic=91467&id=105595937&it=e54c982243d86b513c3942f2f0a4502c&preload=1' );
+
+		ob_start();
+		$this->meta_box->render( $order );
+		$output = (string) ob_get_clean();
+
+		$this->assertStringContainsString( 'href="https://www.oblio.eu/docs/preview/invoice/105595937"', $output );
+	}
+
+	public function test_each_storno_links_to_its_own_oblio_preview(): void {
+		$order = new WC_Order( 81202 );
+		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'series' ), 'FV' );
+		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'number' ), '10741' );
+		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'link' ), 'https://www.oblio.eu/utils/show_file/?ic=91467&id=271828316&it=a1' );
+		$order->update_meta_data(
+			OrderMeta::STORNO_LIST,
+			array(
+				101 => array( 'series' => 'FV', 'number' => '10750', 'link' => 'https://www.oblio.eu/utils/show_file/?ic=91467&id=271828400&it=b2', 'full' => false ),
+				102 => array( 'series' => 'FV', 'number' => '10755', 'link' => 'https://www.oblio.eu/utils/show_file/?ic=91467&id=271828455&it=c3', 'full' => false ),
+			)
+		);
+
+		ob_start();
+		$this->meta_box->render( $order );
+		$output = (string) ob_get_clean();
+
+		$this->assertStringContainsString( 'href="https://www.oblio.eu/docs/preview/invoice/271828400"', $output );
+		$this->assertStringContainsString( 'href="https://www.oblio.eu/docs/preview/invoice/271828455"', $output );
+		$this->assertSame( 3, substr_count( $output, 'Vezi în Oblio' ) );
+	}
+
+	public function test_no_oblio_preview_when_the_link_has_no_document_id(): void {
+		$order = new WC_Order( 81203 );
+		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'series' ), 'FV' );
+		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'number' ), '10741' );
+		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'link' ), 'https://www.oblio.eu/utils/show_file/?ic=91467&id=abc&it=a1' );
+
+		ob_start();
+		$this->meta_box->render( $order );
+		$output = (string) ob_get_clean();
+
+		$this->assertStringContainsString( 'Vezi Factură FV 10741', $output );
+		$this->assertStringNotContainsString( 'Vezi în Oblio', $output );
+	}
+
+	public function test_an_issued_proforma_links_to_its_oblio_preview(): void {
+		$order = new WC_Order( 81204 );
+		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_PROFORMA, 'series' ), 'PR' );
+		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_PROFORMA, 'number' ), '8' );
+		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_PROFORMA, 'link' ), 'https://www.oblio.eu/utils/show_file/?ic=91467&id=261747&it=b8' );
+
+		ob_start();
+		$this->meta_box->render( $order );
+		$output = (string) ob_get_clean();
+
+		$this->assertStringContainsString( 'href="https://www.oblio.eu/docs/preview/proforma/261747"', $output );
+	}
+
+	public function test_a_notice_has_no_oblio_preview(): void {
+		$this->settings->set( 'notice_enabled', 'yes' );
+		$order = new WC_Order( 81205 );
+		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_NOTICE, 'series' ), 'AV' );
+		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_NOTICE, 'number' ), '12' );
+		$order->update_meta_data( OrderMeta::key( OrderMeta::TYPE_NOTICE, 'link' ), 'https://www.oblio.eu/utils/show_file/?ic=91467&id=261790&it=d4' );
+
+		ob_start();
+		$this->meta_box->render( $order );
+		$output = (string) ob_get_clean();
+
+		$this->assertStringContainsString( 'Vezi Aviz AV 12', $output );
+		$this->assertStringNotContainsString( 'docs/preview', $output );
+	}
+
 	public function test_a_failure_reason_with_oblio_markup_shows_as_plain_text(): void {
 		$order = new WC_Order( 80911 );
 		$order->update_meta_data(

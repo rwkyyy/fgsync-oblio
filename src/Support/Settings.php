@@ -59,6 +59,7 @@ final class Settings {
 		'oss_eur_currency'             => 'no',
 		'bundle_line_mode'             => 'auto',
 		'autocomplete_company'         => 0,
+		'invoice_mentions_enabled'     => 'no',
 		'invoice_mentions'             => '',
 		'invoice_issuer_name'          => '',
 		'invoice_issuer_id'            => '',
@@ -77,6 +78,7 @@ final class Settings {
 		'stock_update_price'           => 'no',
 		'stock_match_product_type'     => 'yes',
 		'stock_reserve_orders'         => 'no',
+		'stock_reserve_statuses'       => array( 'on-hold', 'processing', 'pending' ),
 		'stock_reserve_days'           => 30,
 
 		'email_mode'                   => 'off',
@@ -88,6 +90,8 @@ final class Settings {
 
 		'email_button_statuses'        => array( 'completed' ),
 		'email_button_label'           => 'Vezi factura',
+		'email_button_custom_color'    => 'no',
+		'email_button_color'           => '#f36e21',
 
 		'debug_logging'                => 'no',
 		'admin_bar_status'             => 'yes',
@@ -144,6 +148,25 @@ final class Settings {
 			$statuses = '' !== $single ? array( $single ) : array( 'completed' );
 		}
 		return $statuses;
+	}
+
+	/**
+	 * Shops that saved mentions before the checkbox existed keep sending them.
+	 */
+	public function mentions_enabled(): bool {
+		$stored = (string) get_option( self::PREFIX . 'invoice_mentions_enabled', '' );
+		if ( '' === $stored ) {
+			return '' !== trim( (string) get_option( self::PREFIX . 'invoice_mentions', '' ) );
+		}
+		return 'yes' === $stored;
+	}
+
+	public function mentions_template(): string {
+		$template = (string) get_option( self::PREFIX . 'invoice_mentions', '' );
+		if ( '' !== trim( $template ) ) {
+			return $template;
+		}
+		return __( "Pentru comanda [order_id], din [date], plătit prin [payment], livrat prin [shipping].\nComandă efectuată pe [site]", 'fgsync-oblio' );
 	}
 
 	public function email_mode(): string {

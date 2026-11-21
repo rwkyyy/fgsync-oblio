@@ -22,6 +22,8 @@ final class EmailButton {
 
 	private const MAX_INLINE_WAIT = 5;
 
+	private const WC_BUTTON_TEMPLATE = 'emails/email-button.php';
+
 	private Settings $settings;
 
 	private DocumentIssuer $documents;
@@ -76,9 +78,53 @@ final class EmailButton {
 			return;
 		}
 
+		$color = $this->custom_color();
+		if ( null === $color && file_exists( wc_locate_template( self::WC_BUTTON_TEMPLATE ) ) ) {
+			wc_get_template(
+				self::WC_BUTTON_TEMPLATE,
+				array(
+					'url'   => $document['link'],
+					'label' => $label,
+				)
+			);
+			return;
+		}
+
+		$this->print_button( $document['link'], $label, $color ?? $this->woocommerce_base_color() );
+	}
+
+	private function custom_color(): ?string {
+		if ( ! $this->settings->is_enabled( 'email_button_custom_color' ) ) {
+			return null;
+		}
+		$color = (string) sanitize_hex_color( (string) $this->settings->get( 'email_button_color' ) );
+		return '' !== $color ? $color : null;
+	}
+
+	private function woocommerce_base_color(): string {
+		$color = (string) sanitize_hex_color( (string) get_option( 'woocommerce_email_base_color', '' ) );
+		return '' !== $color ? $color : '#7f54b3';
+	}
+
+	/**
+	 * Same markup as WooCommerce's emails/email-button.php, which older
+	 * WooCommerce versions don't ship.
+	 *
+	 * @param string $url        Invoice link.
+	 * @param string $label      Button text.
+	 * @param string $background Hex color.
+	 */
+	private function print_button( string $url, string $label, string $background ): void {
+		$hex = ltrim( $background, '#' );
+		if ( 3 === strlen( $hex ) ) {
+			$hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+		}
+
 		printf(
-			'<p style="margin:0 0 24px;"><a href="%1$s" style="display:inline-block;padding:12px 22px;background:#f36e21;color:#130b17;font-weight:700;font-size:15px;text-decoration:none;border-radius:6px;">%2$s</a></p>',
-			esc_url( $document['link'] ),
+			'<p style="margin:24px 0;"><a href="%1$s" style="display:inline-block;padding:16px 32px;background-color:%2$s;color:%3$s;border-radius:4px;font-weight:bold;font-size:15px;text-decoration:none;">%4$s</a></p>',
+			esc_url( $url ),
+			esc_attr( $background ),
+			esc_attr( wc_hex_is_light( $hex ) ? '#000000' : '#ffffff' ),
 			esc_html( $label )
 		);
 	}

@@ -78,12 +78,46 @@ final class InvoiceLinesTest extends TestCase {
 		return $order;
 	}
 
+	private function priced_order(): WC_Order {
+		$item = $this->item(
+			array( 'subtotal' => 100.0, 'subtotal_tax' => 21.0, 'total' => 100.0, 'total_tax' => 21.0 ),
+			new WC_Product( array( 'regular_price' => '121', 'price' => '121' ) )
+		);
+		return $this->order( array( $item ), 121.0 );
+	}
+
 	private function products( WC_Order $order ): array {
 		return $this->builder()->build( $order, OrderMeta::TYPE_INVOICE )['products'];
 	}
 
 	private function item( array $data, ?WC_Product $product = null ): WC_Order_Item_Product {
 		return new WC_Order_Item_Product( $data, $product );
+	}
+
+	public function test_mentions_are_not_sent_while_the_checkbox_is_off(): void {
+		$this->settings->set( 'invoice_mentions_enabled', 'no' );
+		$this->settings->set( 'invoice_mentions', 'Comanda [order_id]' );
+
+		$data = $this->builder()->build( $this->priced_order(), OrderMeta::TYPE_INVOICE );
+
+		$this->assertSame( '', $data['mentions'] );
+	}
+
+	public function test_enabled_mentions_replace_the_tags(): void {
+		$this->settings->set( 'invoice_mentions_enabled', 'yes' );
+		$this->settings->set( 'invoice_mentions', 'Comanda [order_id], [payment], [shipping], pe [site]' );
+
+		$data = $this->builder()->build( $this->priced_order(), OrderMeta::TYPE_INVOICE );
+
+		$this->assertSame( 'Comanda #1, Ramburs, Curier, pe Magazin Test', $data['mentions'] );
+	}
+
+	public function test_enabled_mentions_without_saved_text_send_the_default_text(): void {
+		$this->settings->set( 'invoice_mentions_enabled', 'yes' );
+
+		$data = $this->builder()->build( $this->priced_order(), OrderMeta::TYPE_INVOICE );
+
+		$this->assertSame( "Pentru comanda #1, din , plătit prin Ramburs, livrat prin Curier.\nComandă efectuată pe Magazin Test", $data['mentions'] );
 	}
 
 	public function test_simple_taxed_line_has_full_shape(): void {

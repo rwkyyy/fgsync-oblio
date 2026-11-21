@@ -34,9 +34,14 @@ versiunea stabilă de instalat. Descrierea completă și changelog-ul publicate 
 * Factura unei comenzi cu aviz se emite pe baza avizului, deci stocul se descarcă o singură dată.
 * Fără proforme pentru comenzile deja plătite online (proforma e o cerere de plată).
 * Rambursările făcute înainte de factură sunt scăzute din factură, fără storno separat.
+* Butoane „Vezi în Oblio” pe ecranul comenzii, care deschid factura, proforma sau stornoul direct în Oblio.
+* Mențiuni pe document cu variabile (comandă, dată, plată, livrare, site), activate dintr-o bifă, cu un text gata completat.
 * Procesare pe coadă (Queue / Action Scheduler): emiterea nu blochează niciodată checkout-ul/site-ul/ecranul operatorului.
 * Sincronizare stoc în loturi, pe una sau mai multe gestiuni, după SKU.
+* Avertizare în setări când magazinul vinde stoc dintr-o gestiune din care facturile nu descarcă stocul. Dacă Oblio refuză un document pentru stoc insuficient, eroarea arată stocul fiecărui produs pe gestiuni.
+* Rezervare stoc pentru comenzile nefacturate, cu fereastra și statusurile de comandă alese din setări.
 * Încasare automată ("marcat ca plătit"), configurabilă pe metodă de plată.
+* Factura trimisă clientului într-un email separat sau ca buton în emailurile WooCommerce, cu designul și culoarea de bază ale WooCommerce sau cu o culoare aleasă.
 * Compatibil HPOS (High-Performance Order Storage) și stocare clasică a comenzilor.
 * Compatibil WPML / WooCommerce Multilingual.
 * Compatibilitate Bundles, inclusiv pachete cu preț fix (prețul se împarte pe componente)
@@ -96,6 +101,7 @@ FGSync peste funcționalitatea de bază listată chiar deasupra lui, nu o funcț
 | ↳ Reîncercare automată cu backoff la eșec | `-`                                                                                                              | ✅ |
 | **Emitere la confirmarea plății online** | ✅ | ✅ opțională |
 | **Proforme** | ✅ (blocate pentru plata cu cardul)                                                                               | ✅ nu se emit pentru comenzile deja plătite online |
+| **Deschide documentul în Oblio din ecranul comenzii** | ✅ factură și proformă | ✅ factură, proformă și storno |
 | **Ștergere document** | ✅ posibilă doar pentru ultimul document din serie: Oblio refuză ștergerea oricărui alt document, afișat constant | ✅ |
 | ↳ Butonul de ștergere e ascuns când documentul nu e ultimul din serie, în loc să apară eroarea Oblio după click | `-`                                                                                                              | ✅ |
 | **Storno (credit note), integral și parțial** | ❌                                                                                                                | ✅ automat la rambursarea comenzii |
@@ -104,6 +110,8 @@ FGSync peste funcționalitatea de bază listată chiar deasupra lui, nu o funcț
 | ↳ Factura se emite pe baza avizului, stocul se descarcă o singură dată | `-` | ✅ |
 | **Tip produs Oblio (implicit și per produs)** | ✅ | ✅ |
 | ↳ Tip separat pentru produsele virtuale (digitale) | `-` | ✅ |
+| **Mențiuni pe document, cu variabile** | ✅ | ✅ |
+| ↳ Activate dintr-o bifă, cu un text gata completat și variabila `[site]` | `-` | ✅ |
 | **Facturi în contul clientului** | ✅ | ✅ |
 | ↳ Include stornourile, cu paginare | `-` | ✅ |
 | **Reconciliere pentru documente omise** | ❌                                                                                                                | ✅ job recurent |
@@ -130,6 +138,7 @@ FGSync peste funcționalitatea de bază listată chiar deasupra lui, nu o funcț
 | ↳ Interval configurabil (orar, la 6h, la 12h, zilnic) | `-` | ✅ |
 | **Sincronizare pe o gestiune** | ✅ | ✅ |
 | ↳ Agregare pe mai multe gestiuni deodată | `-` | ✅ |
+| ↳ Avertizare când gestiunile sincronizate diferă de gestiunea din care se emit facturile | `-` | ✅ |
 | **Sincronizare stoc manuală** | ✅ sincronă, blochează pagina | ✅ |
 | ↳ Rulează pe fundal, cu bară de progres | `-` | ✅ |
 | **Rezervare stoc pentru comenzi neonorate** | ✅ fereastră fixă de 30 de zile | ✅ |
@@ -177,6 +186,15 @@ FGSync peste funcționalitatea de bază listată chiar deasupra lui, nu o funcț
 | ↳ Emitere proformă și storno în masă | `-` | ✅ |
 | **Filtrare listă de comenzi după statusul Oblio** | ❌ | ✅ |
 | **Vizibilitate a motivului de eșec la emitere** | ❌ | ✅ pe ecranul comenzii și în lista de comenzi |
+| ↳ La refuzul pentru stoc insuficient: stocul fiecărui produs pe gestiuni și dacă un transfer în Oblio rezolvă | `-` | ✅ |
+
+### Email către client
+
+| Funcționalitate | Integrarea Oblio.eu | FGSync |
+|---|---|---|
+| **Email separat cu factura** | ✅ | ✅ |
+| **Buton către factură în emailurile WooCommerce** | ❌ | ✅ |
+| ↳ Designul și culoarea de bază ale WooCommerce, sau o culoare aleasă | `-` | ✅ |
 
 ### Automatizări externe
 

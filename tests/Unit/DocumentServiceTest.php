@@ -357,6 +357,67 @@ final class DocumentServiceTest extends TestCase {
 		$this->assertNull( NomenclatureCache::uses_stock() );
 	}
 
+	private function refuse_for_stock( string $message ): void {
+		$GLOBALS['oblio_test_http_responses'][] = array(
+			'response' => array( 'code' => 499 ),
+			'body'     => wp_json_encode( array( 'statusMessage' => $message ) ),
+		);
+	}
+
+	public function test_a_stock_refusal_lists_the_stock_per_gestiune(): void {
+		$this->settings->set( 'workstation', 'Sediu' );
+		$this->settings->set( 'management', 'Central' );
+		$order = $this->order_with_one_line_item( 1 );
+		$GLOBALS['oblio_test_orders'][1] = $order;
+		$this->respond( array( 'access_token' => 'tok', 'token_type' => 'Bearer', 'expires_in' => 3600 ) );
+		$this->refuse_for_stock( "Nu am putut descarca gestiunea pentru acest document.\nProdusele urmatoare nu au stoc suficient:\n<b>Widget</b>." );
+		$this->respond(
+			array(
+				'data' => array(
+					array(
+						'code'        => 'WIDGET-1',
+						'productType' => 'Marfa',
+						'stock'       => array(
+							array( 'workStation' => 'Sediu', 'management' => 'Central', 'quantity' => 0 ),
+							array( 'workStation' => 'Sediu', 'management' => 'Showroom', 'quantity' => 3 ),
+						),
+					),
+				),
+			)
+		);
+
+		try {
+			$this->service()->issue( $order, OrderMeta::TYPE_INVOICE, array( 'use_stock' => true ), true );
+			$this->fail( 'Expected a DocumentException.' );
+		} catch ( DocumentException $exception ) {
+			$this->assertSame(
+				"Nu am putut descarca gestiunea pentru acest document.\nProdusele urmatoare nu au stoc suficient:\n&lt;b&gt;Widget&lt;/b&gt;. Stoc în Oblio: WIDGET-1 (necesar 1): Sediu / Central 0, Sediu / Showroom 3. Stocul lipsă este în altă gestiune: transferă-l în Sediu / Central din Oblio, apoi emite din nou.",
+				$exception->getMessage()
+			);
+			$this->assertInstanceOf( ApiException::class, $exception->getPrevious() );
+		}
+		$this->assertSame( '', (string) $order->get_meta( OrderMeta::key( OrderMeta::TYPE_INVOICE, 'link' ) ) );
+	}
+
+	public function test_a_stock_refusal_keeps_oblios_error_when_the_stock_cannot_be_read(): void {
+		$order = $this->order_with_one_line_item( 1 );
+		$GLOBALS['oblio_test_orders'][1] = $order;
+		$this->respond( array( 'access_token' => 'tok', 'token_type' => 'Bearer', 'expires_in' => 3600 ) );
+		$this->refuse_for_stock( 'Produsul "Widget" nu are stoc suficient.' );
+		$GLOBALS['oblio_test_http_responses'][] = array(
+			'response' => array( 'code' => 500 ),
+			'body'     => wp_json_encode( array( 'statusMessage' => 'Server error' ) ),
+		);
+
+		try {
+			$this->service()->issue( $order, OrderMeta::TYPE_INVOICE, array( 'use_stock' => true ), true );
+			$this->fail( 'Expected an ApiException.' );
+		} catch ( ApiException $exception ) {
+			$this->assertSame( 499, $exception->http_status() );
+			$this->assertSame( 'Produsul &quot;Widget&quot; nu are stoc suficient.', $exception->status_message() );
+		}
+	}
+
 	public function test_a_retryable_api_failure_throws_and_leaves_nothing_persisted(): void {
 		$order = $this->order_with_one_line_item( 1 );
 		$GLOBALS['oblio_test_orders'][1] = $order;

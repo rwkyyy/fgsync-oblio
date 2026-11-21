@@ -17,6 +17,8 @@ use WC_Order;
 use WP_Post;
 final class OrderMetaBox {
 
+	private const PREVIEW_URL = 'https://www.oblio.eu/docs/preview/';
+
 	private Settings $settings;
 
 	private NomenclatureCache $nomenclature;
@@ -119,6 +121,9 @@ final class OrderMetaBox {
 				esc_html( $document['series'] ),
 				esc_html( $document['number'] )
 			);
+			if ( in_array( $doc_type, array( OrderMeta::TYPE_INVOICE, OrderMeta::TYPE_PROFORMA ), true ) ) {
+				$this->preview_button( $document['link'], $doc_type );
+			}
 
 			if ( OrderMeta::is_last_document( $order, $doc_type ) ) {
 				printf(
@@ -179,6 +184,7 @@ final class OrderMetaBox {
 					esc_html( (string) ( $storno['series'] ?? '' ) ),
 					esc_html( (string) ( $storno['number'] ?? '' ) )
 				);
+				$this->preview_button( $link, OrderMeta::TYPE_INVOICE );
 			}
 		} else {
 			printf(
@@ -197,6 +203,26 @@ final class OrderMetaBox {
 			}
 		}
 		return $reasons;
+	}
+
+	/**
+	 * Oblio's document id is the `id` query parameter of the PDF link it
+	 * returns on issue. Stornos are invoices in Oblio and use the invoice path.
+	 *
+	 * @param string $link     PDF link Oblio returned for the document.
+	 * @param string $doc_type Oblio preview path segment: invoice or proforma.
+	 */
+	private function preview_button( string $link, string $doc_type ): void {
+		parse_str( (string) wp_parse_url( $link, PHP_URL_QUERY ), $params );
+		$document_id = $params['id'] ?? '';
+		if ( ! is_string( $document_id ) || ! ctype_digit( $document_id ) ) {
+			return;
+		}
+		printf(
+			'<a class="button" href="%s" target="_blank" rel="noopener noreferrer">%s</a>',
+			esc_url( self::PREVIEW_URL . $doc_type . '/' . $document_id ),
+			esc_html__( 'Vezi în Oblio', 'fgsync-oblio' )
+		);
 	}
 
 	/**

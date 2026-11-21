@@ -40,8 +40,8 @@
   "operatingSystem": "WordPress 6.5+",
   "inLanguage": "ro",
   "description": "Integrare independentă, open-source, între WooCommerce și serviciul de facturare Oblio.eu: facturi, proforme, avize și storno automate, procesare pe coadă și sincronizare stoc pe mai multe gestiuni.",
-  "softwareVersion": "1.4.4",
-  "dateModified": "2026-11-12",
+  "softwareVersion": "1.4.5",
+  "dateModified": "2026-11-21",
   "image": "https://rwkyyy.github.io/fgsync-oblio/assets/icon-256x256.jpg",
   "screenshot": "https://rwkyyy.github.io/fgsync-oblio/assets/screenshot-1-conectare.png",
   "offers": {
@@ -407,6 +407,8 @@
             <li>Factură și la confirmarea plății online (opțional). Pentru o comandă cu aviz, factura se emite pe baza avizului, deci stocul se descarcă o singură dată</li>
             <li>Fără proforme pentru comenzile deja plătite online: proforma e o cerere de plată</li>
             <li>Storno automat la rambursările din WooCommerce, integral sau parțial. Rambursările făcute înainte de factură sunt scăzute din factură, fără storno separat</li>
+            <li>Butoanele „Vezi în Oblio” de pe ecranul comenzii deschid factura, proforma sau stornoul direct în Oblio</li>
+            <li>Mențiuni pe document cu variabile (comandă, dată, plată, livrare, site), activate dintr-o bifă, cu un text gata completat</li>
             <li>Clienții își văd facturile și stornourile în secțiunea „Facturi” din contul lor</li>
             <li>Produsele virtuale (digitale) pot primi propriul tip, de ex. „Serviciu”, iar conturile Oblio fără gestiuni sunt suportate, cu facturi emise fără descărcare din stoc</li>
           </ul></div>
@@ -435,13 +437,15 @@
             <li>Sincronizare pe loturi, pe una sau mai multe gestiuni Oblio, potrivite după SKU</li>
             <li>Interval configurabil (orar, la 6h, la 12h, zilnic) sau manual, cu bară de progres</li>
             <li>Scrie doar produsele al căror stoc sau preț chiar s-a schimbat</li>
+            <li>Rezervare stoc pentru comenzile nefacturate, cu fereastra și statusurile de comandă alese din setări</li>
+            <li>Avertizare când magazinul vinde stoc dintr-o gestiune din care facturile nu descarcă stocul. Dacă Oblio refuză un document pentru stoc insuficient, eroarea arată stocul fiecărui produs pe gestiuni</li>
           </ul></div>
         </div>
         <div class="card">
           <div class="card-h"><h3>Încasare și notificări</h3></div>
           <div class="card-b"><ul>
             <li>Încasare automată ("marcat ca plătit"), configurabilă pe metodă de plată</li>
-            <li>Notificare client prin email standalone sau buton în emailurile proprii ale WooCommerce</li>
+            <li>Notificare client prin email standalone sau buton în emailurile proprii ale WooCommerce, cu designul și culoarea de bază ale WooCommerce sau cu o culoare aleasă</li>
           </ul></div>
         </div>
         <div class="card">
@@ -525,10 +529,12 @@
             <tr><th scope="row" class="feat">Reîncercare automată la eșec</th><td class="tag-no">Lipsește</td><td class="tag-yes">Automată, cu pauze (eșecuri multiple)</td></tr>
             <tr><th scope="row" class="feat">Storno (credit note)</th><td class="tag-no">Lipsește</td><td class="tag-yes">Automat la rambursare, integrală sau parțială</td></tr>
             <tr><th scope="row" class="feat">Aviz (notă de livrare)</th><td class="tag-partial">Codul există, dar nu e funcțional</td><td class="tag-yes">Funcțional, iar factura se emite pe baza lui</td></tr>
+            <tr><th scope="row" class="feat">Deschide documentul în Oblio</th><td class="tag-yes">Factură și proformă</td><td class="tag-yes">Factură, proformă și storno</td></tr>
             <tr><th scope="row" class="feat">Reconciliere documente omise</th><td class="tag-no">Lipsește</td><td class="tag-yes">Job recurent / Rutină</td></tr>
             <tr><th scope="row" class="feat">Interval sincronizare stoc</th><td class="tag-partial">Cron fix, la fiecare oră</td><td class="tag-yes">Configurabil</td></tr>
             <tr><th scope="row" class="feat">Sincronizare stoc la scară</th><td class="tag-partial">O singură execuție care citește și scrie toate produsele: risc de timeout la cataloage mari / încetinire masivă în server</td><td class="tag-yes">Pe secțiuni, asincron, neblocant cu progres salvat</td></tr>
-            <tr><th scope="row" class="feat">Agregare pe mai multe gestiuni</th><td class="tag-no">Lipsește</td><td class="tag-yes">Disponibilă</td></tr>
+            <tr><th scope="row" class="feat">Agregare pe mai multe gestiuni</th><td class="tag-no">Lipsește</td><td class="tag-yes">Disponibilă, cu avertizare când facturile descarcă din altă gestiune</td></tr>
+            <tr><th scope="row" class="feat">Refuz Oblio pentru stoc insuficient</th><td class="tag-partial">Doar mesajul Oblio, la emiterea manuală</td><td class="tag-yes">Stocul fiecărui produs pe gestiuni și dacă un transfer în Oblio rezolvă</td></tr>
             <tr><th scope="row" class="feat">Limitare rată API Oblio</th><td class="tag-partial">Doar la paginarea sincronizării de stoc</td><td class="tag-yes">La fiecare emitere (facturi, proforme, avize, storno)</td></tr>
             <tr><th scope="row" class="feat">Compatibilitate HPOS</th><td class="tag-partial">Parțială</td><td class="tag-yes">Completă</td></tr>
             <tr><th scope="row" class="feat">WPML / WooCommerce Multilingual</th><td class="tag-no">Lipsește</td><td class="tag-yes">Disponibil</td></tr>
@@ -540,6 +546,7 @@
             <tr><th scope="row" class="feat">Persoană fizică / juridică</th><td class="tag-partial">CNP trimis drept CIF, fără bancă și IBAN</td><td class="tag-yes">PF/PJ, CUI, CNP, Reg. Com., bancă și IBAN</td></tr>
             <tr><th scope="row" class="feat">Filtre / hook-uri proprii</th><td class="tag-partial">2</td><td class="tag-yes">23</td></tr>
             <tr><th scope="row" class="feat">Stocare cheie API</th><td class="tag-partial">Text simplu</td><td class="tag-yes">Criptată (AES-256-GCM)</td></tr>
+            <tr><th scope="row" class="feat">Buton către factură în emailurile WooCommerce</th><td class="tag-no">Lipsește</td><td class="tag-yes">Cu designul și culoarea WooCommerce, sau o culoare aleasă</td></tr>
             <tr><th scope="row" class="feat">Filtrare listă comenzi după status Oblio</th><td class="tag-no">Lipsește</td><td class="tag-yes">Disponibilă</td></tr>
             <tr><th scope="row" class="feat">Monitorizare erori</th><td class="tag-no">Lipsește</td><td class="tag-yes">Disponibilă</td></tr>
             <tr><th scope="row" class="feat">Bază de cod</th><td class="tag-partial">Fără versiune minimă de PHP, procedural, fără teste automate</td><td class="tag-yes">PHP 8.1+, tipare stricte, testat cu PHPUnit</td></tr>
@@ -595,6 +602,11 @@
       <div class="faq-item">
         <h3>De ce nu pot șterge o factură Oblio mai veche din WooCommerce?</h3>
         <p>Oblio permite ștergerea doar a ultimului document emis dintr-o serie. Dacă există deja o factură mai nouă în aceeași serie, butonul de ștergere e ascuns pentru cea veche; emite în schimb un storno pentru a o anula. Proformele sunt excepția și pot fi șterse oricând.</p>
+      </div>
+
+      <div class="faq-item">
+        <h3>De ce refuză Oblio factura pentru stoc insuficient, deși produsul apare pe stoc?</h3>
+        <p>Factura descarcă stocul doar din gestiunea aleasă la „Gestiune (emitere)”, în tabul Documente. Sincronizarea poate aduna stocul din mai multe gestiuni („Gestiuni (locații)”, în tabul Sincronizare), așa că un produs aflat doar în altă gestiune apare pe stoc în magazin și poate fi comandat. Transferă stocul în gestiunea de emitere din Oblio și emite din nou, sau sincronizează doar gestiunea de emitere. Pluginul te avertizează în ambele taburi când gestiunile diferă, iar eroarea de pe comandă arată stocul produsului în fiecare gestiune.</p>
       </div>
 
       <div class="faq-item">
